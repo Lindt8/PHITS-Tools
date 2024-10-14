@@ -17,7 +17,8 @@ The functions contained in this module and brief descriptions of their functions
 
 - `is_number`                       : returns Boolean denoting whether provided string is that of a number
 
-### Sub functions used for PHITS output parsing (meant as dependencies more so than for standalone usage)
+### Subfunctions for PHITS output parsing
+(These are meant as dependencies more so than for standalone usage.)
 
 - `split_into_header_and_content`   : initial reading of PHITS tally output, dividing it into header and "content" sections
 - `parse_tally_header`              : extract metadata from tally output header section
