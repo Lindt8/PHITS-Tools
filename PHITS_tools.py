@@ -1,0 +1,1308 @@
+'''
+
+This module contains a variety of tools used for parsing PHITS output files.
+
+Specifically, it seeks to be a (nearly) universal PHITS output parser, supporting output from
+all tallies, both normal output as well as dump file outputs (in ASCII and binary).
+
+The functions contained in this module and brief descriptions of their functions are included below.
+
+### PHITS Output Parsing Functions
+
+- `parse_tally_output_file`         : general parser for standard output files for all PHITS tallies
+- `parse_tally_dump_file`           : parser for dump files from "dump" flag in PHITS [T-Cross], [T-Time], and [T-Track] tallies
+- `parse_all_tally_output_in_dir`   :
+
+### General Purpose Functions
+
+'''
+
+import sys
+import os
+import numpy as np
+from munch import *
+from pathlib import Path
+
+
+import pprint
+
+
+
+# use Path, get extension, check for existence of filename_err.extension
+
+
+
+
+def split_into_header_and_content(output_file_path):
+    in_content = False
+    header, content = [], [[]]
+    with open(output_file_path) as f:
+        for line in f:
+            if '#newpage:' in line:
+                in_content = True
+                continue
+            if in_content:
+                if 'newpage:' in line:
+                    content.append([])
+                    continue
+                content[-1].append(line.strip())
+            else:
+                header.append(line.strip())
+    # add "footer" to peel off last bit of "content" section?
+    return header, content
+
+def is_number(n):
+    try:
+        float(n)
+    except ValueError:
+        return False
+    return True
+
+
+def extract_data_from_header_line(line):
+    if '#' in line:
+        info, trash = line.split('#',1)
+    else:
+        info = line
+    key, value = info.split('=')
+    key = key.strip()
+    value = value.strip()
+    if is_number(value):
+        if '.' in value:
+            value = float(value)
+        else:
+            value = int(value)
+    return key, value
+
+def data_row_to_num_list(line):
+    value_strs = line.strip().split()
+    values = []
+    for value in value_strs:
+        if is_number(value):
+            if '.' in value:
+                value = float(value)
+            else:
+                value = int(value)
+        values.append(value)
+    return values
+
+
+
+def parse_group_string(text):
+    # returns list of items from PHITS-formatted string, e.g. w/ ()
+    parts = text.strip().split()
+    #print(parts)
+    groups = []
+    in_brackets_group = False
+    num_group_members = 0
+    for i in parts:
+        if '(' in i and ')' in i:
+            in_brackets_group = False
+            groups.append(i)
+        elif '(' in i:
+            in_brackets_group = True
+            groups.append(i)
+        elif ')' in i:
+            in_brackets_group = False
+            num_group_members = 0
+            groups[-1] += i
+        else:
+            if in_brackets_group:
+                if num_group_members>0: groups[-1] += ' '
+                groups[-1] += i
+                num_group_members += 1
+            else:
+                groups.append(i)
+    return groups
+
+def parse_tally_header(tally_header,tally_content):
+    nlines = len(tally_header)
+    tally_type = tally_header[0].replace(' ','')
+    meta = Munch({})
+    meta.tally_type = tally_type
+    # Initialize variables for possible array
+    mesh_types = ['e','t','x','y','z','r','a','l']
+    for m in mesh_types: meta['n'+m] = None
+    meta['reg'] = None
+    meta['part'] = None
+    meta['samepage'] = 'part'
+    found_mesh_kinds = []
+
+    reading_axis_data = False
+    reading_regions = False
+    in_exceptional_mesh_kind = False
+    for li, line in enumerate(tally_header):
+        #if line[0]=='#': # commented line
+        if 'data =' in line: # data section to parse
+            reading_axis_data = True
+            n_values_to_read = meta['n'+current_data_mesh_kind] + 1
+            remaining_n_values_to_read = n_values_to_read
+            data_values = []
+            in_exceptional_mesh_kind = False
+            #print('read ',n_values_to_read,current_data_mesh_kind,' values')
+            continue
+        elif '=' in line:
+            if line[0] == '#':  # commented line
+                key, value = extract_data_from_header_line(line[1:])
+            else:
+                key, value = extract_data_from_header_line(line)
+            if in_exceptional_mesh_kind:
+                if key[0]=='e':
+                    key = current_data_mesh_kind + key[1:]
+                elif key=='ne':
+                    key = 'n' + current_data_mesh_kind
+            meta[key] = value
+
+            if 'type' in key:
+                current_data_mesh_kind = key.replace('-type','')
+                current_data_mesh_type = value
+                found_mesh_kinds.append(current_data_mesh_kind)
+                if current_data_mesh_kind in ['e1','e2']:
+                    in_exceptional_mesh_kind = True
+                #print(current_data_mesh_kind,current_data_mesh_type)
+            if key=='part':
+                part_groups = parse_group_string(str(value))
+                kf_groups = parse_group_string(tally_header[li + 1].split(':')[1])
+                meta['part_groups'] = part_groups
+                meta['kf_groups'] = kf_groups
+                meta['npart'] = len(part_groups)
+            if key=='reg':
+                if meta['tally_type']=='[T-Cross]':
+                    num_regs = value
+                    meta['num_reg_groups'] = num_regs
+                    meta['reg_groups'] = []
+                    # manually read in reg groups
+                    li_start = li+2
+                    li_stop = li_start + num_regs
+                    for lii in range(li_start,li_stop):
+                        non, rfrom, rto, area = tally_header[lii].split()
+                        meta['reg_groups'].append(rfrom+' - '+rto)
+                else:
+                    reg_groups = parse_group_string(str(value))
+                    meta['reg_groups'] = reg_groups
+        elif reading_axis_data:
+            values = line.replace('#','').strip().split()
+            for val in values:
+                data_values.append(float(val))
+                remaining_n_values_to_read += -1
+            if remaining_n_values_to_read <= 0:
+                reading_axis_data = False
+                data_values = np.array(data_values)
+                meta[current_data_mesh_kind+'-mesh_bin_edges'] = data_values
+                meta[current_data_mesh_kind+'-mesh_bin_mids'] = 0.5*(data_values[1:]+data_values[:-1])
+                #meta[current_data_mesh_kind+'-mesh_bin_mids_log'] = np.sqrt(data_values[1:]*data_values[:-1])
+                # generate log-centered bin mids
+                bin_mids_log = []
+                for i in range(len(data_values)-1):
+                    if data_values[i+1]<=0 or data_values[i]<=0: # if one or both edges <= 0
+                        if data_values[i+1]<0 and data_values[i]<0: # both values are negative
+                            bin_mids_log.append(-1*np.sqrt(data_values[i]*data_values[i+1]))
+                        elif data_values[i+1]==0 or data_values[i]==0: # one value is zero
+                            # use linear center instead...
+                            bin_mids_log.append(0.5*(data_values[i]+data_values[i+1]))
+                        elif data_values[i+1]<0 or data_values[i]<0: # bin straddles zero
+                            # use linear center instead...
+                            bin_mids_log.append(0.5*(data_values[i]+data_values[i+1]))
+                        else:
+                            print('unknown binning encountered, skipping generation of log-scale bin mids for '+current_data_mesh_kind+'-mesh')
+                            break
+                    else:
+                        bin_mids_log.append(np.sqrt(data_values[i]*data_values[i+1]))
+                meta[current_data_mesh_kind+'-mesh_bin_mids_log'] = np.array(bin_mids_log)
+            continue
+        else:
+            continue
+
+    meta['found_mesh_kinds'] = found_mesh_kinds
+
+    if meta['tally_type']=='[T-Cross]':
+        if meta['mesh']=='xyz':
+            if 'enclos' in meta and meta['enclos']==1:
+                pass # total items remains nx*ny*nz
+            else:
+                meta['nz_original'] = meta['nz']
+                meta['nz'] += 1 # zmesh surfaces are scored, making array nx*ny*(nz+1)
+        elif meta['mesh']=='r-z':
+            if 'enclos' in meta and meta['enclos']==1:
+                pass # total items remains nr*nz
+            else:
+                # max total num of pages = nrsurf*nz + nzsurf*nr = (nr+1)*nz + nr*(nz+1) = 2*nr*nz + nr + nz
+                # if one radius is 0, this becomes = nr*nz + nr*(nz+1) = 2*nr*nz + nr
+                # Solution used here:
+                # use ir to iterate nr, use iy to iterate nrsurf, use iz to iterate nz, use ic to iterate nzsurf
+                # since only rsurf*z [iy,iz] and r*zsurf [ir,ic] pairs exist, when one pair is being written
+                # the other will be [-1,-1], hence the dimensions for the array are increased by an extra 1 to prevent overlap
+                meta['nr_original'] = meta['nr']
+                meta['nz_original'] = meta['nz']
+                meta['ny_original'] = meta['ny']
+                #meta['nc_original'] = meta['nc']
+                meta['ny'] = meta['nr'] + 1 + 1
+                meta['nc'] = meta['nz'] + 1 + 1
+                meta['nr'] = meta['nr'] + 1
+                meta['nz'] = meta['nz'] + 1
+
+    axes_1D = ['eng','reg','x','y','z','r','t','cos','the','mass','charge','let','tet']
+    axes_2D = ['xy','yz','zx','rz','chart','dchain','t-eng','eng-t','t-e1','e1-t','t-e2','e2-t','e12','e21','xz','yx','zy','zr']
+
+    axes_ital_1D = [3,   0,  0,  1,  2,  0,  4,    5,    5,     8,       8,    6,    0]
+    axes_ital_2D = [ [0,1],[1,2],[2,0],[0,2],[None,None],[None,None],[4,3],[3,4],[4,3],[3,4],[4,8],[8,4],[3,8],[8,3],[0,2],[1,0],[2,1],[2,0]]
+
+
+    if meta['axis'] in axes_1D:
+        meta['axis_dimensions'] = 1
+        meta['axis_index_of_tally_array'] = axes_ital_1D[axes_1D.index(meta['axis'])]
+    elif meta['axis'] in axes_2D:
+        meta['axis_dimensions'] = 2
+        meta['axis_index_of_tally_array'] = axes_ital_2D[axes_2D.index(meta['axis'])]
+    else:
+        print("WARNING: axis value of ",meta['axis']," is not in list of known/registered values")
+        meta['axis_dimensions'] = None
+        meta['axis_index_of_tally_array'] = None
+
+
+
+
+    # Now extract portion of metadata only available from tally content
+
+    if meta['mesh'] == 'reg' or meta['mesh'] == 'tet':
+        num, reg, vol = [], [], []
+        if meta['axis']=='reg' or meta['axis']=='tet':  # get number of regions and region data from first block of tally content
+            outblock = tally_content[0]
+            in_reg_list = False
+            for line in outblock:
+                if '#' in line and ' num ' in line:
+                    cols = line[1:].split()
+                    #print(cols)
+                    in_reg_list = True
+                    continue
+                if len(line.split()) == 0 or '{' in line:
+                    in_reg_list = False
+                if in_reg_list:
+                    vals = line.split()
+                    if meta['tally_type'] == '[T-Cross]':
+                        num.append(vals[0])
+                        reg.append(vals[0])
+                        vol.append(vals[1])
+                    else:
+                        num.append(vals[0])
+                        reg.append(vals[1])
+                        vol.append(vals[2])
+        else: # scan output for region numbers:
+            regcount = 0
+            for outblock in tally_content:
+                for line in outblock:
+                    if 'reg =' in line:
+                        regnum = line.strip().split('reg =')[1].strip().replace("'",'')
+                        if regnum not in reg:
+                            regcount += 1
+                            num.append(regcount)
+                            reg.append(regnum)
+                            vol.append(None)
+                        continue
+        if meta['mesh'] == 'reg':
+            meta.reg_serial_num = num
+            meta.reg_num = reg
+            if meta['tally_type'] == '[T-Cross]':
+                meta.reg_area = vol
+            else:
+                meta.reg_volume = vol
+            meta.nreg = len(reg)
+        elif meta['mesh'] == 'tet':
+            meta.tet_serial_num = num
+            meta.tet_num = reg
+            meta.reg_num = reg
+            #meta.tet_volume = vol
+            if meta['tally_type'] == '[T-Cross]':
+                meta.tet_area = vol
+            else:
+                meta.tet_volume = vol
+            meta.ntet = len(reg)
+
+        #if meta['tally_type'] == '[T-Cross]':
+        #    meta['reg_groups'] = reg
+
+
+
+    elif meta['mesh'] == 'tet':
+        num, reg, vol = [], [], []
+        if meta['axis'] == 'tet':
+            pass
+        else:
+            pass
+        print('mesh=tet has not been tested!')
+        meta.ntet = 0
+
+    axis1_label = ''
+    axis2_label = ''
+    value_label = ''
+    hc_passed = False # passed colorbar definition line
+    outblock = tally_content[0]
+    for line in outblock:
+        if line[:2] == 'x:':
+            axis1_label = line[2:].strip()
+        if line[:2] == 'y:':
+            if meta.axis_dimensions == 1:
+                value_label = line[2:].strip()
+                break
+            elif meta.axis_dimensions == 2:
+                if hc_passed: # second instance of y:
+                    value_label = line[2:].strip()
+                    break
+                else: # first instance of y:
+                    axis2_label = line[2:].strip()
+                    hc_passed = True
+        #if line[:3] == 'hc:':
+        #    hc_passed = True
+    meta.axis1_label = axis1_label
+    meta.axis2_label = axis2_label
+    meta.value_label = value_label
+
+    return meta
+
+def initialize_tally_array(tally_metadata,include_abs_err=True):
+    ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max = 1, 1, 1, 1, 1, 1, 1, 1, 1
+    if include_abs_err:
+        ierr_max = 3
+    else:
+        ierr_max = 2
+    if tally_metadata['mesh'] == 'reg':
+        ir_max = tally_metadata.nreg
+    elif tally_metadata['mesh'] == 'xyz':
+        ir_max = tally_metadata.nx
+        iy_max = tally_metadata.ny
+        iz_max = tally_metadata.nz
+    elif tally_metadata['mesh'] == 'r-z':
+        ir_max = tally_metadata.nr
+        iz_max = tally_metadata.nz
+        if 'ny' in tally_metadata and tally_metadata.ny != None: iy_max = tally_metadata.ny
+        if 'nc' in tally_metadata and tally_metadata.nc != None: ic_max = tally_metadata.nc
+    elif tally_metadata['mesh'] == 'tet':
+        ir_max = tally_metadata.ntet
+    else:
+        print('ERROR! Unknown geometry mesh:', tally_metadata['mesh'])
+        sys.exit()
+
+    if tally_metadata.na != None: ia_max = tally_metadata.na
+    if tally_metadata.nt != None: it_max = tally_metadata.nt
+    if tally_metadata.nl != None: il_max = tally_metadata.nl
+    if 'nc' in tally_metadata and tally_metadata.nc != None: ic_max = tally_metadata.nc
+    #if 'npart' in tally_metadata and tally_metadata.npart != None: ip_max = tally_metadata.np
+
+    if tally_metadata.ne == None:
+        if 'e1' in tally_metadata.axis or 'e2' in tally_metadata.axis:
+            if tally_metadata.axis == 'e12':
+                ie_max = tally_metadata.ne1
+                ic_max = tally_metadata.ne2
+            elif tally_metadata.axis == 'e21':
+                ie_max = tally_metadata.ne1
+                ic_max = tally_metadata.ne2
+            elif 'e1' in tally_metadata.axis:
+                ie_max = tally_metadata.ne1
+            elif 'e2' in tally_metadata.axis:
+                ie_max = tally_metadata.ne2
+    else:
+        ie_max = tally_metadata.ne
+
+    ip_max = tally_metadata.npart
+
+    tally_data = np.zeros((ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max, ierr_max))
+    return tally_data
+
+def calculate_tally_absolute_errors(tdata):
+    ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max, ierr_max = np.shape(tdata)
+    for ir in range(ir_max):
+        for iy in range(iy_max):
+            for iz in range(iz_max):
+                for ie in range(ie_max):
+                    for it in range(it_max):
+                        for ia in range(ia_max):
+                            for il in range(il_max):
+                                for ip in range(ip_max):
+                                    for ic in range(ic_max):
+                                        tdata[ir, iy, iz, ie, it, ia, il, ip, ic, 2] = \
+                                            tdata[ir, iy, iz, ie, it, ia, il, ip, ic, 0] * \
+                                            tdata[ir, iy, iz, ie, it, ia, il, ip, ic, 1]
+    return tdata
+
+def split_str_of_equalities(text):
+    equalities_str_list = []
+    original_text = text
+    #if text[0] == "'": # more loosely formatted text
+    #    problem_strs = ['tot DPA']
+    text = text.replace("'",'').replace(',',' ').replace('#','').replace('=',' = ')
+    text_pieces = text.split()
+    #i_equal_sign = [i for i, x in enumerate(text_pieces) if x == "="]
+    is_i_equal_sign = [x=='=' for x in text_pieces]
+    #i_is_number = [i for i, x in enumerate(text_pieces) if is_number(x)]
+    is_i_number = [is_number(x) for x in text_pieces]
+    #num_equalities = len(i_equal_sign)
+    #remaining_equalities = num_equalities
+    equality_str = ''
+    # the only condition enforced is that the last item in each value be numeric or )
+    current_equality_contains_equalsign = False
+    for i in reversed(range(len(text_pieces))): # easiest to build from right to left
+        equality_str = text_pieces[i] + ' ' + equality_str
+        if is_i_equal_sign[i]:
+            current_equality_contains_equalsign = True
+        elif current_equality_contains_equalsign: # looking to terminate if next item is numeric
+            if i==0 or (is_i_number[i-1] or text_pieces[i-1][-1]==')'): # either final equality completed or next item belongs to next equality
+                equalities_str_list.insert(0,equality_str.strip())
+                equality_str = ''
+                current_equality_contains_equalsign = False
+    if '(' in text: # need to break up potential (ia,ib) pairs
+        new_eq_str_list = []
+        for x in equalities_str_list:
+            if '(' in x:
+                keys, values = x.split('=')
+                keys = keys.strip().replace('(','').replace(')','').split()
+                values = values.strip().replace('(','').replace(')','').split()
+                for i in range(len(keys)):
+                    new_eq_str = keys[i].strip() + ' = ' + values[i].strip()
+                    new_eq_str_list.append(new_eq_str)
+            else:
+                new_eq_str_list.append(x)
+        equalities_str_list = new_eq_str_list
+    #print(equalities_str_list)
+    return equalities_str_list
+
+
+def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode=False):
+    global ir, iy, iz, ie, it, ia, il, ip, ic, ierr
+    global ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max, ierr_max
+    ierr = 0
+    if is_err_in_separate_file and err_mode:
+        ierr = 1
+
+    mesh_kind_chars = ['e', 't', 'x', 'y', 'z', 'r', 'a', 'l']
+    mesh_kind_iax = [3, 4, 0, 1, 2, 0, 5, 6]
+    tdata_ivar_strs = ['ir', 'iy', 'iz', 'ie', 'it', 'ia', 'il', 'ip', 'ic']
+    ir, iy, iz, ie, it, ia, il, ip, ic = 0, 0, 0, 0, 0, 0, 0, 0, 0
+
+    ignored_eq_strs = []
+    replace_eq_strs_dict = {'ang':'a'}
+
+    ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max, ierr_max = np.shape(tdata)
+
+    axes_1D = ['eng', 'reg', 'x', 'y', 'z', 'r', 't', 'cos', 'the', 'mass', 'charge', 'let', 'tet']
+    axes_2D = ['xy', 'yz', 'zx', 'rz', 'chart', 'dchain',
+               't-eng', 'eng-t', 't-e1', 'e1-t', 't-e2', 'e2-t',
+               'e12', 'e21', 'xz', 'yx', 'zy', 'zr']
+
+    axes_ital_1D = [3, 0, 0, 1, 2, 0, 4, 5, 5, 8, 8, 6, 0]
+    axes_ital_2D = [[0, 1], [1, 2], [2, 0], [0, 2], [None, None], [None, None],
+                    [4, 3], [3, 4], [4, 3], [3, 4], [4, 8], [8, 4],
+                    [3, 8], [8, 3], [0, 2], [1, 0], [2, 1], [2, 0]]
+
+    if meta.axis_dimensions==1:
+        for bi, block in enumerate(tally_blocks):
+            hli, fli = 0,0
+            for li, line in enumerate(block):
+                if len(line) == 0: continue
+                if line[:2].lower() == 'h:': # start of data is here
+                    hli = li
+                if line[:12] == '#   sum over' or line[:7] == '#   sum' or line[:5] == '#----' or (len(block[li-1]) == 0 and hli != 0 and li>hli+2) or "'" in line or '{' in line:
+                    fli = li
+                    if (len(block[li-1]) == 0 and hli != 0 and li>hli+2): fli = li - 1 # triggered by blank line after data
+                    #if "'" in line or '{' in line:
+                    #    fli = li-1
+                    break
+
+            data_header = block[:hli]
+            data_table = block[hli:fli]
+            data_footer = block[fli:]
+
+            if bi == len(tally_blocks) - 1:
+                for li, line in enumerate(data_footer):
+                    if line[:37] == '# Information for Restart Calculation':
+                        ffli = li
+                        break
+                data_footer = data_footer[:ffli]
+
+            # print(data_header)
+            #print(data_table)
+            # print(data_footer)
+
+            hash_line_already_evaluated = False
+
+            # try to get relevant indices data from header and footer blocks
+            for li, line in enumerate(data_header+data_footer):
+                if len(line) == 0: continue
+
+                if '=' in line and (line[0] == "'" or (line[0] == "#" and ('no.' in line or 'i' in line or 'reg' in line or 'part' in line))):
+                    if line[0] == "#":
+                        hash_line_already_evaluated = True
+                    elif line[0] == "'" and hash_line_already_evaluated:
+                        continue # '-starting lines tend to have more problematic formatting, best skipped if possible
+                    parts = split_str_of_equalities(line)
+                    for part in parts:
+                        mesh_char = part.split('=')[0].strip().replace('i','')
+                        if mesh_char == 'no.':
+                            continue
+                        elif mesh_char == 'part.' or mesh_char == 'partcle':
+                            part_grp_name = part.split('=')[1].strip()
+                            ip = (meta.part_groups).index(part_grp_name)
+                        elif mesh_char == 'reg':
+                            regnum = part.split('=')[1].strip()
+                            ir = (meta.reg_num).index(regnum)
+                        elif mesh_char in mesh_kind_chars or mesh_char in replace_eq_strs_dict:
+                            if mesh_char in replace_eq_strs_dict:
+                                mesh_char = replace_eq_strs_dict[mesh_char]
+                            if 'i'+mesh_char not in part: continue # only looking for indices for meshes, not values
+                            imesh = mesh_kind_chars.index(mesh_char)
+                            itdata_axis = mesh_kind_iax[imesh]
+                            tdata_ivar_str = tdata_ivar_strs[itdata_axis]
+                            value = str(int(part.split('=')[1].strip())-1)
+                            exec(tdata_ivar_str + ' = ' + value, globals())
+                        elif mesh_char in ignored_eq_strs:
+                            continue
+                        elif meta['tally_type']=='[T-Cross]':
+                            if meta['mesh'] == 'xyz' and mesh_char=='z surf':
+                                #imesh = mesh_kind_chars.index('z')
+                                itdata_axis = 2 #mesh_kind_iax[imesh]
+                                tdata_ivar_str = tdata_ivar_strs[itdata_axis]
+                                value = str(int(part.split('=')[1].strip()) - 1)
+                                exec(tdata_ivar_str + ' = ' + value, globals())
+                            elif meta['mesh'] == 'r-z':
+                                if mesh_char=='r surf':
+                                    # imesh = mesh_kind_chars.index('y')
+                                    itdata_axis = 1  # mesh_kind_iax[imesh]
+                                    tdata_ivar_str = tdata_ivar_strs[itdata_axis]
+                                    value = str(int(part.split('=')[1].strip()) - 1)
+                                    exec(tdata_ivar_str + ' = ' + value, globals())
+                                    ir, ic = -1, -1
+                                elif mesh_char=='z surf':
+                                    # imesh = mesh_kind_chars.index('c')
+                                    itdata_axis = 8  # mesh_kind_iax[imesh]
+                                    tdata_ivar_str = tdata_ivar_strs[itdata_axis]
+                                    value = str(int(part.split('=')[1].strip()) - 1)
+                                    exec(tdata_ivar_str + ' = ' + value, globals())
+                                    iy, iz = -1, -1
+                                else:
+                                    print('ERROR! Unregistered potential index [', part.split('=')[0].strip(),'] found')
+                                    sys.exit()
+                            else:
+                                print('ERROR! Unregistered potential index [', part.split('=')[0].strip(), '] found')
+                                sys.exit()
+                        else:
+                            print('ERROR! Unregistered potential index [',part.split('=')[0].strip(),'] found')
+                            sys.exit()
+
+
+            # extract data from table
+            # determine meaning of table rows
+            row_ivar = tdata_ivar_strs[meta.axis_index_of_tally_array]
+            # determine meaning of table columns
+            hcols = parse_group_string(data_table[0][3:])
+            #print(hcols)
+            is_col_data = np.full(len(hcols),False)
+            data_col_indices = []
+            is_col_err = np.full(len(hcols),False)
+            err_col_indices = []
+            for iii in range(len(hcols)):
+                if hcols[iii][0] == 'y':
+                    is_col_data[iii] = True
+                    is_col_err[iii+1] = True
+                    data_col_indices.append(iii)
+                    err_col_indices.append(iii+1)
+            #print(is_col_data)
+            #print(is_col_err)
+            cols = data_table[1][1:].strip().split()
+            ncols = len(cols)
+            ndata_cols = np.sum(is_col_data) # number of data values per row
+            # determine what variable this corresponds to, should be val of samepage
+            # by default, this is usually particles (samepage = part by default)
+            if meta.samepage == 'part':
+                if meta.npart != ndata_cols:
+                    print('ERROR! samepage number of particle types (',meta.npart,') not equal to number of data columns y(part) = ',ndata_cols)
+                    sys.exit()
+                data_ivar = 'ip'
+                data_ivar_indices = [j for j in range(ndata_cols)]
+            else: # figure out what axis samepage is on
+                if meta.samepage not in axes_1D:
+                    print('ERROR! samepage parameter (',meta.samepage,') must be "part" or one of valid options for "axis" parameter')
+                    sys.exit()
+                data_ivar = tdata_ivar_strs[axes_ital_1D[axes_1D.index(meta.samepage)]]
+                if ndata_cols != eval(data_ivar+'_max'):
+                    print('ERROR! number of data columns (',ndata_cols,') not equal to tally array dimension for ',data_ivar)
+                    sys.exit()
+                data_ivar_indices = [j for j in range(ndata_cols)]
+            #print(cols)
+            #print(ndata_cols)
+            for li, line in enumerate(data_table[2:]):
+                if len(line)==0: continue
+                #print(line)
+                rowi = li
+                exec(row_ivar + '=' + str(rowi),globals())
+                #print(row_ivar + '=' + str(rowi))
+                values = data_row_to_num_list(line)
+                dcoli = 0
+                ecoli = 0
+                for vi, value in enumerate(values):
+                    if is_col_data[vi]:
+                        exec(data_ivar + '=' + str(dcoli),globals())
+                        #print(data_ivar + '=' + str(dcoli))
+                        tdata[ir, iy, iz, ie, it, ia, il, ip, ic, 0] = value
+                        dcoli += 1
+                    if is_col_err[vi]:
+                        exec(data_ivar + '=' + str(ecoli),globals())
+                        #print(data_ivar + '=' + str(ecoli))
+                        tdata[ir, iy, iz, ie, it, ia, il, ip, ic, 1] = value
+                        ecoli += 1
+
+
+
+    elif meta.axis_dimensions==2:
+        for bi, block in enumerate(tally_blocks):
+            hli, bli = 0 , 0
+            data_keyword_found = False
+            for li, line in enumerate(block):
+                if meta['2D-type'] in [1, 2, 3, 6, 7]:
+                    if len(line) == 0: continue
+                    if line[:3].lower() in ['hc:', 'h2:', 'hd:']:  # start of data is here
+                        hli = li
+                    if line[:12] == '#-----------':
+                        fli = li
+                        #if bi != len(tally_blocks) - 1:
+                        break
+                elif meta['2D-type'] == 4:
+                    if line == '' and hli != 0:
+                        fli = li
+                        #if bi != len(tally_blocks) - 1:
+                        break
+                    elif line == '':  # start of data is here
+                        hli = li
+                elif meta['2D-type'] == 5:
+                    if 'data' in line:
+                        hli = li + 3
+                    if line == '' and hli != 0 and li>hli+2:
+                        fli = li
+                        #if bi != len(tally_blocks) - 1:
+                        break
+
+            data_header = block[:hli]
+            data_table = block[hli:fli]
+            data_footer = block[fli:]
+
+            #print(data_header)
+            #print(data_table)
+            #print(data_footer)
+
+            hash_line_already_evaluated = False
+
+            if bi == len(tally_blocks) - 1:
+                for li, line in enumerate(data_footer):
+                    if line[:37] == '# Information for Restart Calculation':
+                        ffli = li
+                        break
+                data_footer = data_footer[:ffli]
+
+            # try to get relevant indices data from header block
+            for li, line in enumerate(data_header+data_footer): # +data_footer
+                if len(line) == 0: continue
+                #if 'reg =' in line:
+                #    regnum = line.strip().split('reg =')[1].strip()
+                #    ir = (meta.reg_num).index(regnum)
+                #    # print(ir)
+                if '=' in line and (line[0] == "'" or (line[0] == "#" and ('no.' in line or 'i' in line or 'reg' in line or 'part' in line))):
+                    if line[0] == "#":
+                        hash_line_already_evaluated = True
+                    elif line[0] == "'" and hash_line_already_evaluated:
+                        continue # '-starting lines tend to have more problematic formatting, best skipped if possible
+                    parts = split_str_of_equalities(line)
+                    for part in parts:
+                        mesh_char = part.split('=')[0].strip().replace('i', '')
+                        if mesh_char == 'no.':
+                            continue
+                        elif mesh_char == 'part.' or mesh_char == 'partcle':
+                            part_grp_name = part.split('=')[1].strip()
+                            ip = (meta.part_groups).index(part_grp_name)
+                        elif mesh_char == 'reg':
+                            regnum = part.split('=')[1].strip()
+                            ir = (meta.reg_num).index(regnum)
+                        elif mesh_char in mesh_kind_chars or mesh_char in replace_eq_strs_dict:
+                            if mesh_char in replace_eq_strs_dict:
+                                mesh_char = replace_eq_strs_dict[mesh_char]
+                            if 'i'+mesh_char not in part: continue # only looking for indices for meshes, not values
+                            imesh = mesh_kind_chars.index(mesh_char)
+                            itdata_axis = mesh_kind_iax[imesh]
+                            tdata_ivar_str = tdata_ivar_strs[itdata_axis]
+                            value = str(int(part.split('=')[1].strip()) - 1)
+                            exec(tdata_ivar_str + ' = ' + value, globals())
+                        elif mesh_char in ignored_eq_strs:
+                            continue
+                        elif meta['tally_type']=='[T-Cross]':
+                            if meta['mesh'] == 'xyz' and mesh_char=='z surf':
+                                #imesh = mesh_kind_chars.index('z')
+                                itdata_axis = 2 #mesh_kind_iax[imesh]
+                                tdata_ivar_str = tdata_ivar_strs[itdata_axis]
+                                value = str(int(part.split('=')[1].strip()) - 1)
+                                exec(tdata_ivar_str + ' = ' + value, globals())
+                            elif meta['mesh'] == 'r-z':
+                                if mesh_char=='r surf':
+                                    # imesh = mesh_kind_chars.index('y')
+                                    itdata_axis = 1  # mesh_kind_iax[imesh]
+                                    tdata_ivar_str = tdata_ivar_strs[itdata_axis]
+                                    value = str(int(part.split('=')[1].strip()) - 1)
+                                    exec(tdata_ivar_str + ' = ' + value, globals())
+                                    ir, ic = -1, -1
+                                elif mesh_char=='z surf':
+                                    # imesh = mesh_kind_chars.index('c')
+                                    itdata_axis = 8  # mesh_kind_iax[imesh]
+                                    tdata_ivar_str = tdata_ivar_strs[itdata_axis]
+                                    value = str(int(part.split('=')[1].strip()) - 1)
+                                    exec(tdata_ivar_str + ' = ' + value, globals())
+                                    iy, iz = -1, -1
+                                else:
+                                    print('ERROR! Unregistered potential index [', part.split('=')[0].strip(),'] found')
+                                    sys.exit()
+                            else:
+                                print('ERROR! Unregistered potential index [', part.split('=')[0].strip(), '] found')
+                                sys.exit()
+                        else:
+                            print('ERROR! Unregistered potential index [',part.split('=')[0].strip(),'] found')
+                            sys.exit()
+
+
+            # Now read data_table, with formatting dependent on 2D-type, and can be inferred from last line of header
+            axis1_ivar = meta.axis_index_of_tally_array[0]
+            axis2_ivar = meta.axis_index_of_tally_array[1]
+            if meta['2D-type'] != 4:
+                data_write_format_str = data_header[-2][1:]
+                if 'data' not in data_write_format_str:
+                    for line in data_header[::-1]:
+                        if 'data' in line:
+                            data_write_format_str = line[1:]
+                            break
+                #print(data_write_format_str)
+                for dsi in data_write_format_str.split():
+                    if 'data' in dsi:
+                        data_index_str = dsi
+                        ax_vars = data_index_str.replace('data','').replace('(','').replace(')','')
+                        #print(data_index_str)
+                        #print(ax_vars)
+                        ax1_ivar, ax2_ivar = ax_vars.split(',')[:2]
+                        ax1_ivar = 'i' + ax1_ivar
+                        ax2_ivar = 'i' + ax2_ivar
+                #print(data_write_format_str)
+            else:  # 2D-type = 4
+                cols = data_table[1][1:].split()
+                ax1_ivar, ax2_ivar = cols[0], cols[1]
+                ax1_ivar = 'i' + ax1_ivar
+                ax2_ivar = 'i' + ax2_ivar
+
+            # check if this is one of the backwards instances
+            expected_ax1_ivar = tdata_ivar_strs[axis1_ivar]
+            expected_ax2_ivar = tdata_ivar_strs[axis2_ivar]
+            if meta.mesh=='xyz':
+                if expected_ax1_ivar == 'ir': expected_ax1_ivar = 'ix'
+                if expected_ax2_ivar == 'ir': expected_ax1_ivar = 'ix'
+            if ax1_ivar==expected_ax1_ivar and ax2_ivar==expected_ax2_ivar:
+                pass # all is correct as is
+            elif ax2_ivar == expected_ax1_ivar and ax1_ivar == expected_ax2_ivar:
+                axis1_ivar_temp = axis1_ivar
+                axis1_ivar = axis2_ivar
+                axis2_ivar = axis1_ivar_temp
+                #axis1_ivar = tdata_ivar_strs.index(ax1_ivar)
+                #axis2_ivar = tdata_ivar_strs.index(ax2_ivar)
+                #print('backwards!')
+            else:
+                print('ERROR! Unknown axes (',ax1_ivar,ax2_ivar,') encountered that did not match expected axes (',
+                      tdata_ivar_strs[meta.axis_index_of_tally_array[0]],tdata_ivar_strs[meta.axis_index_of_tally_array[1]],')')
+                sys.exit()
+
+
+
+
+            axis1_ivar_str = tdata_ivar_strs[axis1_ivar]
+            axis2_ivar_str = tdata_ivar_strs[axis2_ivar]
+            axis1_size = np.shape(tdata)[axis1_ivar]
+            axis2_size = np.shape(tdata)[axis2_ivar]
+            ndata_to_read = axis1_size*axis2_size
+            #print(axis1_ivar_str,axis2_ivar_str)
+            #print(axis1_size,axis2_size,ndata_to_read)
+            remaining_ndata_to_read = ndata_to_read
+            iax1 = 0
+            iax2 = axis2_size - 1
+            if meta['2D-type'] in [1,2,3,6,7]:
+                for line in data_table[1:]:
+                    values = data_row_to_num_list(line)
+                    #print(line)
+                    for value in values:
+                        exec(axis1_ivar_str + ' = ' + str(iax1), globals())
+                        exec(axis2_ivar_str + ' = ' + str(iax2), globals())
+                        #print(ir, iy, iz, ie, it, ia, il, ip, ic, ierr, '\t', value)
+                        tdata[ir, iy, iz, ie, it, ia, il, ip, ic, ierr] = value
+                        remaining_ndata_to_read += -1
+                        #print(iax1, iax2)
+                        iax1 += 1
+                        if iax1 == axis1_size:
+                            iax1 = 0
+                            iax2 += -1
+                    if remaining_ndata_to_read <= 0:
+                        break
+
+            elif meta['2D-type'] == 4:
+                iax2 = 0
+                for line in data_table[2:]:
+                    values = data_row_to_num_list(line)
+                    value = values[2]
+                    value_err = values[3]
+                    exec(axis1_ivar_str + ' = ' + str(iax1), globals())
+                    exec(axis2_ivar_str + ' = ' + str(iax2), globals())
+                    tdata[ir, iy, iz, ie, it, ia, il, ip, ic, 0] = value
+                    tdata[ir, iy, iz, ie, it, ia, il, ip, ic, 1] = value_err
+                    # print(ir, iy, iz, ie, it, ia, il, ip, ic, ierr,'\t',value)
+                    remaining_ndata_to_read += -1
+                    # print(iax1, iax2)
+                    iax1 += 1
+                    if iax1 == axis1_size:
+                        iax1 = 0
+                        iax2 += 1
+
+                    if remaining_ndata_to_read <= 0:
+                        break
+
+            elif meta['2D-type'] == 5:
+                for line in data_table[2:]:
+                    values = data_row_to_num_list(line)
+                    #print(line)
+                    for vi, value in enumerate(values):
+                        if vi==0: continue # header column
+                        exec(axis1_ivar_str + ' = ' + str(iax1), globals())
+                        exec(axis2_ivar_str + ' = ' + str(iax2), globals())
+                        #print(ir, iy, iz, ie, it, ia, il, ip, ic, ierr, '\t', value)
+                        tdata[ir, iy, iz, ie, it, ia, il, ip, ic, ierr] = value
+                        remaining_ndata_to_read += -1
+                        # print(iax1, iax2)
+                        iax1 += 1
+                        if iax1 == axis1_size:
+                            iax1 = 0
+                            iax2 += -1
+                    if remaining_ndata_to_read <= 0:
+                        break
+
+            else:
+                print('ERROR! unsupported 2D-type of ',meta['2D-type'],' provided; legal values are [1,2,3,4,5,6,7]')
+                sys.exit()
+
+    else:
+        print(meta.axis_dimensions,'axis dimensions is unknown, ERROR!')
+        sys.exit()
+
+    return tdata
+
+def build_tally_Pandas_dataframe(tdata,meta):
+    '''
+    note that tally_df.attrs returns values which are the same for all rows
+    '''
+    import pandas as pd
+    ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max, ierr_max = np.shape(tdata)
+    num_df_rows = ir_max * iy_max * iz_max * ie_max * it_max * ia_max * il_max * ip_max * ic_max
+    # determine what columns to include, based on what info was specified vs left at default values
+    col_names_list = []
+
+    in_irregular_TCross_rz_mesh = False
+    in_irregular_TCross_xyz_mesh = False
+    if meta['tally_type'] == '[T-Cross]' and (meta.mesh == 'xyz' or meta.mesh == 'r-z'):
+        if 'enclos' in meta and meta['enclos'] == 1:
+            pass
+        else:
+            if meta.mesh == 'r-z':
+                in_irregular_TCross_rz_mesh = True
+                min_r_is_zero = False
+                if meta['r-mesh_bin_edges'][0]==0:
+                    min_r_is_zero = True
+            else:
+                in_irregular_TCross_xyz_mesh = True
+
+
+    # region columns
+    if meta.mesh == 'reg':
+        reg_cols = ['ir','reg','reg#'] # use meta.reg_groups and meta.reg_num
+    elif meta.mesh == 'xyz':
+        if in_irregular_TCross_xyz_mesh:
+            reg_cols = ['ix', 'iy', 'iz', 'x_mid', 'y_mid', 'z_surf']
+        else:
+            reg_cols = ['ix','iy','iz','x_mid','y_mid','z_mid']
+    elif meta.mesh == 'r-z':
+        if in_irregular_TCross_rz_mesh:
+            reg_cols = ['ir', 'ic', 'r_mid', 'z_surf', 'iy', 'iz', 'r_surf', 'z_mid']
+        else:
+            reg_cols = ['ir','iz','r_mid','z_mid']
+    elif meta.mesh == 'tet':
+        reg_cols = ['ir','tet'] #,'tet#']
+    col_names_list += reg_cols
+
+
+
+    # Determine what other columns will be present
+    ecols, tcols, acols, lcols, pcols, ccols = False, False, False, False, False, False
+    single_specified_bin_axes = [] # log axes which are provided by user but only contain 1 bin
+    single_bin_ranges_or_values = []
+    if meta.ne != None:
+        if meta.ne==1:
+            single_specified_bin_axes.append('e')
+            single_bin_ranges_or_values.append(['Energy',meta['e-mesh_bin_edges']])
+        else:
+            ecols = True
+            ecol_names_list = ['ie','e_mid']
+            col_names_list += ecol_names_list
+    else:
+        single_bin_ranges_or_values.append(['Energy','default/all'])
+    if meta.nt != None:
+        if meta.nt==1:
+            single_specified_bin_axes.append('t')
+            single_bin_ranges_or_values.append(['Time',meta['t-mesh_bin_edges']])
+        else:
+            tcols = True
+            tcol_names_list = ['it', 't_mid']
+            col_names_list += tcol_names_list
+    else:
+        single_bin_ranges_or_values.append(['Time','default/all'])
+    if meta.na != None:
+        if meta.na==1:
+            single_specified_bin_axes.append('a')
+            single_bin_ranges_or_values.append(['Angle',meta['a-mesh_bin_edges']])
+        else:
+            acols = True
+            acol_names_list = ['ia', 'a_mid']
+            col_names_list += acol_names_list
+    else:
+        single_bin_ranges_or_values.append(['Angle','default/all'])
+    if meta.nl != None:
+        if meta.nl==1:
+            single_specified_bin_axes.append('l')
+            single_bin_ranges_or_values.append(['LET',meta['l-mesh_bin_edges']])
+        else:
+            lcols = True
+            lcol_names_list = ['il', 'LET_mid']
+            col_names_list += lcol_names_list
+    else:
+        single_bin_ranges_or_values.append(['LET','default/all'])
+
+    if meta.npart != None: # and meta.part_groups[0]=='all':
+        if meta.npart==1:
+            single_specified_bin_axes.append('p')
+            single_bin_ranges_or_values.append(['Particle',meta.part_groups[0]])
+        else:
+            pcols = True
+            pcol_names_list = ['ip', 'particle', 'kf-code']
+            col_names_list += pcol_names_list
+    else:
+        single_bin_ranges_or_values.append(['Particle','default/all'])
+
+    # HANDLE SPECIAL COLUMNS HERE (ic / ccols)
+
+
+    # value columns come last
+    val_names_list = ['value', 'rel.err.']
+    if ierr_max == 3: val_names_list += ['abs.err.']
+    col_names_list += val_names_list
+
+    # Initialize dictionary
+    df_dict = {}
+    for col in col_names_list:
+        df_dict[col] = []
+
+
+
+    # Populate dictionary
+    for ir in range(ir_max):
+        for iy in range(iy_max):
+            for iz in range(iz_max):
+                for ie in range(ie_max):
+                    for it in range(it_max):
+                        for ia in range(ia_max):
+                            for il in range(il_max):
+                                for ip in range(ip_max):
+                                    for ic in range(ic_max):
+                                        # Region columns
+                                        if in_irregular_TCross_rz_mesh:
+                                            # skip unwritten indices
+                                            # reg_cols = ['ir', 'ic', 'r_mid', 'z_surf', 'iy', 'iz', 'r_surf', 'z_mid']
+                                            if (ir==ir_max-1 and ic==ic_max-1):
+                                                if (iy == iy_max - 1 or iz == iz_max - 1): continue
+                                                if min_r_is_zero and iy==0: continue # surface vals not written for r=0.0
+                                                df_dict[reg_cols[0]].append(None)
+                                                df_dict[reg_cols[1]].append(None)
+                                                df_dict[reg_cols[2]].append(None)
+                                                df_dict[reg_cols[3]].append(None)
+                                                df_dict[reg_cols[4]].append(iy)
+                                                df_dict[reg_cols[5]].append(iz)
+                                                df_dict[reg_cols[6]].append(meta['r-mesh_bin_edges'][iy])
+                                                df_dict[reg_cols[7]].append(meta['z-mesh_bin_mids'][iz])
+                                            elif (iy==iy_max-1 and iz==iz_max-1):
+                                                if (ir == ir_max - 1 or ic == ic_max - 1): continue
+                                                df_dict[reg_cols[0]].append(ir)
+                                                df_dict[reg_cols[1]].append(ic)
+                                                df_dict[reg_cols[2]].append(meta['r-mesh_bin_mids'][ir])
+                                                df_dict[reg_cols[3]].append(meta['z-mesh_bin_edges'][ic])
+                                                df_dict[reg_cols[4]].append(None)
+                                                df_dict[reg_cols[5]].append(None)
+                                                df_dict[reg_cols[6]].append(None)
+                                                df_dict[reg_cols[7]].append(None)
+                                            else: # all other indices should not have any content written into them
+                                                continue
+                                        else:
+                                            if meta.mesh == 'reg': #reg_cols = ['ir','reg', 'reg#']  # use meta.reg_groups and meta.reg_num
+                                                df_dict[reg_cols[0]].append(ir)
+                                                df_dict[reg_cols[1]].append(meta.reg_groups[ir])
+                                                df_dict[reg_cols[2]].append(meta.reg_num[ir])
+                                            elif meta.mesh == 'xyz':
+                                                #reg_cols = ['ix', 'iy', 'iz', 'xmid', 'ymid', 'zmid']
+                                                df_dict[reg_cols[0]].append(ir)
+                                                df_dict[reg_cols[1]].append(iy)
+                                                df_dict[reg_cols[2]].append(iz)
+                                                df_dict[reg_cols[3]].append(meta['x-mesh_bin_mids'][ir])
+                                                df_dict[reg_cols[4]].append(meta['y-mesh_bin_mids'][iy])
+                                                if in_irregular_TCross_xyz_mesh:
+                                                    df_dict[reg_cols[5]].append(meta['z-mesh_bin_edges'][iz])
+                                                else:
+                                                    df_dict[reg_cols[5]].append(meta['z-mesh_bin_mids'][iz])
+                                            elif meta.mesh == 'r-z':
+                                                #reg_cols = ['ir', 'iz', 'rmid', 'zmid']
+                                                df_dict[reg_cols[0]].append(ir)
+                                                df_dict[reg_cols[1]].append(iz)
+                                                df_dict[reg_cols[2]].append(meta['r-mesh_bin_mids'][ir])
+                                                df_dict[reg_cols[3]].append(meta['z-mesh_bin_mids'][iz])
+                                            elif meta.mesh == 'tet':
+                                                #reg_cols = ['ir','tet']
+                                                df_dict[reg_cols[0]].append(ir)
+                                                df_dict[reg_cols[1]].append(meta.tet_num[ir])
+
+                                        #ecols, tcols, acols, lcols, pcols, ccols
+                                        if pcols: # pcol_names_list = ['ip', 'particle', 'kf-code']
+                                            df_dict[pcol_names_list[0]].append(ip)
+                                            df_dict[pcol_names_list[1]].append(meta.part_groups[ip])
+                                            df_dict[pcol_names_list[2]].append(meta.kf_groups[ip])
+
+                                        if ecols: # ecol_names_list = ['ie','e_mid']
+                                            df_dict[ecol_names_list[0]].append(ie)
+                                            df_dict[ecol_names_list[1]].append(meta['e-mesh_bin_mids'][ie])
+                                        if tcols: # tcol_names_list = ['it','t_mid']
+                                            df_dict[tcol_names_list[0]].append(it)
+                                            df_dict[tcol_names_list[1]].append(meta['t-mesh_bin_mids'][it])
+                                        if acols: # acol_names_list = ['ia','a_mid']
+                                            df_dict[acol_names_list[0]].append(ia)
+                                            df_dict[acol_names_list[1]].append(meta['a-mesh_bin_mids'][ia])
+                                        if lcols: # lcol_names_list = ['il','LET_mid']
+                                            df_dict[lcol_names_list[0]].append(il)
+                                            df_dict[lcol_names_list[1]].append(meta['l-mesh_bin_mids'][il])
+
+                                        if ccols:
+                                            pass
+
+                                        # Value columns
+                                        #val_names_list = ['value', 'rel.err.','abs.err.']
+                                        df_dict[val_names_list[0]].append(tdata[ir, iy, iz, ie, it, ia, il, ip, ic, 0])
+                                        df_dict[val_names_list[1]].append(tdata[ir, iy, iz, ie, it, ia, il, ip, ic, 1])
+                                        if ierr_max == 3:
+                                            df_dict[val_names_list[2]].append(tdata[ir, iy, iz, ie, it, ia, il, ip, ic, 2])
+
+    # Convert dictionary to Pandas dataframe
+    tally_df = pd.DataFrame(df_dict)
+
+    # store information on settings provided by user that are different from default but same for all rows
+    if len(single_bin_ranges_or_values) > 0:
+        for i in single_bin_ranges_or_values:
+            col, val = i
+            tally_df.attrs[col] = val
+
+    #with pd.option_context('display.max_rows', None, 'display.max_columns', None): print(tally_df)
+    print(tally_df.to_string())
+    print(tally_df.attrs)
+    return tally_df
+
+
+def parse_tally_output_file(tally_output_filepath,make_PandasDF = True,calculate_absolute_errors = True, save_output_pickle = True):
+    '''
+    Description:
+        Parse any PHITS tally output file, returning tally metadata and an array of its values (and optionally
+        this data inside of a Pandas dataframe too).  Note the separate `parse_tally_dump_file` function for
+        parsing PHITS dump files.
+
+    Dependencies:
+        `import numpy as np`
+
+    Inputs:
+       (required)
+
+        - `tally_output_filepath` = file or filepath to the tally output file to be parsed
+        - `myList` = list of values
+
+    Inputs:
+       (optional)
+
+       - `make_PandasDF` = A Boolean determining whether a Pandas dataframe of the tally data array will be made (D=`True`)
+       - `calculate_absolute_errors` = A Boolean determining whether the absolute uncertainty of each tally output value
+                      is to be calculated (simply as the product of the value and relative error); if `False`, the final
+                      dimension of `tally_data`, `ierr`, will be of length-2 rather than length-3 (D=`True`)
+       - `save_output_pickle` = A Boolean determining whether the `tally_output` dictionary object is saved as a pickle file;
+                      if `True`, the file will be saved with the same path and name as the provided PHITS tally output file
+                      but with the .pickle extension. (D=`True`)
+
+    Output:
+        - `tally_output` = a dictionary object with the below keys and values:
+            - `'tally_data'` = a 10-dimensional NumPy array containing all tally results, explained in more detail below
+            - `'tally_metadata'` = a dictionary object with various data extracted from the tally output file, such as axis binning and units
+            - `'tally_dataframe'` = (optionally included if setting `make_PandasDF = True`) a Pandas dataframe version of `tally_data`
+
+
+    Notes:
+
+       Many quantities can be scored across the various tallies in the PHITS code.  This function outputs a "universal"
+       array `tally_data` that can accomodate all of the different scoring geometry meshes, physical quantities with
+       assigned meshes, and output axes provided within PHITS.  This is achieved with a 10-dimensional array accessible as
+
+       `tally_data[ ir, iy, iz, ie, it, ia, il, ip, ic, ierr ]`, with indices explained below:
+
+       Tally data indices and corresponding mesh/axis:
+
+        - `0` | `ir`, Geometry mesh: `reg` / `x` / `r` / `tet`
+        - `1` | `iy`, Geometry mesh:  `1` / `y` / `1` ([T-Cross] `ir surf`)
+        - `2` | `iz`, Geometry mesh:  `1` / `z` / `z` ([T-Cross] `iz surf` if (`mesh=xyz`) OR `iz` if (`mesh=r-z` AND `enclos=1`))
+        - `3` | `ie`, Energy mesh: `eng` ([T-Deposit2] `eng1`)
+        - `4` | `it`, Time mesh
+        - `5` | `ia`, Angle mesh
+        - `6` | `il`, LET mesh
+        - `7` | `ip`, Particle type (`part = `)
+        - `8` | `ic`, Special: [T-Cross] `iz surf` (if `mesh=r-z` AND `enclos=0`); [T-Deposit2] `eng2`; [T-Yield] `mass`, `charge`, `chart`, `dchain`
+        - `9` | `ierr = 0/1/2`, Value / relative uncertainty / absolute uncertainty
+
+       -----
+
+       By default, all array dimensions are length-1 (except `ierr`, which is length-3).  These dimensions are set/corrected
+       automatically when parsing the tally output file.  Thus, for very simple tallies, most of these indices will be
+       set to 0 when accessing tally results, e.g. `tally_data[2,0,0,:,0,0,0,:,0,:]` to access the full energy spectrum
+       in the third region for all scored particles / particle groups with the values and uncertainties.
+
+       The output `tally_metadata` dictionary contains all information needed to identify every bin along every
+       dimension: region numbers/groups, particle names/groups, bin edges and midpoints for all mesh types
+       (x, y, z, r, energy, angle, time, and LET) used in the tally.
+
+       The `tally_dataframe` Pandas dataframe output functions as normal.  Note that a dictionary containing supplemental
+       information that is common to all rows of the dataframe can be accessed with `tally_dataframe.attrs`.
+
+       -----
+
+       The [T-Cross] tally is unique (scoring across region boundaries rather than within regions), creating some
+       additional challenges.
+       In the `mesh = reg` case, much is the same except each region number is composed of the `r-from` and `r-to` values, e.g. `'100 - 101'`.
+       For `xyz` and `r-z` meshes, an additional parameter is at play: `enclos`.
+       By default, `enclos=0`.
+       In the event `enclos=1` is set, the total number of geometric regions is still either `nx*ny*nz` or `nr*nz` for
+       `xyz` and `r-z` meshes, respectively.
+       For `enclos=0` in the `mesh = xyz` case, the z dimension is instead equal to `nzsurf`, which is simply one
+       greater than `nz` (# regions = `nx*ny*(nz+1)`) and is still accessed via the `iz` index.
+       For `enclos=0` in the `mesh = r-z` case, this is much more complicated as PHITS will output every combination of
+       `nr*nzsurf` AND `nz*nrsurf`, noting `nzsurf=nz+1` and `nrsurf=nr+1` (or `nrsurf=nr` if the first radius bin edge
+       is `r=0.0`).  The solution implemented here uses `ir` to iterate `nr`, `iy` to iterate `nrsurf`, `iz` to
+       iterate `nz`, and `ic` to iterate `nzsurf`.  Since only `rsurf*z [iy,iz]` and `r*zsurf [ir,ic]` pairs exist,
+       when one pair is being written, the other will be `[-1,-1]`, thus the dimensions for the array are increased by
+       an extra 1 to prevent an overlap in the data written.
+
+    '''
+
+    return
+
+
+
+
+base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\\'
+#output_file_path = Path(base_path + 't-deposit\deposit_reg.out')
+#output_file_path = Path(base_path + 't-track\\track_reg.out')
+#output_file_path = Path(base_path + 't-track\\track_r-z.out')
+#output_file_path = Path(base_path + 't-track\\track_xyz-xy.out')
+#output_file_path = Path(base_path + 't-deposit\deposit_r-z.out')
+#output_file_path = Path(base_path + 't-deposit\deposit_r-z_2dtype4.out')
+#output_file_path = Path(base_path + 't-deposit\deposit_r-z_2dtype5.out')
+#output_file_path = Path(base_path + 't-deposit\deposit_xyz_2dtype5.out')
+#output_file_path = Path(base_path + 'tet_test\deposit-tet_axis-tet.out')
+#output_file_path = Path(base_path + 'tet_test\deposit-tet_axis-eng.out')
+output_file_path = Path(base_path + 't-cross\cross_reg_axis-eng.out')
+#output_file_path = Path(base_path + 't-cross\cross_reg_axis-reg.out')
+#output_file_path = Path(base_path + 't-cross\cross_xyz_axis-eng.out')
+#output_file_path = Path(base_path + 't-cross\cross_xyz_axis-eng_enclosed.out')
+#output_file_path = Path(base_path + 't-cross\cross_xyz_axis-reg.out')
+#output_file_path = Path(base_path + 't-cross\cross_xyz_axis-xy.out')
+#output_file_path = Path(base_path + 't-cross\cross-r-z_axis-eng.out')
+#output_file_path = Path(base_path + 't-cross\cross-r-z_axis-eng_0r.out')
+#output_file_path = Path(base_path + 't-cross\cross-r-z_axis-eng_enclosed.out')
+#output_file_path = Path(base_path + 't-cross\complex\proton_in_hist_rz.out')
+#output_file_path = Path(base_path + 't-cross\complex\\neutron_yield_rz-e-a-mesh.out')
+#output_file_path = Path(base_path + 't-cross\complex\\neutron_yield.out')
+#output_file_path = Path(base_path + 't-cross\complex\\xtra_neutron_yield_EvsTheta_whole-target.out')
+#output_file_path = Path(base_path + 't-dpa\dpa_reg.out')
+#output_file_path = Path(base_path + 't-dpa\dpa_xyz.out')
+#output_file_path = Path(base_path + 't-dpa\dpa_r-z.out')
+# also check for file of same name but with _err appended at end before (possible) extension
+
+
+
+# Main flow of code
+
+# main toggled settings
+calculate_absolute_errors = True
+construct_Pandas_frame_from_array = True
+process_all_tally_out_files_in_directory = False
+save_pickle_files_of_output = True # save metadata, array, and Pandas frame in a pickled dictionary object
+
+if construct_Pandas_frame_from_array: import pandas as pd
+
+# Check if is _err or _dmp file
+is_err_file = False
+is_dmp_file = False
+if output_file_path.stem[-4:] == '_err': is_err_file = True
+if output_file_path.stem[-4:] == '_dmp': is_dmp_file = True
+
+# Split content of output file into header and content
+tally_header, tally_content = split_into_header_and_content(output_file_path)
+#print(len(tally_content))
+# Check if *_err file exists
+potential_err_file = Path(output_file_path.parent,output_file_path.stem+'_err'+output_file_path.suffix)
+is_err_in_separate_file = potential_err_file.is_file() # for some tallies/meshes, uncertainties are stored in a separate identically-formatted file
+# Extract tally metadata
+tally_metadata = parse_tally_header(tally_header,tally_content)
+pprint.pp(dict(tally_metadata))
+# Initialize tally data array with zeros
+tally_data = initialize_tally_array(tally_metadata,include_abs_err=calculate_absolute_errors)
+# Parse tally data
+tally_data = parse_tally_content(tally_data,tally_metadata,tally_content,is_err_in_separate_file,err_mode=False)
+err_data_found = True
+if tally_metadata['axis_dimensions'] == 2 and tally_metadata['2D-type'] != 4:
+    if is_err_in_separate_file:
+        err_tally_header, err_tally_content = split_into_header_and_content(potential_err_file)
+        tally_data = parse_tally_content(tally_data,tally_metadata,err_tally_content,is_err_in_separate_file,err_mode=True)
+    else:
+        print('WARNING: A separate file ending in "_err" containing uncertainties should exist but was not found.')
+        err_data_found = False
+if calculate_absolute_errors:
+    if err_data_found:
+        tally_data = calculate_tally_absolute_errors(tally_data)
+    else:
+        print('WARNING: Absolute errors not calculated since the _err file was not found.')
+# Generate Pandas dataframe of tally results
+if construct_Pandas_frame_from_array:
+    tally_Pandas_df = build_tally_Pandas_dataframe(tally_data,tally_metadata)
+
+
+#                ir, iy, iz, ie, it, ia, il, ip, ic, ierr
+print(tally_data[ :,  0,  0,  0,  0,  0,  0,  0,  0, 0])
+
+
+#tally_content_blocks = tally_content.split('newpage:')
+#print(tally_content_blocks[0])
+
+
+
+
+
+
+
+
+print(np.shape(tally_data))
+
+
+
+
+
