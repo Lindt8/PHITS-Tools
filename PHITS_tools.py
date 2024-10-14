@@ -1482,7 +1482,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
     Output:
         - `tally_output` = a dictionary object with the below keys and values:
             - `'tally_data'` = a 10-dimensional NumPy array containing all tally results, explained in more detail below
-            - `'tally_metadata'` = a dictionary object with various data extracted from the tally output file, such as axis binning and units
+            - `'tally_metadata'` = a dictionary/Munch object with various data extracted from the tally output file, such as axis binning and units
             - `'tally_dataframe'` = (optionally included if setting `make_PandasDF = True`) a Pandas dataframe version of `tally_data`
 
 
