@@ -11,13 +11,41 @@ The functions contained in this module and brief descriptions of their functions
 
 - `parse_tally_output_file`         : general parser for standard output files for all PHITS tallies
 - `parse_tally_dump_file`           : parser for dump files from "dump" flag in PHITS [T-Cross], [T-Time], and [T-Track] tallies
-- `parse_all_tally_output_in_dir`   :
+- `parse_all_tally_output_in_dir`   : NOT YET IMPLEMENTED
 
 ### General Purpose Functions
 
+- `is_number`                       : returns Boolean denoting whether provided string is that of a number
 
-### Sub functions used for PHITS output parsing
+### Sub functions used for PHITS output parsing (meant as dependencies more so than for standalone usage)
 
+- `split_into_header_and_content`   : initial reading of PHITS tally output, dividing it into header and "content" sections
+- `parse_tally_header`              : extract metadata from tally output header section
+- `parse_tally_content`             : extract tally results/values from tally content section
+- `initialize_tally_array`          : initialize NumPy array for storing tally results
+- `calculate_tally_absolute_errors` : calculate absolute uncertainties from read values and relative errors
+- `build_tally_Pandas_dataframe`    : make Pandas dataframe from the main results NumPy array and the metadata
+- `extract_data_from_header_line`   : extract metadata key/value pairs from tally output header lines
+- `data_row_to_num_list`            : extract numeric values from a line in the tally content section
+- `parse_group_string`              : split a string containing "groups" (e.g., regions) into a list of them
+- `split_str_of_equalities`         : split a string containing equalities (e.g., `reg = 100`) into a list of them
+
+'''
+'''
+Each function beings with a comment block containing the following sections:
+
+    Description:
+
+
+    Dependencies:
+
+
+    Inputs:
+
+
+    Outputs:
+
+("Dependencies:" is omitted when there are none.)        
 '''
 
 import sys
@@ -186,6 +214,20 @@ def parse_tally_dump_file(path_to_dump_file ,dump_data_number ,dump_data_sequenc
 
 
 def split_into_header_and_content(output_file_path):
+    '''
+    Description:
+        Initial parsing of a PHITS tally output file to isolate its header section (containing metadata) and main
+        tally results "content" section for later processing.
+
+    Inputs:
+        - `output_file_path` = path to a PHITS tally output file
+
+    Outputs:
+        - `header` = list of lines belonging to the tally output's header section
+        - `content` = list of lists of remaining lines after the tally output's header section; the top level list is
+                broken into "blocks" ("newpage:"-separated) which are lists of lines belonging to each block/page.
+
+    '''
     in_content = False
     header, content = [], [[]]
     with open(output_file_path) as f:
@@ -204,6 +246,17 @@ def split_into_header_and_content(output_file_path):
     return header, content
 
 def is_number(n):
+    '''
+    Description:
+        Determine if a string is that of a number or not.
+
+    Inputs:
+        - `n` = string to be tested
+
+    Outputs:
+        - `True` if value is a number (can be converted to float() without an error)
+        - `False` otherwise
+    '''
     try:
         float(n)
     except ValueError:
@@ -212,6 +265,20 @@ def is_number(n):
 
 
 def extract_data_from_header_line(line):
+    '''
+    Description:
+        Extract a "key" and its corresponding value from a PHITS tally output header line
+
+    Dependencies:
+        `is_number` (function within the "PHITS tools" package)
+
+    Inputs:
+        - `line` = string to be processed
+
+    Outputs:
+        - `key` = a string "key" to become a key in the metadata dictionary
+        - `value` = corresponding value they "key" is equal to; dtype is string, int, or float
+    '''
     if '#' in line:
         info, trash = line.split('#',1)
     else:
@@ -227,6 +294,19 @@ def extract_data_from_header_line(line):
     return key, value
 
 def data_row_to_num_list(line):
+    '''
+    Description:
+        Extract numeric values from line of text from PHITS tally output content section
+
+    Dependencies:
+        `is_number` (function within the "PHITS tools" package)
+
+    Inputs:
+        - `line` = string to be processed
+
+    Outputs:
+        - `values` = a list of ints and/or floats of numeric values in `line`
+    '''
     value_strs = line.strip().split()
     values = []
     for value in value_strs:
@@ -241,6 +321,16 @@ def data_row_to_num_list(line):
 
 
 def parse_group_string(text):
+    '''
+    Description:
+        Separate "groups" in a string, wherein a group is a standalone value or a series of values inside parentheses.
+
+    Inputs:
+        - `text` = string to be processed
+
+    Outputs:
+        - `groups` = a list of strings extracted from `text`
+    '''
     # returns list of items from PHITS-formatted string, e.g. w/ ()
     parts = text.strip().split()
     #print(parts)
@@ -268,6 +358,23 @@ def parse_group_string(text):
     return groups
 
 def parse_tally_header(tally_header,tally_content):
+    '''
+    Description:
+        Extracts metadata from PHITS tally output header (and some extra info from its contents section)
+
+    Dependencies:
+        `extract_data_from_header_line` (function within the "PHITS tools" package)
+        `parse_group_string` (function within the "PHITS tools" package)
+
+    Inputs:
+        - `tally_header` = list of lines belonging to the tally output's header section
+        - `tally_content` = list of lists of remaining lines after the tally output's header section; the top level list is
+                broken into "blocks" ("newpage:"-separated) which are lists of lines belonging to each block/page.
+
+    Outputs:
+        - `meta` = Munch object / dictionary containing tally metadata
+
+    '''
     nlines = len(tally_header)
     tally_type = tally_header[0].replace(' ','')
     meta = Munch({})
@@ -512,6 +619,22 @@ def parse_tally_header(tally_header,tally_content):
     return meta
 
 def initialize_tally_array(tally_metadata,include_abs_err=True):
+    '''
+    Description:
+        Initializes main tally data array in which tally results will be stored when read
+
+    Dependencies:
+        `import numpy as np`
+
+    Inputs:
+        - `tally_metadata` = Munch object / dictionary containing tally metadata
+        - `include_abs_err` = a Boolean (D=`True`) on whether absolute error will be calculated; the final dimension of `tdata` is
+                `3/2` if this value is `True/False`
+
+    Outputs:
+        - `tdata` = 10-dimensional NumPy array of zeros of correct size for holding tally results
+
+    '''
     ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max = 1, 1, 1, 1, 1, 1, 1, 1, 1
     if include_abs_err:
         ierr_max = 3
@@ -561,6 +684,17 @@ def initialize_tally_array(tally_metadata,include_abs_err=True):
     return tally_data
 
 def calculate_tally_absolute_errors(tdata):
+    '''
+    Description:
+        Calculates the absolute uncertainty for every value in the PHITS tally data array
+
+    Inputs:
+        - `tdata` = 10-dimensional NumPy array containing read/extracted tally results
+
+    Outputs:
+        - `tdata` = updated `tdata` array now with absolute uncertainties in `ierr = 2` index
+
+    '''
     ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max, ierr_max = np.shape(tdata)
     for ir in range(ir_max):
         for iy in range(iy_max):
@@ -577,6 +711,20 @@ def calculate_tally_absolute_errors(tdata):
     return tdata
 
 def split_str_of_equalities(text):
+    '''
+    Description:
+        Extract relevant regions, indices, etc. from somewhat inconsistently formatted lines in PHITS tally output content section.
+
+    Dependencies:
+        `is_number` (function within the "PHITS tools" package)
+
+    Inputs:
+        - `text` = string to be processed
+
+    Outputs:
+        - `equalities_str_list` = list of strings of equalities each of the format "key = value"
+
+    '''
     equalities_str_list = []
     original_text = text
     #if text[0] == "'": # more loosely formatted text
@@ -619,6 +767,27 @@ def split_str_of_equalities(text):
 
 
 def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode=False):
+    '''
+    Description:
+        Parses the PHITS tally output content section and extract its results
+
+    Dependencies:
+        `split_str_of_equalities` (function within the "PHITS tools" package)
+        `parse_group_string` (function within the "PHITS tools" package)
+        `data_row_to_num_list` (function within the "PHITS tools" package)
+
+    Inputs:
+        - `tdata` = 10-dimensional NumPy array of zeros of correct size to hold tally output/results
+        - `meta` = Munch object / dictionary containing tally metadata
+        - `tally_blocks` = blocks of tally output as outputted by the `split_into_header_and_content` function
+        - `is_err_in_separate_file` = Boolean denoting whether the tally's relative errors are located in a separate file
+        - `err_mode` = Boolean (D=`False`) used for manually forcing all read values to be regarded as relative uncertainties
+                as is necessary when processing dedicated *_err files.
+
+    Outputs:
+        - `tdata` = updated `tdata` array containing read/extracted tally results
+
+    '''
     global ir, iy, iz, ie, it, ia, il, ip, ic, ierr
     global ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max, ierr_max
     ierr = 0
@@ -1045,7 +1214,20 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
 
 def build_tally_Pandas_dataframe(tdata,meta):
     '''
-    note that tally_df.attrs returns values which are the same for all rows
+    Description:
+        Calculates the absolute uncertainty for every value in the PHITS tally data array
+
+    Dependencies:
+        `import pandas as pd`
+
+    Inputs:
+        - `tdata` = 10-dimensional NumPy array containing read/extracted tally results
+        - `meta` = Munch object / dictionary containing tally metadata
+
+    Outputs:
+        - `tally_df` = Pandas dataframe containing the entire contents of the `tdata` array;
+                note that tally_df.attrs returns values which are the same for all rows
+
     '''
     import pandas as pd
     ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max, ierr_max = np.shape(tdata)
