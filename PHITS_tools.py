@@ -61,6 +61,9 @@ else:
     in_debug_mode = False
 if in_debug_mode:
     import pprint
+    import time
+    # Timer start
+    start = time.time()
 
 
 
@@ -362,7 +365,9 @@ def parse_group_string(text):
     parts = text.strip().split()
     #print(parts)
     groups = []
+    curly_vals = []
     in_brackets_group = False
+    in_curly_brace_group = False
     num_group_members = 0
     for i in parts:
         if '(' in i and ')' in i:
@@ -375,13 +380,25 @@ def parse_group_string(text):
             in_brackets_group = False
             num_group_members = 0
             groups[-1] += i
+        elif '{' in i:
+            in_curly_brace_group = True
+            curly_vals = []
+        elif '}' in i:
+            in_curly_brace_group = False
+            curly_int_strs = [str(j) for j in range(int(curly_vals[0]), int(curly_vals[-1])+1)]
+            curly_vals = []
+            groups += curly_int_strs
         else:
             if in_brackets_group:
                 if num_group_members>0: groups[-1] += ' '
                 groups[-1] += i
                 num_group_members += 1
+            elif in_curly_brace_group:
+                if i != '-':
+                    curly_vals.append(i)
             else:
                 groups.append(i)
+    #print(groups)
     return groups
 
 def parse_tally_header(tally_header,tally_content):
@@ -452,6 +469,7 @@ def parse_tally_header(tally_header,tally_content):
                 meta['part_groups'] = part_groups
                 meta['kf_groups'] = kf_groups
                 meta['npart'] = len(part_groups)
+                meta['part_serial_groups'] = ['p'+str(gi+1)+'-group' for gi in range(len(part_groups))]
             if key=='reg':
                 if meta['tally_type']=='[T-Cross]':
                     num_regs = value
@@ -466,6 +484,7 @@ def parse_tally_header(tally_header,tally_content):
                 else:
                     reg_groups = parse_group_string(str(value))
                     meta['reg_groups'] = reg_groups
+                    meta['num_reg_groups'] = len(reg_groups)
         elif reading_axis_data:
             values = line.replace('#','').strip().split()
             for val in values:
@@ -630,21 +649,68 @@ def parse_tally_header(tally_header,tally_content):
     hc_passed = False # passed colorbar definition line
     outblock = tally_content[0]
     for line in outblock:
+        if len(line) == 0: continue
         if line[:2] == 'x:':
             axis1_label = line[2:].strip()
         if line[:2] == 'y:':
             if meta.axis_dimensions == 1:
                 value_label = line[2:].strip()
-                break
+                #break
             elif meta.axis_dimensions == 2:
                 if hc_passed: # second instance of y:
                     value_label = line[2:].strip()
-                    break
+                    #break
                 else: # first instance of y:
                     axis2_label = line[2:].strip()
                     hc_passed = True
         #if line[:3] == 'hc:':
         #    hc_passed = True
+        h_line_str = ''
+        if line[0] == 'h' and (line[1] == ':' or line[2] == ':'):
+            if meta['axis_dimensions'] == 1:
+                ndatacol = line.count('y')
+                if ndatacol != 1:  # multiple columns are present "samepage"
+                    # get first string with y
+                    col_groups = parse_group_string(line)
+                    first_data_col_header = col_groups[3][2:]
+                    for m in mesh_types:
+                        if first_data_col_header[0] == m:
+                            if m == 'e':
+                                meta['samepage'] = 'eng'
+                            elif m == 'r':
+                                if first_data_col_header[:3] == 'reg':
+                                    meta['samepage'] = 'reg'
+                                else:
+                                    meta['samepage'] = m
+                            elif m == 'l':
+                                meta['samepage'] = 'let'
+                            elif m == 'a':
+                                meta['samepage'] = 'the' # or cos
+                            else:
+                                meta['samepage'] = m
+                    if meta['samepage'] == 'part':  # still is default value
+                        # double check to see if it could be region numbers vs particle names
+                        if ndatacol != meta['npart']:
+                            if ndatacol == meta['num_reg_groups']:
+                                meta['samepage'] = 'reg'
+                            else:
+                                print('"samepage" was not correctly identified; needs to be implemented')
+                    if meta['samepage'] == 'reg':
+                        hcols = parse_group_string(line[3:])
+                        num, reg, vol = [], [], []
+                        reg_ser_num = 1
+                        for hcol in hcols:
+                            if hcol[0] == 'y':
+                                num.append(reg_ser_num)
+                                reg_ser_num += 1
+                                reg.append(hcol.split(')')[0].replace('y(reg',''))
+                                vol.append(None)
+                        meta.reg_serial_num = num
+                        meta.reg_num = reg
+                        meta.reg_volume = vol
+                        meta.nreg = len(reg)
+
+            break
     meta.axis1_label = axis1_label
     meta.axis2_label = axis2_label
     meta.value_label = value_label
@@ -909,15 +975,28 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                     if line[0] == "#":
                         hash_line_already_evaluated = True
                     elif line[0] == "'" and hash_line_already_evaluated:
-                        continue # '-starting lines tend to have more problematic formatting, best skipped if possible
+                        if meta['samepage'] == 'part':
+                            continue  # '-starting lines tend to have more problematic formatting, best skipped if possible
+                        elif meta['npart'] == 1:
+                            continue  # can still skip if only one particle group tallied
+                        else:
+                            pass  # but this needs to be parsed if not using samepage = part and npart > 1
                     parts = split_str_of_equalities(line)
                     for part in parts:
                         mesh_char = part.split('=')[0].strip().replace('i','')
                         if mesh_char == 'no.':
+                            if '***' in part:
+                                break # this is a bugged line
                             continue
-                        elif mesh_char == 'part.' or mesh_char == 'partcle':
+                        elif mesh_char == 'part.' or mesh_char == 'partcle' or mesh_char == 'part':
                             part_grp_name = part.split('=')[1].strip()
-                            ip = (meta.part_groups).index(part_grp_name)
+                            if part_grp_name in meta.part_groups:
+                                ip = (meta.part_groups).index(part_grp_name)
+                            elif part_grp_name in meta.part_serial_groups:
+                                ip = (meta.part_serial_groups).index(part_grp_name)
+                            else:
+                                print('ERROR! Particle "',part_grp_name,'" could not be identified.')
+                                sys.exit()
                         elif mesh_char == 'reg':
                             regnum = part.split('=')[1].strip()
                             ir = (meta.reg_num).index(regnum)
@@ -928,7 +1007,14 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                             imesh = mesh_kind_chars.index(mesh_char)
                             itdata_axis = mesh_kind_iax[imesh]
                             tdata_ivar_str = tdata_ivar_strs[itdata_axis]
-                            value = str(int(part.split('=')[1].strip())-1)
+                            value_str = part.split('=')[1].strip()
+                            if ' - ' in value_str:
+                                vals = value_str.split('-')
+                                if int(vals[0]) == int(vals[1]):
+                                    value_str = vals[0]
+                                else:  # samepage axis
+                                    value_str = vals[0]  # this will be overwritten later
+                            value = str(int(value_str)-1)
                             exec(tdata_ivar_str + ' = ' + value, globals())
                         elif mesh_char in ignored_eq_strs:
                             continue
@@ -937,30 +1023,35 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                                 #imesh = mesh_kind_chars.index('z')
                                 itdata_axis = 2 #mesh_kind_iax[imesh]
                                 tdata_ivar_str = tdata_ivar_strs[itdata_axis]
-                                value = str(int(part.split('=')[1].strip()) - 1)
+                                value_str = part.split('=')[1].strip()
+                                value = str(int(value_str) - 1)
                                 exec(tdata_ivar_str + ' = ' + value, globals())
                             elif meta['mesh'] == 'r-z':
                                 if mesh_char=='r surf':
-                                    # imesh = mesh_kind_chars.index('y')
-                                    #itdata_axis = 1  # set to iy
                                     itdata_axis = 0  # mesh_kind_iax[imesh]
-                                    tdata_ivar_str = tdata_ivar_strs[itdata_axis]
-                                    value = str(int(part.split('=')[1].strip()) - 1)
-                                    exec(tdata_ivar_str + ' = ' + value, globals())
-                                    #ir, ic = -1, -1
+                                    #itdata_axis = 1  # set to iy
                                     ierr_mod = int(ierr_max/2)
-                                elif mesh_char=='z surf':
-                                    # imesh = mesh_kind_chars.index('c')
-                                    #itdata_axis = 8  # set to ic
+                                    #ir, ic = -1, -1
+                                    # imesh = mesh_kind_chars.index('y')
+                                elif mesh_char == 'z surf':
                                     itdata_axis = 2  # mesh_kind_iax[imesh]
-                                    tdata_ivar_str = tdata_ivar_strs[itdata_axis]
-                                    value = str(int(part.split('=')[1].strip()) - 1)
-                                    exec(tdata_ivar_str + ' = ' + value, globals())
-                                    #iy, iz = -1, -1
+                                    #itdata_axis = 8  # set to ic
                                     ierr_mod = 0
+                                    #iy, iz = -1, -1
+                                    # imesh = mesh_kind_chars.index('c')
                                 else:
                                     print('ERROR! Unregistered potential index [', part.split('=')[0].strip(),'] found')
                                     sys.exit()
+                                tdata_ivar_str = tdata_ivar_strs[itdata_axis]
+                                value_str = part.split('=')[1].strip()
+                                if ' - ' in value_str:
+                                    vals = value_str.split('-')
+                                    if int(vals[0]) == int(vals[1]):
+                                        value_str = vals[0]
+                                    else: # samepage axis
+                                        value_str = vals[0] # this will be overwritten later
+                                value = str(int(value_str) - 1)
+                                exec(tdata_ivar_str + ' = ' + value, globals())
                             else:
                                 print('ERROR! Unregistered potential index [', part.split('=')[0].strip(), '] found')
                                 sys.exit()
@@ -1008,8 +1099,15 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                     sys.exit()
                 data_ivar = tdata_ivar_strs[axes_ital_1D[axes_1D.index(meta.samepage)]]
                 if ndata_cols != eval(data_ivar+'_max'):
-                    print('ERROR! number of data columns (',ndata_cols,') not equal to tally array dimension for ',data_ivar)
-                    sys.exit()
+                    if meta['tally_type']=='[T-Cross]' and ndata_cols+1 == eval(data_ivar+'_max'):
+                        # This is fine; for T-Cross, ndata cols can be one less than max length...
+                        pass
+                    elif meta['tally_type']=='[T-Cross]' and data_ivar == 'ir' and ndata_cols+2 == eval(data_ivar+'_max'):
+                        # This is fine; for T-Cross, ndata cols for radius can be two less than max length if rmin=0...
+                        pass
+                    else:
+                        print('ERROR! number of data columns (',ndata_cols,') not equal to tally array dimension for ',data_ivar,', ',str(eval(data_ivar+'_max')))
+                        sys.exit()
                 data_ivar_indices = [j for j in range(ndata_cols)]
             #print(cols)
             #print(ndata_cols)
@@ -1094,7 +1192,12 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                     if line[0] == "#":
                         hash_line_already_evaluated = True
                     elif line[0] == "'" and hash_line_already_evaluated:
-                        continue # '-starting lines tend to have more problematic formatting, best skipped if possible
+                        if meta['samepage'] == 'part':
+                            continue # '-starting lines tend to have more problematic formatting, best skipped if possible
+                        elif meta['npart'] == 1:
+                            continue # can still skip if only one particle group tallied
+                        else:
+                            pass # but this needs to be parsed if not using samepage = part and npart > 1
                     parts = split_str_of_equalities(line)
                     for part in parts:
                         mesh_char = part.split('=')[0].strip().replace('i', '')
@@ -1103,7 +1206,7 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                         elif mesh_char == 'part.' or mesh_char == 'partcle':
                             part_grp_name = part.split('=')[1].strip()
                             ip = (meta.part_groups).index(part_grp_name)
-                        elif mesh_char == 'reg':
+                        elif mesh_char == 'reg': # and meta['samepage'] != 'reg':
                             regnum = part.split('=')[1].strip()
                             ir = (meta.reg_num).index(regnum)
                         elif mesh_char in mesh_kind_chars or mesh_char in replace_eq_strs_dict:
@@ -1544,7 +1647,7 @@ def build_tally_Pandas_dataframe(tdata,meta):
 
     #with pd.option_context('display.max_rows', None, 'display.max_columns', None): print(tally_df)
     if in_debug_mode:
-        print(tally_df.to_string())
+        #print(tally_df.to_string())
         print(tally_df.attrs)
     return tally_df
 
@@ -1694,14 +1797,18 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
             print('\t The corresponding file with tally values could not be found, so only these uncertainties will be parsed.')
 
     # Split content of output file into header and content
+    if in_debug_mode: print("\nSplitting output into header and content...   ({:0.2f} seconds elapsed)".format(time.time() - start))
     tally_header, tally_content = split_into_header_and_content(tally_output_filepath)
+    if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
     # print(len(tally_content))
     # Check if *_err file exists
     potential_err_file = Path(tally_output_filepath.parent, tally_output_filepath.stem + '_err' + tally_output_filepath.suffix)
     is_err_in_separate_file = potential_err_file.is_file()  # for some tallies/meshes, uncertainties are stored in a separate identically-formatted file
     # Extract tally metadata
+    if in_debug_mode: print("\nExtracting tally metadata...   ({:0.2f} seconds elapsed)".format(time.time() - start))
     tally_metadata = parse_tally_header(tally_header, tally_content)
-    #pprint.pp(dict(tally_metadata))
+    if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
+    #if in_debug_mode: pprint.pp(dict(tally_metadata))
     # Initialize tally data array with zeros
     tally_data = initialize_tally_array(tally_metadata, include_abs_err=calculate_absolute_errors)
     # Parse tally data
@@ -1709,27 +1816,35 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
         err_mode = False
     else: # if is_err_file
         err_mode = True
+    if in_debug_mode: print("\nParsing tally data...   ({:0.2f} seconds elapsed)".format(time.time() - start))
     tally_data = parse_tally_content(tally_data, tally_metadata, tally_content, is_err_in_separate_file, err_mode=err_mode)
+    if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
     err_data_found = True
     if tally_metadata['axis_dimensions'] == 2 and tally_metadata['2D-type'] != 4:
         if is_err_file:
             err_data_found = False
         elif is_err_in_separate_file:
             err_tally_header, err_tally_content = split_into_header_and_content(potential_err_file)
+            if in_debug_mode: print("\nParsing tally error...   ({:0.2f} seconds elapsed)".format(time.time() - start))
             tally_data = parse_tally_content(tally_data, tally_metadata, err_tally_content, is_err_in_separate_file, err_mode=True)
+            if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
         else:
             print('WARNING: A separate file ending in "_err" containing uncertainties should exist but was not found.')
             err_data_found = False
     if calculate_absolute_errors:
         if err_data_found:
+            if in_debug_mode: print("\nCalculating absolute errors...   ({:0.2f} seconds elapsed)".format(time.time() - start))
             tally_data = calculate_tally_absolute_errors(tally_data)
+            if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
         elif is_err_file:
             print('WARNING: Absolute errors not calculated since the main tally values file was not found.')
         else:
             print('WARNING: Absolute errors not calculated since the _err file was not found.')
     # Generate Pandas dataframe of tally results
     if construct_Pandas_frame_from_array:
+        if in_debug_mode: print("\nConstructing Pandas dataframe...   ({:0.2f} seconds elapsed)".format(time.time() - start))
         tally_Pandas_df = build_tally_Pandas_dataframe(tally_data, tally_metadata)
+        if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
     else:
         tally_Pandas_df = None
 
@@ -1742,9 +1857,11 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
     if save_output_pickle:
         import pickle
         path_to_pickle_file = Path(tally_output_filepath.parent, tally_output_filepath.stem + '.pickle')
+        if in_debug_mode: print("\nWriting output to pickle file...   ({:0.2f} seconds elapsed)".format(time.time() - start))
         with open(path_to_pickle_file, 'wb') as handle:
             pickle.dump(tally_output, handle, protocol=pickle.HIGHEST_PROTOCOL)
             print('Pickle file written:', path_to_pickle_file, '\n')
+        if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
 
     return tally_output
 
@@ -1753,6 +1870,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
 if in_debug_mode:
     base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\\'
     #output_file_path = Path(base_path + 't-deposit\deposit_reg.out')
+    #output_file_path = Path(base_path + 't-deposit\deposit_eng_sp-reg.out')
     #output_file_path = Path(base_path + 't-track\\track_reg.out')
     #output_file_path = Path(base_path + 't-track\\track_r-z.out')
     #output_file_path = Path(base_path + 't-track\\track_xyz-xy.out')
@@ -1762,7 +1880,7 @@ if in_debug_mode:
     #output_file_path = Path(base_path + 't-deposit\deposit_xyz_2dtype5.out')
     #output_file_path = Path(base_path + 'tet_test\deposit-tet_axis-tet.out')
     #output_file_path = Path(base_path + 'tet_test\deposit-tet_axis-eng.out')
-    output_file_path = Path(base_path + 't-cross\cross_reg_axis-eng.out')
+    #output_file_path = Path(base_path + 't-cross\cross_reg_axis-eng.out')
     #output_file_path = Path(base_path + 't-cross\cross_reg_axis-reg.out')
     #output_file_path = Path(base_path + 't-cross\cross_xyz_axis-eng.out')
     #output_file_path = Path(base_path + 't-cross\cross_xyz_axis-eng_enclosed.out')
@@ -1778,6 +1896,9 @@ if in_debug_mode:
     #output_file_path = Path(base_path + 't-dpa\dpa_reg.out')
     #output_file_path = Path(base_path + 't-dpa\dpa_xyz.out')
     #output_file_path = Path(base_path + 't-dpa\dpa_r-z.out')
+    output_file_path = Path(base_path + 'samepage\\proton_in_hist_rz_axis-eng_samepage-z.out')
+    #output_file_path = Path(base_path + 'samepage\\proton_in_hist_rz_reduced.out')
+    #output_file_path = Path(base_path + 'samepage\\proton_in_hist_rz_sp-eng.out')
 
     test_dump_file = False
     if test_dump_file:
