@@ -8,7 +8,7 @@ These functions are just tools I have developed over time to speed up my usage o
 
 Aside from the main PHITS output parsing function **parse_tally_output_file()** for general tally output and the **parse_tally_dump_file()** function for parsing tally dump file outputs, PHITS_tools.py also contains a handful other functions which individuals may find useful. 
 
-If using [T-Dchain] in PHITS and/or the DCHAIN-PHITS code, the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools/) repository contains a separate Python module for parsing and processing that related code output. All of these functions are documented online at [lindt8.github.io/PHITS-Tools/](https://lindt8.github.io/PHITS-Tools/)
+If using [T-Dchain] in PHITS and/or the DCHAIN-PHITS code, the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools/) repository contains a separate Python module for parsing and processing that related code output. All of these functions are documented online at [lindt8.github.io/DCHAIN-Tools/](https://lindt8.github.io/DCHAIN-Tools/)
 
 All of the professionally-relevant Python modules I have developed are summarized [here](https://lindt8.github.io/professional-code-projects/), and more general information about me and the work I do / have done can be found on [my personal webpage](https://lindt8.github.io/).
 
