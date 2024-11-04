@@ -10,4 +10,6 @@ Aside from the main PHITS output parsing function **parse_tally_output_file()** 
 
 If using [T-Dchain] in PHITS and/or the DCHAIN-PHITS code, the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools/) repository contains a separate Python module for parsing and processing that related code output. All of these functions are documented online at [lindt8.github.io/PHITS-Tools/](https://lindt8.github.io/PHITS-Tools/)
 
+All of the professionally-relevant Python modules I have developed are summarized [here](https://lindt8.github.io/professional-code-projects/), and more general information about me and the work I do / have done can be found on [my personal webpage](https://lindt8.github.io/).
+
 <!-- The dchain_tools_manual.pdf document primarily covers usage of this main function but provides brief descriptions of the other available functions. /--> 
