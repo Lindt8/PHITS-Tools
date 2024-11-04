@@ -567,6 +567,7 @@ def parse_tally_header(tally_header,tally_content):
     meta[&#39;reg&#39;] = None
     meta[&#39;part&#39;] = None
     meta[&#39;npart&#39;] = None
+    meta[&#39;nc&#39;] = None
     meta[&#39;samepage&#39;] = &#39;part&#39;
     found_mesh_kinds = []
 
@@ -1710,10 +1711,19 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
             print(&#39;\t&#39;+line)
 
     return_updated_metadata_too = False
-    if meta[&#39;tally_type&#39;] == &#39;[T-Yield]&#39; and meta[&#39;axis&#39;] == &#39;chart&#39;:
+    if meta[&#39;tally_type&#39;] == &#39;[T-Yield]&#39;:
         return_updated_metadata_too = True
-        meta[&#39;nuclide_ZZZAAAM_list&#39;] = ZZZAAAM_list
-        meta[&#39;nuclide_isomer_list&#39;] = [ZZZAAAM_to_nuclide_plain_str(i) for i in ZZZAAAM_list]
+        if meta[&#39;axis&#39;] == &#39;chart&#39;:
+            meta[&#39;nuclide_ZZZAAAM_list&#39;] = ZZZAAAM_list
+            meta[&#39;nuclide_isomer_list&#39;] = [ZZZAAAM_to_nuclide_plain_str(i) for i in ZZZAAAM_list]
+            nc_max = len(ZZZAAAM_list) #+ 1
+            meta[&#39;nc&#39;] = nc_max
+            tdata = tdata[:,:,:,:,:,:,:,:,:nc_max,:]
+        elif meta[&#39;axis&#39;] == &#39;charge&#39; or meta[&#39;axis&#39;] == &#39;mass&#39;:
+            ic_axis_tdata_sum = tdata.sum(axis=(0,1,2,3,4,5,6,7,9))
+            nc_max = np.max(np.nonzero(ic_axis_tdata_sum)) + 1
+            meta[&#39;nc&#39;] = nc_max
+            tdata = tdata[:, :, :, :, :, :, :, :, :nc_max, :]
 
     if return_updated_metadata_too:
         return tdata, meta
@@ -1828,6 +1838,24 @@ def build_tally_Pandas_dataframe(tdata,meta):
             col_names_list += lcol_names_list
     else:
         single_bin_ranges_or_values.append([&#39;LET&#39;,&#39;default/all&#39;])
+
+    if meta.nc != None:
+        if meta.nc == 1:
+            pass
+        else:
+            ccols = True
+            if meta[&#39;tally_type&#39;] == &#39;[T-Yield]&#39;:
+                if meta[&#39;axis&#39;] == &#39;chart&#39;:
+                    ccol_names_list = [&#39;ic&#39;, &#39;nuclide&#39;, &#39;ZZZAAAM&#39;]
+                    col_names_list += ccol_names_list
+                elif meta[&#39;axis&#39;] == &#39;charge&#39;:
+                    ccol_names_list = [&#39;ic/Z/charge&#39;]
+                    col_names_list += ccol_names_list
+                elif meta[&#39;axis&#39;] == &#39;mass&#39;:
+                    ccol_names_list = [&#39;ic/A/mass&#39;]
+                    col_names_list += ccol_names_list
+            elif meta[&#39;tally_type&#39;] == &#39;[T-Deposit2]&#39;:
+                pass
 
     if meta.npart != None: # and meta.part_groups[0]==&#39;all&#39;:
         if meta.npart==1:
@@ -1966,7 +1994,18 @@ def build_tally_Pandas_dataframe(tdata,meta):
                                             df_dict[lcol_names_list[1]].append(meta[&#39;l-mesh_bin_mids&#39;][il])
 
                                         if ccols:
-                                            pass
+                                            if meta[&#39;tally_type&#39;] == &#39;[T-Yield]&#39;:
+                                                if meta[&#39;axis&#39;] == &#39;chart&#39;:
+                                                    #ccol_names_list = [&#39;ic&#39;, &#39;nuclide&#39;, &#39;ZZZAAAM&#39;]
+                                                    df_dict[ccol_names_list[0]].append(ic)
+                                                    df_dict[ccol_names_list[1]].append(meta[&#39;nuclide_isomer_list&#39;][ic])
+                                                    df_dict[ccol_names_list[2]].append(meta[&#39;nuclide_ZZZAAAM_list&#39;][ic])
+                                                elif meta[&#39;axis&#39;] == &#39;charge&#39;:
+                                                    #ccol_names_list = [&#39;ic/Z/charge&#39;]
+                                                    df_dict[ccol_names_list[0]].append(ic)
+                                                elif meta[&#39;axis&#39;] == &#39;mass&#39;:
+                                                    #ccol_names_list = [&#39;ic/A/mass&#39;]
+                                                    df_dict[ccol_names_list[0]].append(ic)
 
                                         # Value columns
                                         #val_names_list = [&#39;value&#39;, &#39;rel.err.&#39;,&#39;abs.err.&#39;]
@@ -2047,7 +2086,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
 
        Tally data indices and corresponding mesh/axis:
 
-        - `0` | `ir`, Geometry mesh: `reg` / `x` / `r` / `tet` ([T-Cross] `ir surf`)
+        - `0` | `ir`, Geometry mesh: `reg` / `x` / `r` / `tet` ([T-Cross] `ir surf` if `mesh=r-z` with `enclos=0`)
         - `1` | `iy`, Geometry mesh:  `1` / `y` / `1`
         - `2` | `iz`, Geometry mesh:  `1` / `z` / `z` ([T-Cross] `iz surf` if `mesh=xyz` or `mesh=r-z` with `enclos=0`)
         - `3` | `ie`, Energy mesh: `eng` ([T-Deposit2] `eng1`)
@@ -2113,12 +2152,15 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        [T-Yield] is also a bit exceptional.  When setting the `axis` parameter equal to `charge`, `mass`, or `chart`,
        the `ic` dimension of `tally_data` is used for each entry of charge (proton number, Z), mass (A), or
        isotope/isomer, respectively.
+
        In the case of `axis = charge` or `axis = mass`, the value of `ic` refers to the actual charge/proton number Z
        or mass number A when accessing `tally_data`; for instance, `tally_data[:,:,:,:,:,:,:,:,28,:]`
-       references results from nuclei with Z=28 if `axis = charge` or A=28 if `axis = mass`.
+       references results from nuclei with Z=28 if `axis = charge` or A=28 if `axis = mass`.  The length of the `ic`
+       dimension is initialized as 130 or 320 but is later reduced to only just include the highest charge or mass value.
 
-       In the case of `axis = chart`, the length of the `ic` dimension is set equal to the `mxnuclei` parameter in
-       the [T-Yield] tally.  If `mxnuclei = 0` is set, then the length of the `ic` dimension is set to 10,000.
+       In the case of `axis = chart`, the length of the `ic` dimension is initially set equal to the `mxnuclei` parameter
+       in the [T-Yield] tally.  If `mxnuclei = 0` is set, then the length of the `ic` dimension is initially set to 10,000.
+       This `ic` dimension length is later reduced to the total number of unique nuclides found in the output.
        Owing to the huge number of possible nuclides, a list of found nuclides with nonzero yield is assembled and
        added to `tally_metadata` under the keys `nuclide_ZZZAAAM_list` and `nuclide_isomer_list`, i.e.
        `tally_metadata[&#39;nuclide_ZZZAAAM_list&#39;]` and `tally_metadata[&#39;nuclide_isomer_list&#39;]`.
@@ -2226,7 +2268,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
     else: # if is_err_file
         err_mode = True
     if in_debug_mode: print(&#34;\nParsing tally data...   ({:0.2f} seconds elapsed)&#34;.format(time.time() - start))
-    if tally_metadata[&#39;tally_type&#39;]==&#39;[T-Yield]&#39; and tally_metadata[&#39;axis&#39;]==&#39;chart&#39;: # need to update metadata too
+    if tally_metadata[&#39;tally_type&#39;]==&#39;[T-Yield]&#39; and tally_metadata[&#39;axis&#39;] in [&#39;chart&#39;,&#39;charge&#39;,&#39;mass&#39;]: # need to update metadata too
         tally_data, tally_metadata = parse_tally_content(tally_data, tally_metadata, tally_content, is_err_in_separate_file, err_mode=err_mode)
     else:
         tally_data = parse_tally_content(tally_data, tally_metadata, tally_content, is_err_in_separate_file, err_mode=err_mode)
@@ -2238,7 +2280,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
         elif is_err_in_separate_file:
             err_tally_header, err_tally_content = split_into_header_and_content(potential_err_file)
             if in_debug_mode: print(&#34;\nParsing tally error...   ({:0.2f} seconds elapsed)&#34;.format(time.time() - start))
-            if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Yield]&#39; and tally_metadata[&#39;axis&#39;] == &#39;chart&#39;:  # need to update metadata too
+            if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Yield]&#39; and tally_metadata[&#39;axis&#39;] in [&#39;chart&#39;,&#39;charge&#39;,&#39;mass&#39;]:  # need to update metadata too
                 tally_data, tally_metadata = parse_tally_content(tally_data, tally_metadata, err_tally_content, is_err_in_separate_file,err_mode=True)
             else:
                 tally_data = parse_tally_content(tally_data, tally_metadata, err_tally_content, is_err_in_separate_file, err_mode=True)
@@ -2314,7 +2356,7 @@ if in_debug_mode:
     #output_file_path = Path(base_path + &#39;t-dpa\dpa_xyz.out&#39;)
     #output_file_path = Path(base_path + &#39;t-dpa\dpa_r-z.out&#39;)
     #output_file_path = Path(base_path + &#39;samepage\\proton_in_hist_rz_axis-eng_samepage-z.out&#39;)
-    output_file_path = Path(base_path + &#39;samepage\\proton_in_hist_rz_reduced.out&#39;) # has NULL characters in it
+    #output_file_path = Path(base_path + &#39;samepage\\proton_in_hist_rz_reduced.out&#39;) # has NULL characters in it
     #output_file_path = Path(base_path + &#39;samepage\\proton_in_hist_rz_sp-eng.out&#39;)
     #output_file_path = Path(base_path + &#39;t-deposit2\deposit2_reg.out&#39;)
     #output_file_path = Path(base_path + &#39;t-deposit2\deposit2_reg_axis-e21.out&#39;)
@@ -2339,7 +2381,7 @@ if in_debug_mode:
     #output_file_path = Path(base_path + r&#39;t-time\time_xyz.out&#39;)
     #output_file_path = Path(base_path + r&#39;t-yield\yield_reg_axis-charge.out&#39;)
     #output_file_path = Path(base_path + r&#39;t-yield\yield_reg_axis-mass.out&#39;)
-    #output_file_path = Path(base_path + r&#39;t-yield\yield_reg_axis-chart.out&#39;)
+    output_file_path = Path(base_path + r&#39;t-yield\yield_reg_axis-chart.out&#39;)
     #output_file_path = Path(base_path + r&#39;t-yield\yield_xyz_axis-chart.out&#39;)
 
     test_dump_file = False
@@ -2629,6 +2671,24 @@ note that tally_df.attrs returns values which are the same for all rows</li>
     else:
         single_bin_ranges_or_values.append([&#39;LET&#39;,&#39;default/all&#39;])
 
+    if meta.nc != None:
+        if meta.nc == 1:
+            pass
+        else:
+            ccols = True
+            if meta[&#39;tally_type&#39;] == &#39;[T-Yield]&#39;:
+                if meta[&#39;axis&#39;] == &#39;chart&#39;:
+                    ccol_names_list = [&#39;ic&#39;, &#39;nuclide&#39;, &#39;ZZZAAAM&#39;]
+                    col_names_list += ccol_names_list
+                elif meta[&#39;axis&#39;] == &#39;charge&#39;:
+                    ccol_names_list = [&#39;ic/Z/charge&#39;]
+                    col_names_list += ccol_names_list
+                elif meta[&#39;axis&#39;] == &#39;mass&#39;:
+                    ccol_names_list = [&#39;ic/A/mass&#39;]
+                    col_names_list += ccol_names_list
+            elif meta[&#39;tally_type&#39;] == &#39;[T-Deposit2]&#39;:
+                pass
+
     if meta.npart != None: # and meta.part_groups[0]==&#39;all&#39;:
         if meta.npart==1:
             single_specified_bin_axes.append(&#39;p&#39;)
@@ -2766,7 +2826,18 @@ note that tally_df.attrs returns values which are the same for all rows</li>
                                             df_dict[lcol_names_list[1]].append(meta[&#39;l-mesh_bin_mids&#39;][il])
 
                                         if ccols:
-                                            pass
+                                            if meta[&#39;tally_type&#39;] == &#39;[T-Yield]&#39;:
+                                                if meta[&#39;axis&#39;] == &#39;chart&#39;:
+                                                    #ccol_names_list = [&#39;ic&#39;, &#39;nuclide&#39;, &#39;ZZZAAAM&#39;]
+                                                    df_dict[ccol_names_list[0]].append(ic)
+                                                    df_dict[ccol_names_list[1]].append(meta[&#39;nuclide_isomer_list&#39;][ic])
+                                                    df_dict[ccol_names_list[2]].append(meta[&#39;nuclide_ZZZAAAM_list&#39;][ic])
+                                                elif meta[&#39;axis&#39;] == &#39;charge&#39;:
+                                                    #ccol_names_list = [&#39;ic/Z/charge&#39;]
+                                                    df_dict[ccol_names_list[0]].append(ic)
+                                                elif meta[&#39;axis&#39;] == &#39;mass&#39;:
+                                                    #ccol_names_list = [&#39;ic/A/mass&#39;]
+                                                    df_dict[ccol_names_list[0]].append(ic)
 
                                         # Value columns
                                         #val_names_list = [&#39;value&#39;, &#39;rel.err.&#39;,&#39;abs.err.&#39;]
@@ -3823,10 +3894,19 @@ as is necessary when processing dedicated *_err files.</li>
             print(&#39;\t&#39;+line)
 
     return_updated_metadata_too = False
-    if meta[&#39;tally_type&#39;] == &#39;[T-Yield]&#39; and meta[&#39;axis&#39;] == &#39;chart&#39;:
+    if meta[&#39;tally_type&#39;] == &#39;[T-Yield]&#39;:
         return_updated_metadata_too = True
-        meta[&#39;nuclide_ZZZAAAM_list&#39;] = ZZZAAAM_list
-        meta[&#39;nuclide_isomer_list&#39;] = [ZZZAAAM_to_nuclide_plain_str(i) for i in ZZZAAAM_list]
+        if meta[&#39;axis&#39;] == &#39;chart&#39;:
+            meta[&#39;nuclide_ZZZAAAM_list&#39;] = ZZZAAAM_list
+            meta[&#39;nuclide_isomer_list&#39;] = [ZZZAAAM_to_nuclide_plain_str(i) for i in ZZZAAAM_list]
+            nc_max = len(ZZZAAAM_list) #+ 1
+            meta[&#39;nc&#39;] = nc_max
+            tdata = tdata[:,:,:,:,:,:,:,:,:nc_max,:]
+        elif meta[&#39;axis&#39;] == &#39;charge&#39; or meta[&#39;axis&#39;] == &#39;mass&#39;:
+            ic_axis_tdata_sum = tdata.sum(axis=(0,1,2,3,4,5,6,7,9))
+            nc_max = np.max(np.nonzero(ic_axis_tdata_sum)) + 1
+            meta[&#39;nc&#39;] = nc_max
+            tdata = tdata[:, :, :, :, :, :, :, :, :nc_max, :]
 
     if return_updated_metadata_too:
         return tdata, meta
@@ -4115,6 +4195,7 @@ broken into "blocks" ("newpage:"-separated) which are lists of lines belonging t
     meta[&#39;reg&#39;] = None
     meta[&#39;part&#39;] = None
     meta[&#39;npart&#39;] = None
+    meta[&#39;nc&#39;] = None
     meta[&#39;samepage&#39;] = &#39;part&#39;
     found_mesh_kinds = []
 
@@ -4513,7 +4594,7 @@ This is achieved with a 10-dimensional array accessible as</p>
 <p><code>tally_data[ ir, iy, iz, ie, it, ia, il, ip, ic, ierr ]</code>, with indices explained below:</p>
 <p>Tally data indices and corresponding mesh/axis:</p>
 <ul>
-<li><code>0</code> | <code>ir</code>, Geometry mesh: <code>reg</code> / <code>x</code> / <code>r</code> / <code>tet</code> ([T-Cross] <code>ir surf</code>)</li>
+<li><code>0</code> | <code>ir</code>, Geometry mesh: <code>reg</code> / <code>x</code> / <code>r</code> / <code>tet</code> ([T-Cross] <code>ir surf</code> if <code>mesh=r-z</code> with <code>enclos=0</code>)</li>
 <li><code>1</code> | <code>iy</code>, Geometry mesh:
 <code>1</code> / <code>y</code> / <code>1</code></li>
 <li><code>2</code> | <code>iz</code>, Geometry mesh:
@@ -4572,13 +4653,16 @@ values for combinations of and <code>nr</code> and <code>nzsurf</code>).</p>
 <p>[T-Yield] is also a bit exceptional.
 When setting the <code>axis</code> parameter equal to <code>charge</code>, <code>mass</code>, or <code>chart</code>,
 the <code>ic</code> dimension of <code>tally_data</code> is used for each entry of charge (proton number, Z), mass (A), or
-isotope/isomer, respectively.
-In the case of <code>axis = charge</code> or <code>axis = mass</code>, the value of <code>ic</code> refers to the actual charge/proton number Z
+isotope/isomer, respectively.</p>
+<p>In the case of <code>axis = charge</code> or <code>axis = mass</code>, the value of <code>ic</code> refers to the actual charge/proton number Z
 or mass number A when accessing <code>tally_data</code>; for instance, <code>tally_data[:,:,:,:,:,:,:,:,28,:]</code>
-references results from nuclei with Z=28 if <code>axis = charge</code> or A=28 if <code>axis = mass</code>.</p>
-<p>In the case of <code>axis = chart</code>, the length of the <code>ic</code> dimension is set equal to the <code>mxnuclei</code> parameter in
-the [T-Yield] tally.
-If <code>mxnuclei = 0</code> is set, then the length of the <code>ic</code> dimension is set to 10,000.
+references results from nuclei with Z=28 if <code>axis = charge</code> or A=28 if <code>axis = mass</code>.
+The length of the <code>ic</code>
+dimension is initialized as 130 or 320 but is later reduced to only just include the highest charge or mass value.</p>
+<p>In the case of <code>axis = chart</code>, the length of the <code>ic</code> dimension is initially set equal to the <code>mxnuclei</code> parameter
+in the [T-Yield] tally.
+If <code>mxnuclei = 0</code> is set, then the length of the <code>ic</code> dimension is initially set to 10,000.
+This <code>ic</code> dimension length is later reduced to the total number of unique nuclides found in the output.
 Owing to the huge number of possible nuclides, a list of found nuclides with nonzero yield is assembled and
 added to <code>tally_metadata</code> under the keys <code>nuclide_ZZZAAAM_list</code> and <code>nuclide_isomer_list</code>, i.e.
 <code>tally_metadata['nuclide_ZZZAAAM_list']</code> and <code>tally_metadata['nuclide_isomer_list']</code>.
@@ -4648,7 +4732,7 @@ the yield results of production of carbon-14 (C-14), one would use the following
 
        Tally data indices and corresponding mesh/axis:
 
-        - `0` | `ir`, Geometry mesh: `reg` / `x` / `r` / `tet` ([T-Cross] `ir surf`)
+        - `0` | `ir`, Geometry mesh: `reg` / `x` / `r` / `tet` ([T-Cross] `ir surf` if `mesh=r-z` with `enclos=0`)
         - `1` | `iy`, Geometry mesh:  `1` / `y` / `1`
         - `2` | `iz`, Geometry mesh:  `1` / `z` / `z` ([T-Cross] `iz surf` if `mesh=xyz` or `mesh=r-z` with `enclos=0`)
         - `3` | `ie`, Energy mesh: `eng` ([T-Deposit2] `eng1`)
@@ -4714,12 +4798,15 @@ the yield results of production of carbon-14 (C-14), one would use the following
        [T-Yield] is also a bit exceptional.  When setting the `axis` parameter equal to `charge`, `mass`, or `chart`,
        the `ic` dimension of `tally_data` is used for each entry of charge (proton number, Z), mass (A), or
        isotope/isomer, respectively.
+
        In the case of `axis = charge` or `axis = mass`, the value of `ic` refers to the actual charge/proton number Z
        or mass number A when accessing `tally_data`; for instance, `tally_data[:,:,:,:,:,:,:,:,28,:]`
-       references results from nuclei with Z=28 if `axis = charge` or A=28 if `axis = mass`.
+       references results from nuclei with Z=28 if `axis = charge` or A=28 if `axis = mass`.  The length of the `ic`
+       dimension is initialized as 130 or 320 but is later reduced to only just include the highest charge or mass value.
 
-       In the case of `axis = chart`, the length of the `ic` dimension is set equal to the `mxnuclei` parameter in
-       the [T-Yield] tally.  If `mxnuclei = 0` is set, then the length of the `ic` dimension is set to 10,000.
+       In the case of `axis = chart`, the length of the `ic` dimension is initially set equal to the `mxnuclei` parameter
+       in the [T-Yield] tally.  If `mxnuclei = 0` is set, then the length of the `ic` dimension is initially set to 10,000.
+       This `ic` dimension length is later reduced to the total number of unique nuclides found in the output.
        Owing to the huge number of possible nuclides, a list of found nuclides with nonzero yield is assembled and
        added to `tally_metadata` under the keys `nuclide_ZZZAAAM_list` and `nuclide_isomer_list`, i.e.
        `tally_metadata[&#39;nuclide_ZZZAAAM_list&#39;]` and `tally_metadata[&#39;nuclide_isomer_list&#39;]`.
@@ -4827,7 +4914,7 @@ the yield results of production of carbon-14 (C-14), one would use the following
     else: # if is_err_file
         err_mode = True
     if in_debug_mode: print(&#34;\nParsing tally data...   ({:0.2f} seconds elapsed)&#34;.format(time.time() - start))
-    if tally_metadata[&#39;tally_type&#39;]==&#39;[T-Yield]&#39; and tally_metadata[&#39;axis&#39;]==&#39;chart&#39;: # need to update metadata too
+    if tally_metadata[&#39;tally_type&#39;]==&#39;[T-Yield]&#39; and tally_metadata[&#39;axis&#39;] in [&#39;chart&#39;,&#39;charge&#39;,&#39;mass&#39;]: # need to update metadata too
         tally_data, tally_metadata = parse_tally_content(tally_data, tally_metadata, tally_content, is_err_in_separate_file, err_mode=err_mode)
     else:
         tally_data = parse_tally_content(tally_data, tally_metadata, tally_content, is_err_in_separate_file, err_mode=err_mode)
@@ -4839,7 +4926,7 @@ the yield results of production of carbon-14 (C-14), one would use the following
         elif is_err_in_separate_file:
             err_tally_header, err_tally_content = split_into_header_and_content(potential_err_file)
             if in_debug_mode: print(&#34;\nParsing tally error...   ({:0.2f} seconds elapsed)&#34;.format(time.time() - start))
-            if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Yield]&#39; and tally_metadata[&#39;axis&#39;] == &#39;chart&#39;:  # need to update metadata too
+            if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Yield]&#39; and tally_metadata[&#39;axis&#39;] in [&#39;chart&#39;,&#39;charge&#39;,&#39;mass&#39;]:  # need to update metadata too
                 tally_data, tally_metadata = parse_tally_content(tally_data, tally_metadata, err_tally_content, is_err_in_separate_file,err_mode=True)
             else:
                 tally_data = parse_tally_content(tally_data, tally_metadata, err_tally_content, is_err_in_separate_file, err_mode=True)
