@@ -1978,16 +1978,16 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
 
        Tally data indices and corresponding mesh/axis:
 
-        - `0` | `ir`, Geometry mesh: `reg` / `x` / `r` / `tet`
-        - `1` | `iy`, Geometry mesh:  `1` / `y` / `1` ([T-Cross] `ir surf`)
-        - `2` | `iz`, Geometry mesh:  `1` / `z` / `z` ([T-Cross] `iz surf` if (`mesh=xyz`) OR `iz` if (`mesh=r-z` AND `enclos=1`))
+        - `0` | `ir`, Geometry mesh: `reg` / `x` / `r` / `tet` ([T-Cross] `ir surf`)
+        - `1` | `iy`, Geometry mesh:  `1` / `y` / `1`
+        - `2` | `iz`, Geometry mesh:  `1` / `z` / `z` ([T-Cross] `iz surf` if `mesh=xyz/r-z` & `enclos=0`)
         - `3` | `ie`, Energy mesh: `eng` ([T-Deposit2] `eng1`)
         - `4` | `it`, Time mesh
         - `5` | `ia`, Angle mesh
         - `6` | `il`, LET mesh
         - `7` | `ip`, Particle type (`part = `)
-        - `8` | `ic`, Special: [T-Cross] `iz surf` (if `mesh=r-z` AND `enclos=0`); [T-Deposit2] `eng2`; [T-Yield] `mass`, `charge`, `chart`
-        - `9` | `ierr = 0/1/2`, Value / relative uncertainty / absolute uncertainty
+        - `8` | `ic`, Special: [T-Deposit2] `eng2`; [T-Yield] `mass`, `charge`, `chart`
+        - `9` | `ierr = 0/1/2`, Value / relative uncertainty / absolute uncertainty (expanded to `3/4/5` for [T-Cross] `mesh=r-z` with `enclos=0` case; see notes further below)
 
        -----
 
