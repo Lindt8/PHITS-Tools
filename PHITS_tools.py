@@ -260,8 +260,12 @@ def split_into_header_and_content(output_file_path):
     '''
     in_content = False
     header, content = [], [[]]
-    with open(output_file_path) as f:
+    with open(output_file_path, mode='rb') as f:
         for line in f:
+            if b'\x00' in line:
+                line = line.replace(b"\x00", b"")
+            line = line.decode()
+            #if "\x00" in line: line = line.replace("\x00", "")
             if '#newpage:' in line:
                 in_content = True
                 continue
@@ -2240,7 +2244,7 @@ if in_debug_mode:
     #output_file_path = Path(base_path + 't-dpa\dpa_xyz.out')
     #output_file_path = Path(base_path + 't-dpa\dpa_r-z.out')
     #output_file_path = Path(base_path + 'samepage\\proton_in_hist_rz_axis-eng_samepage-z.out')
-    #output_file_path = Path(base_path + 'samepage\\proton_in_hist_rz_reduced.out')
+    output_file_path = Path(base_path + 'samepage\\proton_in_hist_rz_reduced.out') # has NULL characters in it
     #output_file_path = Path(base_path + 'samepage\\proton_in_hist_rz_sp-eng.out')
     #output_file_path = Path(base_path + 't-deposit2\deposit2_reg.out')
     #output_file_path = Path(base_path + 't-deposit2\deposit2_reg_axis-e21.out')
@@ -2265,7 +2269,7 @@ if in_debug_mode:
     #output_file_path = Path(base_path + r't-time\time_xyz.out')
     #output_file_path = Path(base_path + r't-yield\yield_reg_axis-charge.out')
     #output_file_path = Path(base_path + r't-yield\yield_reg_axis-mass.out')
-    output_file_path = Path(base_path + r't-yield\yield_reg_axis-chart.out')
+    #output_file_path = Path(base_path + r't-yield\yield_reg_axis-chart.out')
     #output_file_path = Path(base_path + r't-yield\yield_xyz_axis-chart.out')
 
     test_dump_file = False
