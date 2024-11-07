@@ -11,7 +11,7 @@ The functions contained in this module and brief descriptions of their functions
 
 - `parse_tally_output_file`         : general parser for standard output files for all PHITS tallies
 - `parse_tally_dump_file`           : parser for dump files from "dump" flag in PHITS [T-Cross], [T-Time], and [T-Track] tallies
-- `parse_all_tally_output_in_dir`   : NOT YET IMPLEMENTED
+- `parse_all_tally_output_in_dir`   : run `parse_tally_output_file()` over all standard output files in a directory
 
 ### General Purpose Functions
 
@@ -1970,7 +1970,138 @@ def build_tally_Pandas_dataframe(tdata,meta):
     return tally_df
 
 
-def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calculate_absolute_errors = True, save_output_pickle = True):
+
+def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.out', output_file_prefix = '',
+                                  output_file_required_string = '', include_subdirectories = False,  return_tally_output = False,
+                                  make_PandasDF = True, calculate_absolute_errors = True,
+                                  save_output_pickle = True, prefer_reading_existing_pickle = False):
+    '''
+    Description:
+        Parse all standard PHITS tally output files in a directory, returning either a list of dictionaries containing
+        tally metadata and an array of values from each tally output (and optionally this data inside of a Pandas dataframe too)
+        or a list of filepaths to pickle files containing these dictionaries, as created with the `parse_tally_output_file()` function.
+        This function allows selective processing of files in the directory by specification of strings which must
+        appear at the start, end, and/or anywhere within each filename.
+        Even if a file satisfies all of these naming criteria, the function will also check the first line of the file
+        to determine if it is a valid tally output file (meaning, it will skip files such as phits.out and batch.out).
+        It will also skip over "_err" uncertainty files as these are automatically found by the `parse_tally_output_file()`
+        function after it processes that tally's main output file.
+        This function will only process standard tally output files, not tally "dump" files, which can be processed with
+        the separate `parse_tally_dump_file` function.
+
+    Dependencies:
+        - `import os`
+        - `import numpy as np`
+        - `import pandas as pd` (if `make_PandasDF = True`)
+        - `import pickle` (if `save_output_pickle = True`)
+        - `from munch import *`
+        - `from pathlib import Path`
+
+    Inputs:
+       (required)
+
+        - `tally_output_dirpath` = Path (string or path object) to the tally output directory to be searched and parsed
+
+    Inputs:
+       (optional)
+
+       - `output_file_suffix` = A string specifying what characters processed filenames (including the file extension)
+                      must end in to be included.  This condition is not enforced if set to an empty string `''`. (D=`'.out'`)
+       - `output_file_prefix` = A string specifying what characters processed filenames (including the file extension)
+                      must begin with to be included.  This condition is not enforced if set to an empty string `''`. (D=`''`)
+       - `output_file_required_string` = A string which must be present anywhere within processed filenames (including the
+                      file extension) to be included.  This condition is not enforced if set to an empty string `''`. (D=`''`)
+       - `include_subdirectories` = A Boolean determining whether this function searches and processes all included
+                      tally output files in this directory AND deeper subdirectories if set to `True`
+                      or only the files directly within the provided directory `tally_output_dirpath` if set to `False` (D=`False`)
+       - `return_tally_output` = A Boolean determining whether this function returns a list of `tally_output` dictionaries
+                      if set to `True` or just a list of filepaths to the pickle files containing these dictionaries
+                      if set to `False` (D=`False`)
+
+    Inputs:
+       (optional, the same as in and directly passed to the `parse_tally_output_file()` function)
+
+       - `make_PandasDF` = A Boolean determining whether a Pandas dataframe of the tally data array will be made (D=`True`)
+       - `calculate_absolute_errors` = A Boolean determining whether the absolute uncertainty of each tally output value
+                      is to be calculated (simply as the product of the value and relative error); if `False`, the final
+                      dimension of `tally_data`, `ierr`, will be of length-2 rather than length-3 (D=`True`)
+       - `save_output_pickle` = A Boolean determining whether the `tally_output` dictionary object is saved as a pickle file;
+                      if `True`, the file will be saved with the same path and name as the provided PHITS tally output file
+                      but with the .pickle extension. (D=`True`)
+       - `prefer_reading_existing_pickle` = A Boolean determining what this function does if the pickle file this function
+                      seeks to generate already exists.  If `False` (default behavior), this function will parse the PHITS
+                      output files as usual and overwrite the existing pickle file.  If `True`, this function will instead
+                      simply just read the existing found pickle file and return its stored `tally_output` contents. (D=`False`)
+
+    Output:
+        - `tally_output` = a dictionary object with the below keys and values:
+            - `'tally_data'` = a 10-dimensional NumPy array containing all tally results, explained in more detail below
+            - `'tally_metadata'` = a dictionary/Munch object with various data extracted from the tally output file, such as axis binning and units
+            - `'tally_dataframe'` = (optionally included if setting `make_PandasDF = True`) a Pandas dataframe version of `tally_data`
+
+    '''
+    import os
+
+    if not os.path.isdir(tally_output_dirpath):
+        print('The provided path to "tally_output_dir" is not a directory:',tally_output_dirpath)
+        if os.path.isfile(tally_output_dirpath):
+            head, tail = os.path.split(tally_output_dirpath)
+            tally_output_dirpath = head
+            print('However, it is a valid path to a file; thus, its parent directory will be used:',tally_output_dirpath)
+        else:
+            print('Nor is it a valid path to a file. ERROR! Aborting...')
+            return None
+
+    if include_subdirectories:
+        # Get paths to all files in this dir and subdirs
+        files_in_dir = []
+        for path, subdirs, files in os.walk(tally_output_dirpath):
+            for name in files:
+                files_in_dir.append(os.path.join(path, name))
+    else:
+        # Just get paths to files in this dir
+        files_in_dir = [os.path.join(tally_output_dirpath, f) for f in os.listdir(tally_output_dirpath) if os.path.isfile(os.path.join(tally_output_dirpath, f))]
+
+    # Determine which files should be parsed
+    filepaths_to_process = []
+    len_suffix = len(output_file_suffix)
+    len_prefix = len(output_file_prefix)
+    len_reqstr = len(output_file_required_string)
+    for f in files_in_dir:
+        head, tail = os.path.split(f)
+        if len_suffix > 0 and tail[-len_suffix:] != output_file_suffix: continue
+        if len_prefix > 0 and tail[:len_prefix] != output_file_prefix: continue
+        if len_reqstr > 0 and output_file_required_string not in tail: continue
+        if tail[(-4-len_suffix):] == '_err' + output_file_suffix: continue
+        with open(f) as ff:
+            try:
+                first_line = ff.readline().strip()
+            except: # triggered if encountering binary / non ASCII or UTF-8 file
+                continue
+            if len(first_line) == 0: continue
+            if first_line[0] != '[' : continue
+        filepaths_to_process.append(f)
+
+    tally_output_pickle_path_list = []
+    tally_output_list = []
+    for f in filepaths_to_process:
+        f = Path(f)
+        path_to_pickle_file = Path(f.parent, f.stem + '.pickle')
+        tally_output_pickle_path_list.append(path_to_pickle_file)
+        tally_output = parse_tally_output_file(f, make_PandasDF=make_PandasDF,
+                                               calculate_absolute_errors=calculate_absolute_errors,
+                                               save_output_pickle=save_output_pickle,
+                                               prefer_reading_existing_pickle=prefer_reading_existing_pickle)
+        if return_tally_output: tally_output_list.append(tally_output)
+
+    if return_tally_output:
+        return tally_output_list
+    else:
+        return tally_output_pickle_path_list
+
+
+def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calculate_absolute_errors = True,
+                            save_output_pickle = True, prefer_reading_existing_pickle = False):
     '''
     Description:
         Parse any PHITS tally output file, returning tally metadata and an array of its values (and optionally
@@ -1999,6 +2130,10 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        - `save_output_pickle` = A Boolean determining whether the `tally_output` dictionary object is saved as a pickle file;
                       if `True`, the file will be saved with the same path and name as the provided PHITS tally output file
                       but with the .pickle extension. (D=`True`)
+       - `prefer_reading_existing_pickle` = A Boolean determining what this function does if the pickle file this function
+                      seeks to generate already exists.  If `False` (default behavior), this function will parse the PHITS
+                      output files as usual and overwrite the existing pickle file.  If `True`, this function will instead
+                      simply just read the existing found pickle file and return its stored `tally_output` contents. (D=`False`)
 
     Output:
         - `tally_output` = a dictionary object with the below keys and values:
@@ -2124,6 +2259,13 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
         when one pair is being written, the other will be `[-1,-1]`, thus the lengths of these dimensions for the array
         are increased by an extra 1 to prevent an overlap in the data written.
     '''
+    pickle_filepath = Path(tally_output_filepath.parent, tally_output_filepath.stem + '.pickle')
+    if prefer_reading_existing_pickle and os.path.isfile(pickle_filepath):
+        import pickle
+        print('Reading found pickle file: ', pickle_filepath)
+        with open(pickle_filepath, 'rb') as handle:
+            tally_output = pickle.load(handle)
+        return tally_output
 
     # main toggled settings
     #calculate_absolute_errors = True
@@ -2314,6 +2456,14 @@ if in_debug_mode:
     #output_file_path = Path(base_path + r't-yield\yield_reg_axis-mass.out')
     output_file_path = Path(base_path + r't-yield\yield_reg_axis-chart.out')
     #output_file_path = Path(base_path + r't-yield\yield_xyz_axis-chart.out')
+
+    test_parsing_of_dir = True
+    if test_parsing_of_dir:
+        dir_path = output_file_path = Path(base_path + 't-cross\complex\proton_in_hist_rz.out')
+        dir_output_list = parse_all_tally_output_in_dir(dir_path)
+        print(dir_output_list)
+        sys.exit()
+
 
     test_dump_file = False
     if test_dump_file:
