@@ -1,10 +1,10 @@
-#### Online documentation: [lindt8.github.io/PHITS-Tools/](https://lindt8.github.io/PHITS-Tools/)
+#### Online PHITS Tools documentation: [lindt8.github.io/PHITS-Tools/](https://lindt8.github.io/PHITS-Tools/)
 
 # PHITS Tools
 
 This module is just a collection of Python 3 functions which serve to automatically process output from the PHITS general purpose Monte Carlo particle transport code, which can be obtained at [https://phits.jaea.go.jp/](https://phits.jaea.go.jp/).
 
-These functions are just tools I have developed over time to speed up my usage of PHITS; they are not officially supported by the PHITS development team.  They were developed to serve my own needs, and I am just publicly sharing them because others may also find utility in them.  I may more professionally repackage and redistribute these functions in the future in a more standard way.  For now, one may use the functions by first placing the PHITS_tools.py Python script into a folder in their PYTHONPATH system variable or in the active directory and then just importing them normally ( from PHITS_tools import * ).
+These functions are just tools I have developed over time to speed up my usage of PHITS; they are not officially supported by the PHITS development team.  They were developed to serve my own needs, and I am just publicly sharing them because others may also find utility in them.  One may use the functions by first placing the PHITS_tools.py Python script into a folder in their PYTHONPATH system variable or in the active directory and then just importing them normally ( from PHITS_tools import * ) or by executing the script `python PHITS_tools.py` with the PHITS output file to be parsed as the required argument (see `python PHITS_tools.py --help` for all CLI options) / without a file argument to be guided through with a GUI *(coming soon)*.
 
 Aside from the main PHITS output parsing function **parse_tally_output_file()** for general tally output and the **parse_tally_dump_file()** function for parsing tally dump file outputs, PHITS_tools.py also contains a handful other functions which individuals may find useful. 
 
