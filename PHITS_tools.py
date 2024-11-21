@@ -6,8 +6,29 @@ Specifically, it seeks to be a (nearly) universal PHITS output parser, supportin
 all tallies, both normal output as well as dump file outputs (in ASCII and binary).
 
 The functions contained in this module and brief descriptions of their functions are included below.
+However, provided first is a description of the three different ways one can use this module.
 
-### Main PHITS Output Parsing Functions
+### **How to use the PHITS_tools.py module**
+
+There are three main ways one can use this Python module:
+
+ 1. As an **imported Python module**
+      - In your own Python scripts, you can import this module as `from PHITS_tools import *` and call its main functions,
+         which are listed in the next section below, or any of its other functions documented here.
+ 2. As a **command line interface (CLI)**
+      - This module can be ran on the command line with the PHITS output file to be parsed as the required argument.
+          Execute `python PHITS_tools.py --help` to see all of the different options that can be used with this module
+          to parse standard or dump PHITS output files via the CLI.
+ 3. As a **graphical user interface (GUI)**
+      - [NOT YET DEVELOPED] When the module is executed without any additional arguments, `python PHITS_tools.py`, a GUI
+          will be launched to step you through selecting a file to be parsed and the various options for it.
+
+The CLI and GUI options result in the parsed file's contents being saved to a pickle (or dill) file, which can be reopened
+and used later in a Python script.  When using the main functions below within a Python script which has imported the PHITS_tools
+module, you can optionally choose not to save the pickle files (if desired) and only have the tally output/dump parsing
+functions return the data objects they produce for your own further analyses.
+
+### **Main PHITS Output Parsing Functions**
 
 - `parse_tally_output_file`         : general parser for standard output files for all PHITS tallies
 - `parse_tally_dump_file`           : parser for dump files from "dump" flag in PHITS [T-Cross], [T-Time], and [T-Track] tallies
@@ -55,10 +76,24 @@ import numpy as np
 from munch import *
 from pathlib import Path
 
+# default program settings
+launch_GUI = False
+run_with_CLI_inputs = False
+in_debug_mode = False
+
 if __name__ == "__main__":
-    in_debug_mode = True
-else:
-    in_debug_mode = False
+    #in_debug_mode = True
+
+    if in_debug_mode:
+        pass
+    elif len(sys.argv) == 1:
+        launch_GUI = True
+    else:
+        run_with_CLI_inputs = True
+        # CLI for PHITS Tools
+        import argparse
+
+
 if in_debug_mode:
     import pprint
     import time
@@ -2397,7 +2432,98 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
 
 
 
-if in_debug_mode:
+
+
+
+
+
+
+
+
+if run_with_CLI_inputs:
+    def validate_file(arg):
+        if (file := Path(arg)).is_file():
+            return file
+        else:
+            raise FileNotFoundError(arg)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("file", type=validate_file, help="path to PHITS output file to parse (relative or absolute path)")
+    # Flags for standard output files
+    parser.add_argument("-np", "--disable_PandasDF", help="[standard output] disable automatic creation of Pandas DataFrame of PHITS output", action="store_true")
+    parser.add_argument("-na", "--disable_abs_err_calc", help="[standard output] disable automatic calculation of absolute errors", action="store_true")
+    # Not going to add below option. Why would you ever run this in CLI if not trying to generate the pickle file?
+    # parser.add_argument("-ns", "--disable_saving_pickle", help="disable saving of pickle of of PHITS output", action="store_true")
+    # Flags for dump files
+    parser.add_argument("-d", "--is_dump_file", action="store_true", help="add this flag if the file is a dump file, omit if standard PHITS tally output")
+    parser.add_argument('-dvals', '--dump_data_sequence', nargs='+', type=int, help='[dump output] provide a series of integers separated by spaces that match the line after "dump = " in the tally whose dump file is being parsed, detailing how the columns of the dump file are to be interpreted.')
+    parser.add_argument("-dbin", "--dump_file_is_binary", action="store_true", help="[dump output] specify that the provided dump file is binary; otherwise it is assumed to be ASCII")
+    parser.add_argument("-dnmax", "--dump_max_entries_read", type=int, help="[dump output] specify maximum integer number of entries to read (read all by default)")
+    parser.add_argument("-ddir", "--dump_return_directional_info", action="store_true", help="[dump output] return extra directional information: radial distance r from the origin in cm, radial distance rho from the z-axis in cm, polar angle theta between the direction vector and z-axis in radians [0,pi] (or degrees), and azimuthal angle phi of the direction vector in radians [-pi,pi] (or degrees). Note: This option requires all position and direction values [x,y,z,u,v,w] to be included in the dump file.")
+    parser.add_argument("-ddeg", "--dump_use_degrees", action="store_true", help="[dump output] anular quantities will be in degrees instead of radians")
+    parser.add_argument("-dsl", "--dump_save_namedtuple_list", action="store_true", help="[dump output] save parsed dump file info to list of namedtuples to dill file (-dsl, -dsp, or both MUST be enabled if parsing a dump file)")
+    parser.add_argument("-dsp", "--dump_save_Pandas_dataframe", action="store_true", help="[dump output] save parsed dump file info to Pandas DataFrame to pickle file (-dsl, -dsp, or both MUST be enabled if parsing a dump file)")
+    args = parser.parse_args()
+
+    output_file_path = Path(args.file)
+    is_dump_file = args.is_dump_file
+
+    #print(output_file_path)
+    #sys.exit()
+
+    # Standard output options
+    make_PandasDF = not args.disable_PandasDF
+    calculate_absolute_errors = not args.disable_abs_err_calc
+
+    # Dump output options
+    dump_data_sequence = args.dump_data_sequence
+    if dump_data_sequence != None:
+        dump_data_number = len(dump_data_sequence)
+    else:
+        dump_data_number = 0
+    if not args.dump_file_is_binary:
+        dump_data_number = -1*dump_data_number
+    return_namedtuple_list = False
+    return_Pandas_dataframe = False
+    max_entries_read = args.dump_max_entries_read
+    return_directional_info = args.dump_return_directional_info
+    use_degrees = args.dump_use_degrees
+    save_namedtuple_list = args.dump_save_namedtuple_list
+    save_Pandas_dataframe = args.dump_save_Pandas_dataframe
+
+    if is_dump_file and dump_data_number == 0:
+        print('You MUST provide a space-delimited list of integers to the -dvals / --dump_data_sequence input specifying '+
+              'how the data columns in the dump file are to be interpreted, the same as the line following "dump = " in your PHITS tally input.')
+        sys.exit()
+    if is_dump_file and not save_namedtuple_list and not save_namedtuple_list:
+        print('You MUST select how the dump file data is to be saved by enabling either or both of the following flags:'+
+              ' -dsl / --dump_save_namedtuple_list AND/OR -dsp / --dump_save_Pandas_dataframe')
+        sys.exit()
+
+    if is_dump_file:
+        parse_tally_dump_file(output_file_path, dump_data_number, dump_data_sequence,
+                              return_directional_info=return_directional_info, use_degrees=use_degrees,
+                              max_entries_read=max_entries_read,
+                              return_namedtuple_list=return_namedtuple_list,
+                              return_Pandas_dataframe=return_Pandas_dataframe,
+                              save_namedtuple_list=save_namedtuple_list,
+                              save_Pandas_dataframe=save_Pandas_dataframe)
+    else:
+        parse_tally_output_file(output_file_path, make_PandasDF=make_PandasDF,
+                                calculate_absolute_errors=calculate_absolute_errors,
+                                save_output_pickle=True, prefer_reading_existing_pickle=False)
+
+
+
+
+elif launch_GUI:
+    pass
+
+
+
+
+
+
+elif in_debug_mode:
     base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\\'
     #output_file_path = Path(base_path + 't-deposit\deposit_reg.out')
     #output_file_path = Path(base_path + 't-deposit\deposit_eng_sp-reg.out')
