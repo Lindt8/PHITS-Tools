@@ -52,8 +52,8 @@ functions return the data objects they produce for your own further analyses.
 - `data_row_to_num_list`            : extract numeric values from a line in the tally content section
 - `parse_group_string`              : split a string containing "groups" (e.g., regions) into a list of them
 - `split_str_of_equalities`         : split a string containing equalities (e.g., `reg = 100`) into a list of them
-- `determine_PHITS_output_file_type` : determine if a file is standard tally output, ASCII/binary dump file, or unknown type
-- `search_for_dump_parameters`      : attempt to automatically find "dump" parameters via possible standard tally output file
+- `determine_PHITS_output_file_type` : determine if a file is standard tally output or ASCII/binary dump file
+- `search_for_dump_parameters`      : attempt to auto find "dump" parameters via possible standard tally output file
 
 '''
 '''

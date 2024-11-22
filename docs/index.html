@@ -89,9 +89,9 @@ functions return the data objects they produce for your own further analyses.</p
 : split a string containing "groups" (e.g., regions) into a list of them</li>
 <li><code><a title="PHITS_tools.split_str_of_equalities" href="#PHITS_tools.split_str_of_equalities">split_str_of_equalities()</a></code>
 : split a string containing equalities (e.g., <code>reg = 100</code>) into a list of them</li>
-<li><code><a title="PHITS_tools.determine_PHITS_output_file_type" href="#PHITS_tools.determine_PHITS_output_file_type">determine_PHITS_output_file_type()</a></code> : determine if a file is standard tally output, ASCII/binary dump file, or unknown type</li>
+<li><code><a title="PHITS_tools.determine_PHITS_output_file_type" href="#PHITS_tools.determine_PHITS_output_file_type">determine_PHITS_output_file_type()</a></code> : determine if a file is standard tally output or ASCII/binary dump file</li>
 <li><code><a title="PHITS_tools.search_for_dump_parameters" href="#PHITS_tools.search_for_dump_parameters">search_for_dump_parameters()</a></code>
-: attempt to automatically find "dump" parameters via possible standard tally output file</li>
+: attempt to auto find "dump" parameters via possible standard tally output file</li>
 </ul>
 <details class="source">
 <summary>
@@ -151,8 +151,8 @@ functions return the data objects they produce for your own further analyses.
 - `data_row_to_num_list`            : extract numeric values from a line in the tally content section
 - `parse_group_string`              : split a string containing &#34;groups&#34; (e.g., regions) into a list of them
 - `split_str_of_equalities`         : split a string containing equalities (e.g., `reg = 100`) into a list of them
-- `determine_PHITS_output_file_type` : determine if a file is standard tally output, ASCII/binary dump file, or unknown type
-- `search_for_dump_parameters`      : attempt to automatically find &#34;dump&#34; parameters via possible standard tally output file
+- `determine_PHITS_output_file_type` : determine if a file is standard tally output or ASCII/binary dump file
+- `search_for_dump_parameters`      : attempt to auto find &#34;dump&#34; parameters via possible standard tally output file
 
 &#39;&#39;&#39;
 &#39;&#39;&#39;
