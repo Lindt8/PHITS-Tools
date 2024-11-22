@@ -16,9 +16,10 @@ There are three main ways one can use this Python module:
       - In your own Python scripts, you can import this module as `from PHITS_tools import *` and call its main functions,
          which are listed in the next section below, or any of its other functions documented here.
  2. As a **command line interface (CLI)**
-      - This module can be ran on the command line with the PHITS output file to be parsed as the required argument.
+      - This module can be ran on the command line with the individual PHITS output file to be parsed (or a directory
+          containing multiple files to be parsed) as the required argument.
           Execute `python PHITS_tools.py --help` to see all of the different options that can be used with this module
-          to parse standard or dump PHITS output files via the CLI.
+          to parse standard or dump PHITS output files (individually and directories containing them) via the CLI.
  3. As a **graphical user interface (GUI)**
       - [NOT YET DEVELOPED] When the module is executed without any additional arguments, `python PHITS_tools.py`, a GUI
           will be launched to step you through selecting a file to be parsed and the various options for it.
@@ -32,7 +33,7 @@ functions return the data objects they produce for your own further analyses.
 
 - `parse_tally_output_file`         : general parser for standard output files for all PHITS tallies
 - `parse_tally_dump_file`           : parser for dump files from "dump" flag in PHITS [T-Cross], [T-Time], and [T-Track] tallies
-- `parse_all_tally_output_in_dir`   : run `parse_tally_output_file()` over all standard output files in a directory
+- `parse_all_tally_output_in_dir`   : run `parse_tally_output_file()` over all standard output files in a directory (and, optionally, `parse_tally_dump_file()` over all dump files too)
 
 ### General Purpose Functions
 
@@ -51,6 +52,8 @@ functions return the data objects they produce for your own further analyses.
 - `data_row_to_num_list`            : extract numeric values from a line in the tally content section
 - `parse_group_string`              : split a string containing "groups" (e.g., regions) into a list of them
 - `split_str_of_equalities`         : split a string containing equalities (e.g., `reg = 100`) into a list of them
+- `determine_PHITS_output_file_type` : determine if a file is standard tally output, ASCII/binary dump file, or unknown type
+- `search_for_dump_parameters`      : attempt to automatically find "dump" parameters via possible standard tally output file
 
 '''
 '''
@@ -104,7 +107,7 @@ if in_debug_mode:
 
 # use Path, get extension, check for existence of filename_err.extension
 
-def parse_tally_dump_file(path_to_dump_file, dump_data_number , dump_data_sequence, return_directional_info=False,
+def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_sequence=None, return_directional_info=False,
                           use_degrees=False,max_entries_read=None,return_namedtuple_list=True,
                           return_Pandas_dataframe=True, save_namedtuple_list=False, save_Pandas_dataframe=False):
     '''
@@ -118,13 +121,21 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number , dump_data_sequen
         - `import dill` (if `save_namedtuple_list = True`)
 
     Inputs:
+       (required)
+
         - `path_to_dump_file` = string or Path object denoting the path to the dump tally output file to be parsed
         - `dump_data_number` = integer number of data per row in dump file, binary if >0 and ASCII if <0.
-                 This should match the value following `dump=` in the tally creating the dump file.
+                 This should match the value following `dump=` in the tally creating the dump file. (D=`None`)
+                 If not specified, the search_for_dump_parameters() function will attempt to find it automatically.
         - `dump_data_sequence` = string or list of integers with the same number of entries as `dump_data_number`,
-                 mapping each column in the dump file to their physical quantities.
+                 mapping each column in the dump file to their physical quantities.  (D=`None`)
                  This should match the line following the `dump=` line in the tally creating the dump file.
                  See PHITS manual section "6.7.22 dump parameter" for further explanations of these values.
+                 If not specified, the search_for_dump_parameters() function will attempt to find it automatically.
+
+    Inputs:
+       (optional)
+
         - `return_directional_info` = (optional, D=`False`) Boolean designating whether extra directional information
                  should be calculated and returned; these include: radial distance `r` from the origin in cm,
                  radial distance `rho` from the z-axis in cm,
@@ -164,6 +175,12 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number , dump_data_sequen
     if not return_namedtuple_list and not return_Pandas_dataframe and not save_namedtuple_list and not save_Pandas_dataframe:
         print('ERROR: All "return_namedtuple_list", "return_Pandas_dataframe", "save_namedtuple_list", and "save_Pandas_dataframe" are False. Enable at least one to use this function.')
         sys.exit()
+
+    if dump_data_number == None or dump_data_sequence == None:
+        dump_data_number, dump_data_sequence = search_for_dump_parameters(path_to_dump_file)
+    if dump_data_number == None or dump_data_sequence == None:
+        print("Please manually specify 'dump_data_number' and 'dump_data_sequence'; these were not inputted and could not be automatically found from an origin tally standard output file.")
+        return None
 
     if isinstance(dump_data_sequence, str):
         dump_data_sequence = dump_data_sequence.split()
@@ -2004,12 +2021,105 @@ def build_tally_Pandas_dataframe(tdata,meta):
         print(tally_df.attrs)
     return tally_df
 
+def search_for_dump_parameters(output_file):
+    '''
+    Description:
+        Try to determine the dump settings used for a dump file by searching for the same file without "_dmp" and parsing
+        its header for the "dump = " line and subsequent line specifying the column ordering.
+
+    Dependencies:
+        - `from pathlib import Path`
+
+    Inputs:
+        - `output_file` = a file/filepath (string or Path object) to be judged
+
+    Outputs:
+        - `dump_data_number` = value following "dump = " in the PHITS tally (integer from -20 to 20, excluding 0) (D=`None`)
+        - `dump_data_sequence` = list of integers specifying the order and meaning of the dump file columns (D=`None`)
+    '''
+    dump_data_number, dump_data_sequence = None, None
+    output_file = Path(output_file)
+    origin_tally_file = Path(output_file.parent, output_file.stem.replace('_dmp','') + output_file.suffix)
+    PHITS_file_type = determine_PHITS_output_file_type(origin_tally_file)
+    if PHITS_file_type['file_does_not_exist']:
+        print("Could not find this dump file's companion original standard tally output file",origin_tally_file)
+        return dump_data_number, dump_data_sequence
+    elif not PHITS_file_type['is_standard_tally_output']:
+        print("Found dump file's suspected companion original standard tally output file, but it does not seem to actually be formatted as a standard tally output file",origin_tally_file)
+        return dump_data_number, dump_data_sequence
+    tally_header, tally_content = split_into_header_and_content(origin_tally_file)
+    for li, line in enumerate(tally_header):
+        if "dump =" in line:
+            if line[0] == '#':  # commented line
+                key, value = extract_data_from_header_line(line[1:])
+            else:
+                key, value = extract_data_from_header_line(line)
+            dump_data_number = int(value)
+            dump_data_sequence_str_list = tally_header[li+1].strip().split()
+            dump_data_sequence = [int(i) for i in dump_data_sequence_str_list]
+            break
+    if dump_data_number == None and dump_data_sequence == None:
+        print('Was unable to locate dump specification information in tally output file',origin_tally_file)
+    return dump_data_number, dump_data_sequence
+
+def determine_PHITS_output_file_type(output_file):
+    '''
+    Description:
+        Determine what kind of PHITS file is being hanlded (tally standard output, binary tally dump, ASCII tally dump, etc.)
+
+    Dependencies:
+        - `from pathlib import Path`
+
+    Inputs:
+        - `output_file` = a file/filepath (string or Path object) to be judged
+
+    Outputs:
+        - `PHITS_file_type` = a dictionary of Booleans detailing what kind of file `output_file` is (and isn't) with
+            the following keys (each with a value set to `True` or `False`):
+            `'is_standard_tally_output'`, `'is_binary_tally_dump'`, `'is_ASCII_tally_dump'`,
+            `'is_unknown_file_type'`, and `'file_does_not_exist'`.  By default, all are set to `False` except for
+            `'is_unknown_file_type'` which is `True` by default.
+    '''
+    PHITS_file_type = {'is_standard_tally_output': False,
+                       'is_binary_tally_dump': False,
+                       'is_ASCII_tally_dump': False,
+                       'is_unknown_file_type': True,
+                       'file_does_not_exist': False
+                       }
+    output_file = Path(output_file)
+    if not output_file.is_file():
+        print('Provided output file',output_file,'was determined to not be a file!')
+        PHITS_file_type['is_unknown_file_type'] = False
+        PHITS_file_type['file_does_not_exist'] = True
+        return PHITS_file_type
+    with open(output_file) as f:
+        try:
+            first_line = f.readline().strip()
+        except:  # triggered if encountering binary / non ASCII or UTF-8 file
+            if '_dmp' in output_file.stem:
+                PHITS_file_type['is_binary_tally_dump'] = True
+                PHITS_file_type['is_unknown_file_type'] = False
+                return PHITS_file_type
+        if first_line[0] == '[':
+            PHITS_file_type['is_standard_tally_output'] = True
+            PHITS_file_type['is_unknown_file_type'] = False
+        elif '_dmp' in output_file.stem:
+            PHITS_file_type['is_ASCII_tally_dump'] = True
+            PHITS_file_type['is_unknown_file_type'] = False
+    return PHITS_file_type
+
 
 
 def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.out', output_file_prefix = '',
-                                  output_file_required_string = '', include_subdirectories = False,  return_tally_output = False,
-                                  make_PandasDF = True, calculate_absolute_errors = True,
-                                  save_output_pickle = True, prefer_reading_existing_pickle = False):
+                                  output_file_required_string='', include_subdirectories=False,  return_tally_output=False,
+                                  make_PandasDF=True, calculate_absolute_errors=True,
+                                  save_output_pickle=True, prefer_reading_existing_pickle=False,
+                                  include_dump_files=False,
+                                  dump_data_number=None , dump_data_sequence=None,
+                                  dump_return_directional_info=False, dump_use_degrees=False,
+                                  dump_max_entries_read=None,
+                                  dump_save_namedtuple_list=True, dump_save_Pandas_dataframe=True
+                                  ):
     '''
     Description:
         Parse all standard PHITS tally output files in a directory, returning either a list of dictionaries containing
@@ -2021,8 +2131,9 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
         to determine if it is a valid tally output file (meaning, it will skip files such as phits.out and batch.out).
         It will also skip over "_err" uncertainty files as these are automatically found by the `parse_tally_output_file()`
         function after it processes that tally's main output file.
-        This function will only process standard tally output files, not tally "dump" files, which can be processed with
-        the separate `parse_tally_dump_file` function.
+        This function will mainly process standard tally output files, but it can optionally process tally "dump" files too,
+        though it can only save the dump outputs to its dill/pickle files and not return the (quite large) dump data objects.
+        The filenames of saved dump data will not be included in the returned list.
 
     Dependencies:
         - `import os`
@@ -2052,6 +2163,13 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
        - `return_tally_output` = A Boolean determining whether this function returns a list of `tally_output` dictionaries
                       if set to `True` or just a list of filepaths to the pickle files containing these dictionaries
                       if set to `False` (D=`False`)
+       - `include_dump_files` = A Boolean determining whether dump files will be processed too or skipped. (D=`False`)
+                      Settings to be applied to all encountered dump files can be specified per the optional inputs
+                      detailed below which are simply passed to the `parse_tally_dump_file()` function.  Note that parameters
+                      `return_namedtuple_list` and `return_Pandas_dataframe` will always be `False` when dump files are
+                      processed in a directory with this function; instead, `save_namedtuple_list` and `save_Pandas_dataframe`
+                      are by default set to `True` when parsing dump files in a directory with this function.  (Be warned,
+                      if the dump file is large, the produced files from parsing them will be too.)
 
     Inputs:
        (optional, the same as in and directly passed to the `parse_tally_output_file()` function)
@@ -2068,8 +2186,35 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
                       output files as usual and overwrite the existing pickle file.  If `True`, this function will instead
                       simply just read the existing found pickle file and return its stored `tally_output` contents. (D=`False`)
 
+    Inputs:
+       (optional, the same as in and directly passed to the `parse_tally_dump_file()` function)
+
+       - `dump_data_number` = integer number of data per row in dump file, binary if >0 and ASCII if <0.
+                This should match the value following `dump=` in the tally creating the dump file. (D=`None`)
+                If not specified, the search_for_dump_parameters() function will attempt to find it automatically.
+       - `dump_data_sequence` = string or list of integers with the same number of entries as `dump_data_number`,
+                mapping each column in the dump file to their physical quantities.  (D=`None`)
+                This should match the line following the `dump=` line in the tally creating the dump file.
+                See PHITS manual section "6.7.22 dump parameter" for further explanations of these values.
+                If not specified, the search_for_dump_parameters() function will attempt to find it automatically.
+       - `dump_return_directional_info` = (optional, D=`False`) Boolean designating whether extra directional information
+                should be calculated and returned; these include: radial distance `r` from the origin in cm,
+                radial distance `rho` from the z-axis in cm,
+                polar angle `theta` between the direction vector and z-axis in radians [0,pi] (or degrees), and
+                azimuthal angle `phi` of the direction vector in radians [-pi,pi] (or degrees).
+                Note: This option requires all position and direction values [x,y,z,u,v,w] to be included in the dump file.
+       - `dump_use_degrees` = (optional, D=`False`) Boolean designating whether angles `theta` and `phi` are returned
+                in units of degrees. Default setting is to return angles in radians.
+       - `dump_max_entries_read` = (optional, D=`None`) integer number specifying the maximum number of entries/records
+                of the dump file to be read.  By default, all records in the dump file are read.
+       - `dump_save_namedtuple_list` = (optional, D=`True`) Boolean designating whether `dump_data_list` is saved to a dill file
+               (for complicated reasons, objects containing namedtuples cannot be easily saved with pickle but can with dill).
+       - `dump_save_Pandas_dataframe` = (optional, D=`True`) Boolean designating whether `dump_data_frame` is saved to a pickle
+               file (via Pandas .to_pickle()).
+
     Output:
-        - `tally_output` = a dictionary object with the below keys and values:
+        - `tally_output_list` = a list of `tally_output` dictionary objects with the below keys and values / a list of
+             file paths to pickle files containing `tally_output` dictionary objects:
             - `'tally_data'` = a 10-dimensional NumPy array containing all tally results, explained in more detail below
             - `'tally_metadata'` = a dictionary/Munch object with various data extracted from the tally output file, such as axis binning and units
             - `'tally_dataframe'` = (optionally included if setting `make_PandasDF = True`) a Pandas dataframe version of `tally_data`
@@ -2099,6 +2244,7 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
 
     # Determine which files should be parsed
     filepaths_to_process = []
+    dump_filepaths_to_process = []
     len_suffix = len(output_file_suffix)
     len_prefix = len(output_file_prefix)
     len_reqstr = len(output_file_required_string)
@@ -2112,9 +2258,14 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
             try:
                 first_line = ff.readline().strip()
             except: # triggered if encountering binary / non ASCII or UTF-8 file
+                if include_dump_files and tail[(-4-len_suffix):] == '_dmp' + output_file_suffix:
+                    dump_filepaths_to_process.append(f)
                 continue
             if len(first_line) == 0: continue
-            if first_line[0] != '[' : continue
+            if first_line[0] != '[' :
+                if include_dump_files and tail[(-4-len_suffix):] == '_dmp' + output_file_suffix:
+                    dump_filepaths_to_process.append(f)
+                continue
         filepaths_to_process.append(f)
 
     tally_output_pickle_path_list = []
@@ -2128,6 +2279,16 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
                                                save_output_pickle=save_output_pickle,
                                                prefer_reading_existing_pickle=prefer_reading_existing_pickle)
         if return_tally_output: tally_output_list.append(tally_output)
+
+    if include_dump_files:
+        for f in dump_filepaths_to_process:
+            f = Path(f)
+            parse_tally_dump_file(f, dump_data_number=dump_data_number, dump_data_sequence=dump_data_number,
+                                  return_directional_info=dump_return_directional_info, use_degrees=dump_use_degrees,
+                                  max_entries_read=dump_max_entries_read,
+                                  return_namedtuple_list=False, return_Pandas_dataframe=False,
+                                  save_namedtuple_list=dump_save_namedtuple_list,
+                                  save_Pandas_dataframe=dump_save_Pandas_dataframe)
 
     if return_tally_output:
         return tally_output_list
@@ -2447,28 +2608,44 @@ if run_with_CLI_inputs:
         else:
             raise FileNotFoundError(arg)
     parser = argparse.ArgumentParser()
-    parser.add_argument("file", type=validate_file, help="path to PHITS output file to parse (relative or absolute path)")
+    parser.add_argument("file", type=validate_file, help="path to PHITS output file to parse or directory containing files to parse (relative or absolute path)")
     # Flags for standard output files
     parser.add_argument("-np", "--disable_PandasDF", help="[standard output] disable automatic creation of Pandas DataFrame of PHITS output", action="store_true")
     parser.add_argument("-na", "--disable_abs_err_calc", help="[standard output] disable automatic calculation of absolute errors", action="store_true")
     # Not going to add below option. Why would you ever run this in CLI if not trying to generate the pickle file?
     # parser.add_argument("-ns", "--disable_saving_pickle", help="disable saving of pickle of of PHITS output", action="store_true")
     # Flags for dump files
-    parser.add_argument("-d", "--is_dump_file", action="store_true", help="add this flag if the file is a dump file, omit if standard PHITS tally output")
-    parser.add_argument('-dvals', '--dump_data_sequence', nargs='+', type=int, help='[dump output] provide a series of integers separated by spaces that match the line after "dump = " in the tally whose dump file is being parsed, detailing how the columns of the dump file are to be interpreted.')
-    parser.add_argument("-dbin", "--dump_file_is_binary", action="store_true", help="[dump output] specify that the provided dump file is binary; otherwise it is assumed to be ASCII")
+    parser.add_argument("-d", "--is_dump_file", action="store_true", help="add this flag if the file is a dump file, omit if standard PHITS tally output; if inputting a directory path to 'file', this flag specifies that dump files will be read too (by default, they will be skipped), and if so the below flags will be applied to the settings used when parsing them")
+    parser.add_argument('-dvals', '--dump_data_sequence', nargs='+', type=int, help='[dump output] provide a series of integers separated by spaces that match the line after "dump = " in the tally whose dump file is being parsed, detailing how the columns of the dump file are to be interpreted. (REQUIRED for dump files, but an attempt to assign automatically will be made first if left unspecified)')
+    parser.add_argument("-dbin", "--dump_file_is_binary", action="store_true", help="[dump output] specify that the provided dump file is binary; otherwise it is assumed to be ASCII (REQUIRED for dump files, but an attempt to assign automatically will be made first if left unspecified)")
     parser.add_argument("-dnmax", "--dump_max_entries_read", type=int, help="[dump output] specify maximum integer number of entries to read (read all by default)")
     parser.add_argument("-ddir", "--dump_return_directional_info", action="store_true", help="[dump output] return extra directional information: radial distance r from the origin in cm, radial distance rho from the z-axis in cm, polar angle theta between the direction vector and z-axis in radians [0,pi] (or degrees), and azimuthal angle phi of the direction vector in radians [-pi,pi] (or degrees). Note: This option requires all position and direction values [x,y,z,u,v,w] to be included in the dump file.")
     parser.add_argument("-ddeg", "--dump_use_degrees", action="store_true", help="[dump output] anular quantities will be in degrees instead of radians")
-    parser.add_argument("-dsl", "--dump_save_namedtuple_list", action="store_true", help="[dump output] save parsed dump file info to list of namedtuples to dill file (-dsl, -dsp, or both MUST be enabled if parsing a dump file)")
-    parser.add_argument("-dsp", "--dump_save_Pandas_dataframe", action="store_true", help="[dump output] save parsed dump file info to Pandas DataFrame to pickle file (-dsl, -dsp, or both MUST be enabled if parsing a dump file)")
+    parser.add_argument("-dnsl", "--dump_no_save_namedtuple_list", action="store_true", help="[dump output] do NOT save parsed dump file info to list of namedtuples to dill file (-dnsl and -dnsp cannot both be enabled if parsing a dump file)")
+    parser.add_argument("-dnsp", "--dump_no_save_Pandas_dataframe", action="store_true", help="[dump output] do NOT save parsed dump file info to Pandas DataFrame to pickle file (-dnsl and -dnsp cannot both be enabled if parsing a dump file)")
+    # Flags for processing files in a directory
+    parser.add_argument("-r", "--recursive_search", action="store_true", help="[directory parsing] If the provided 'file' is a directory, also recursively search subdirectories for files to process.")
+    parser.add_argument("-fpre", "--file_prefix", default='', help="[directory parsing] A string specifying what characters processed filenames (including the file extension) must begin with to be included. This condition is not enforced if set to an empty string (default).")
+    parser.add_argument("-fsuf", "--file_suffix", default='.out', help="[directory parsing] A string specifying what characters processed filenames (including the file extension) must end in to be included. This condition is not enforced if set to an empty string. This is '.out' by deault.")
+    parser.add_argument("-fstr", "--file_required_string", default='', help="[directory parsing] A string which must be present anywhere within processed filenames (including the file extension) to be included. This condition is not enforced if set to an empty string (default).")
+
     args = parser.parse_args()
 
     output_file_path = Path(args.file)
     is_dump_file = args.is_dump_file
 
-    #print(output_file_path)
-    #sys.exit()
+    is_path_a_dir = output_file_path.is_dir()
+    is_path_a_file = output_file_path.is_file()
+
+    if not is_path_a_file and not is_path_a_dir:
+        print("ERROR! The inputted filepath is neither a recognized file nor directory.")
+        sys.exit()
+
+    # directory options
+    recursive_search = args.recursive_search
+    file_suffix = args.file_suffix
+    file_prefix = args.file_prefix
+    file_reqstr = args.file_required_string
 
     # Standard output options
     make_PandasDF = not args.disable_PandasDF
@@ -2478,42 +2655,57 @@ if run_with_CLI_inputs:
     dump_data_sequence = args.dump_data_sequence
     if dump_data_sequence != None:
         dump_data_number = len(dump_data_sequence)
+        if not args.dump_file_is_binary:
+            dump_data_number = -1 * dump_data_number
     else:
-        dump_data_number = 0
-    if not args.dump_file_is_binary:
-        dump_data_number = -1*dump_data_number
+        dump_data_number = None
     return_namedtuple_list = False
     return_Pandas_dataframe = False
     max_entries_read = args.dump_max_entries_read
     return_directional_info = args.dump_return_directional_info
     use_degrees = args.dump_use_degrees
-    save_namedtuple_list = args.dump_save_namedtuple_list
-    save_Pandas_dataframe = args.dump_save_Pandas_dataframe
+    no_save_namedtuple_list = args.dump_no_save_namedtuple_list
+    no_save_Pandas_dataframe = args.dump_no_save_Pandas_dataframe
+    save_namedtuple_list = not no_save_namedtuple_list
+    save_Pandas_dataframe = not no_save_Pandas_dataframe
 
-    if is_dump_file and dump_data_number == 0:
-        print('You MUST provide a space-delimited list of integers to the -dvals / --dump_data_sequence input specifying '+
-              'how the data columns in the dump file are to be interpreted, the same as the line following "dump = " in your PHITS tally input.')
-        sys.exit()
-    if is_dump_file and not save_namedtuple_list and not save_namedtuple_list:
-        print('You MUST select how the dump file data is to be saved by enabling either or both of the following flags:'+
-              ' -dsl / --dump_save_namedtuple_list AND/OR -dsp / --dump_save_Pandas_dataframe')
-        sys.exit()
-
-    if is_dump_file:
-        parse_tally_dump_file(output_file_path, dump_data_number, dump_data_sequence,
-                              return_directional_info=return_directional_info, use_degrees=use_degrees,
-                              max_entries_read=max_entries_read,
-                              return_namedtuple_list=return_namedtuple_list,
-                              return_Pandas_dataframe=return_Pandas_dataframe,
-                              save_namedtuple_list=save_namedtuple_list,
-                              save_Pandas_dataframe=save_Pandas_dataframe)
-    else:
-        parse_tally_output_file(output_file_path, make_PandasDF=make_PandasDF,
-                                calculate_absolute_errors=calculate_absolute_errors,
-                                save_output_pickle=True, prefer_reading_existing_pickle=False)
-
-
-
+    if is_path_a_dir:
+        parse_all_tally_output_in_dir(output_file_path, output_file_suffix=file_suffix, output_file_prefix=file_prefix,
+                                      output_file_required_string=file_reqstr, include_subdirectories=recursive_search,
+                                      return_tally_output=False,
+                                      make_PandasDF=make_PandasDF, calculate_absolute_errors=calculate_absolute_errors,
+                                      save_output_pickle=True, prefer_reading_existing_pickle=False,
+                                      include_dump_files=is_dump_file,
+                                      dump_data_number=dump_data_number, dump_data_sequence=dump_data_sequence,
+                                      dump_return_directional_info=return_directional_info, dump_use_degrees=use_degrees,
+                                      dump_max_entries_read=max_entries_read,
+                                      dump_save_namedtuple_list=save_namedtuple_list,
+                                      dump_save_Pandas_dataframe=save_Pandas_dataframe
+                                      )
+    else: # if is_path_a_file
+        if is_dump_file:
+            if dump_data_number == None:
+                dump_data_number, dump_data_sequence = search_for_dump_parameters(output_file_path)
+                if dump_data_number == None or dump_data_sequence == None:
+                    print('You MUST provide a space-delimited list of integers to the -dvals / --dump_data_sequence input specifying ' +
+                          'how the data columns in the dump file are to be interpreted, the same as the line following "dump = " in your PHITS tally input. ' +
+                          'An attempt was made to automatically find these values, but it failed (thus, manual specification is required).')
+                    sys.exit()
+            if no_save_namedtuple_list and no_save_Pandas_dataframe:
+                print('You MUST select how the dump file data is to be saved by disabling either or both of the following flags:' +
+                      ' -dsl / --dump_save_namedtuple_list AND/OR -dsp / --dump_save_Pandas_dataframe')
+                sys.exit()
+            parse_tally_dump_file(output_file_path, dump_data_number, dump_data_sequence,
+                                  return_directional_info=return_directional_info, use_degrees=use_degrees,
+                                  max_entries_read=max_entries_read,
+                                  return_namedtuple_list=return_namedtuple_list,
+                                  return_Pandas_dataframe=return_Pandas_dataframe,
+                                  save_namedtuple_list=save_namedtuple_list,
+                                  save_Pandas_dataframe=save_Pandas_dataframe)
+        else:
+            parse_tally_output_file(output_file_path, make_PandasDF=make_PandasDF,
+                                    calculate_absolute_errors=calculate_absolute_errors,
+                                    save_output_pickle=True, prefer_reading_existing_pickle=False)
 
 elif launch_GUI:
     pass
@@ -2583,7 +2775,7 @@ elif in_debug_mode:
     output_file_path = Path(base_path + r't-yield\yield_reg_axis-chart.out')
     #output_file_path = Path(base_path + r't-yield\yield_xyz_axis-chart.out')
 
-    test_parsing_of_dir = True
+    test_parsing_of_dir = False #True
     if test_parsing_of_dir:
         dir_path = output_file_path = Path(base_path + 't-cross\complex\proton_in_hist_rz.out')
         dir_output_list = parse_all_tally_output_in_dir(dir_path)
@@ -2595,7 +2787,9 @@ elif in_debug_mode:
     if test_dump_file:
         dump_file_path = Path(base_path + 't-cross\complex\\neutron_yield_dmp.out')
         dump_control_str = '2   3   4   5   6   7   8  10'
-        nt_list, df = parse_tally_dump_file(dump_file_path,8,dump_control_str, save_namedtuple_list=True, save_Pandas_dataframe=True)
+        #nt_list, df = parse_tally_dump_file(dump_file_path,8,dump_control_str, save_namedtuple_list=True, save_Pandas_dataframe=True)
+        # test automatic finding of dump parameters
+        nt_list, df = parse_tally_dump_file(dump_file_path, save_namedtuple_list=True, save_Pandas_dataframe=True)
 
         # test dill of namedtuple list
         import dill
