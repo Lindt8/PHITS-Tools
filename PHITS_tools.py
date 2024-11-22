@@ -38,22 +38,24 @@ functions return the data objects they produce for your own further analyses.
 ### General Purpose Functions
 
 - `is_number`                       : returns Boolean denoting whether provided string is that of a number
+- `ZZZAAAM_to_nuclide_plain_str`    : returns a nuclide plaintext string for a given "ZZZAAAM" number (1000Z+10A+M)
+- `Element_Z_to_Sym`                : return an elemental symbol string given its proton number Z
 
 ### Subfunctions for PHITS output parsing
 (These are meant as dependencies more so than for standalone usage.)
 
 - `split_into_header_and_content`   : initial reading of PHITS tally output, dividing it into header and "content" sections
-- `parse_tally_header`              : extract metadata from tally output header section
-- `parse_tally_content`             : extract tally results/values from tally content section
-- `initialize_tally_array`          : initialize NumPy array for storing tally results
-- `calculate_tally_absolute_errors` : calculate absolute uncertainties from read values and relative errors
-- `build_tally_Pandas_dataframe`    : make Pandas dataframe from the main results NumPy array and the metadata
 - `extract_data_from_header_line`   : extract metadata key/value pairs from tally output header lines
 - `data_row_to_num_list`            : extract numeric values from a line in the tally content section
 - `parse_group_string`              : split a string containing "groups" (e.g., regions) into a list of them
+- `parse_tally_header`              : extract metadata from tally output header section
+- `initialize_tally_array`          : initialize NumPy array for storing tally results
+- `calculate_tally_absolute_errors` : calculate absolute uncertainties from read values and relative errors
 - `split_str_of_equalities`         : split a string containing equalities (e.g., `reg = 100`) into a list of them
-- `determine_PHITS_output_file_type` : determine if a file is standard tally output or ASCII/binary dump file
+- `parse_tally_content`             : extract tally results/values from tally content section
+- `build_tally_Pandas_dataframe`    : make Pandas dataframe from the main results NumPy array and the metadata
 - `search_for_dump_parameters`      : attempt to auto find "dump" parameters via possible standard tally output file
+- `determine_PHITS_output_file_type` : determine if a file is standard tally output or ASCII/binary dump file
 
 '''
 '''
@@ -106,6 +108,304 @@ if in_debug_mode:
 
 
 # use Path, get extension, check for existence of filename_err.extension
+
+
+def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calculate_absolute_errors = True,
+                            save_output_pickle = True, prefer_reading_existing_pickle = False):
+    '''
+    Description:
+        Parse any PHITS tally output file, returning tally metadata and an array of its values (and optionally
+        this data inside of a Pandas dataframe too).  Note the separate `parse_tally_dump_file` function for
+        parsing PHITS dump files.
+
+    Dependencies:
+        - `import numpy as np`
+        - `import pandas as pd` (if `make_PandasDF = True`)
+        - `import pickle` (if `save_output_pickle = True`)
+        - `from munch import *`
+        - `from pathlib import Path`
+
+    Inputs:
+       (required)
+
+        - `tally_output_filepath` = file or filepath to the tally output file to be parsed
+
+    Inputs:
+       (optional)
+
+       - `make_PandasDF` = A Boolean determining whether a Pandas dataframe of the tally data array will be made (D=`True`)
+       - `calculate_absolute_errors` = A Boolean determining whether the absolute uncertainty of each tally output value
+                      is to be calculated (simply as the product of the value and relative error); if `False`, the final
+                      dimension of `tally_data`, `ierr`, will be of length-2 rather than length-3 (D=`True`)
+       - `save_output_pickle` = A Boolean determining whether the `tally_output` dictionary object is saved as a pickle file;
+                      if `True`, the file will be saved with the same path and name as the provided PHITS tally output file
+                      but with the .pickle extension. (D=`True`)
+       - `prefer_reading_existing_pickle` = A Boolean determining what this function does if the pickle file this function
+                      seeks to generate already exists.  If `False` (default behavior), this function will parse the PHITS
+                      output files as usual and overwrite the existing pickle file.  If `True`, this function will instead
+                      simply just read the existing found pickle file and return its stored `tally_output` contents. (D=`False`)
+
+    Output:
+        - `tally_output` = a dictionary object with the below keys and values:
+            - `'tally_data'` = a 10-dimensional NumPy array containing all tally results, explained in more detail below
+            - `'tally_metadata'` = a dictionary/Munch object with various data extracted from the tally output file, such as axis binning and units
+            - `'tally_dataframe'` = (optionally included if setting `make_PandasDF = True`) a Pandas dataframe version of `tally_data`
+
+
+    Notes:
+
+       Many quantities can be scored across the various tallies in the PHITS code.  This function outputs a "universal"
+       array `tally_data` that can accomodate all of the different scoring geometry meshes, physical quantities with
+       assigned meshes, and output axes provided within PHITS.  This is achieved with a 10-dimensional array accessible as
+
+       `tally_data[ ir, iy, iz, ie, it, ia, il, ip, ic, ierr ]`, with indices explained below:
+
+       Tally data indices and corresponding mesh/axis:
+
+        - `0` | `ir`, Geometry mesh: `reg` / `x` / `r` / `tet` ([T-Cross] `ir surf` if `mesh=r-z` with `enclos=0`)
+        - `1` | `iy`, Geometry mesh:  `1` / `y` / `1`
+        - `2` | `iz`, Geometry mesh:  `1` / `z` / `z` ([T-Cross] `iz surf` if `mesh=xyz` or `mesh=r-z` with `enclos=0`)
+        - `3` | `ie`, Energy mesh: `eng` ([T-Deposit2] `eng1`)
+        - `4` | `it`, Time mesh
+        - `5` | `ia`, Angle mesh
+        - `6` | `il`, LET mesh
+        - `7` | `ip`, Particle type (`part = `)
+        - `8` | `ic`, Special: [T-Deposit2] `eng2`; [T-Yield] `mass`, `charge`, `chart`
+        - `9` | `ierr = 0/1/2`, Value / relative uncertainty / absolute uncertainty (expanded to `3/4/5`, or `2/3` if
+        `calculate_absolute_errors = False`, for [T-Cross] `mesh=r-z` with `enclos=0` case; see notes further below)
+
+       -----
+
+       By default, all array dimensions are length-1 (except `ierr`, which is length-3).  These dimensions are set/corrected
+       automatically when parsing the tally output file.  Thus, for very simple tallies, most of these indices will be
+       set to 0 when accessing tally results, e.g. `tally_data[2,0,0,:,0,0,0,:,0,:]` to access the full energy spectrum
+       in the third region for all scored particles / particle groups with the values and uncertainties.
+
+       The output `tally_metadata` dictionary contains all information needed to identify every bin along every
+       dimension: region numbers/groups, particle names/groups, bin edges and midpoints for all mesh types
+       (x, y, z, r, energy, angle, time, and LET) used in the tally.
+
+       The `tally_dataframe` Pandas dataframe output functions as normal.  Note that a dictionary containing supplemental
+       information that is common to all rows of the dataframe can be accessed with `tally_dataframe.attrs`.
+
+       -----
+
+       At present, the following tallies are NOT supported by this function: [T-WWG], [T-WWBG], [T-Volume],
+       [T-Userdefined], [T-Gshow], [T-Rshow], [T-3Dshow], [T-4Dtrack], and [T-Dchain].
+
+       For [T-Dchain] or [T-Yield] with `axis = dchain`, please use the separate suite of parsing functions included in
+       the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools) module.
+
+       -----
+
+       The [T-Cross] tally is unique (scoring across region boundaries rather than within regions), creating some
+       additional challenges.
+       In the `mesh = reg` case, much is the same except each region number is composed of the `r-from` and `r-to` values, e.g. `'100 - 101'`.
+
+       For `xyz` and `r-z` meshes, an additional parameter is at play: `enclos`.
+       By default, `enclos=0`.
+       In the event `enclos=1` is set, the total number of geometric regions is still either `nx*ny*nz` or `nr*nz` for
+       `xyz` and `r-z` meshes, respectively.
+       For `enclos=0` in the `mesh = xyz` case, the length of the z dimension (`iz` index) is instead equal to `nzsurf`,
+       which is simply one greater than `nz` (# regions = `nx*ny*(nz+1)`).
+
+       For `enclos=0` in the `mesh = r-z` case, this is much more complicated as PHITS will output every combination of
+       `nr*nzsurf` AND `nrsurf*nz`, noting `nzsurf=nz+1` and `nrsurf=nr+1` (or `nrsurf=nr` if the first radius bin edge
+       is `r=0.0`).
+       The solution implemented here is to, for only this circumstance (in only the `enclos=0 mesh=r-z` case),
+       set the length of the `ir` and `iz` dimensions to `nrsurf` and `nzsurf`, respectively, and also
+       to expand the length of the final dimension of `tally_data` from 3 to 6 (or from 2 to 4 if `calculate_absolute_errors=False`), where:
+
+        - `ierr = 0/1/2` refer to the combinations of `nr` and `nzsurf` (or `0/1` if `calculate_absolute_errors=False`)
+        - `ierr = 3/4/5` refer to the combinations of `nrsurf` and `nz` (or `2/3` if `calculate_absolute_errors=False`)
+
+       In this case, the Pandas dataframe, if enabled, will contain 3 (or 2) extra columns `value2` and `rel.err.2` [and `abs.err.2`],
+       which correspond to the combinations of `nrsurf` and `nz` (while the original columns without the "2" refer to
+       values for combinations of and `nr` and `nzsurf`).
+
+       -----
+
+       [T-Yield] is also a bit exceptional.  When setting the `axis` parameter equal to `charge`, `mass`, or `chart`,
+       the `ic` dimension of `tally_data` is used for each entry of charge (proton number, Z), mass (A), or
+       isotope/isomer, respectively.
+
+       In the case of `axis = charge` or `axis = mass`, the value of `ic` refers to the actual charge/proton number Z
+       or mass number A when accessing `tally_data`; for instance, `tally_data[:,:,:,:,:,:,:,:,28,:]`
+       references results from nuclei with Z=28 if `axis = charge` or A=28 if `axis = mass`.  The length of the `ic`
+       dimension is initialized as 130 or 320 but is later reduced to only just include the highest charge or mass value.
+
+       In the case of `axis = chart`, the length of the `ic` dimension is initially set equal to the `mxnuclei` parameter
+       in the [T-Yield] tally.  If `mxnuclei = 0` is set, then the length of the `ic` dimension is initially set to 10,000.
+       This `ic` dimension length is later reduced to the total number of unique nuclides found in the output.
+       Owing to the huge number of possible nuclides, a list of found nuclides with nonzero yield is assembled and
+       added to `tally_metadata` under the keys `nuclide_ZZZAAAM_list` and `nuclide_isomer_list`, i.e.
+       `tally_metadata['nuclide_ZZZAAAM_list']` and `tally_metadata['nuclide_isomer_list']`.
+       These lists should be referenced to see what nuclide each of index `ic` refers to.
+       The entries of the ZZZAAAM list are intergers calculated with the formula 10000\*Z + 10\*A + M, where M is the
+       metastable state of the isomer (0 = ground state, 1 = 1st metastable/isomeric state, etc.).  The entries
+       of the isomer list are these same nuclides in the same order but written as plaintext strings, e.g. `'Al-28'` and `'Xe-133m1'`.
+       The lists are ordered in the same order nuclides are encountered while parsing the output file.
+       Thus, to sensibly access the yield of a specific nuclide, one must first find its index `ic` in one of the two
+       metadata lists of ZZZAAAM values or isomer names and then use that to access `tally_data`.  For example, to get
+       the yield results of production of carbon-14 (C-14), one would use the following code:
+
+       `ic = tally_metadata['nuclide_ZZZAAAM_list'].index(60140)`
+
+       OR
+
+       `ic = tally_metadata['nuclide_isomer_list'].index('C-14')`
+
+       then
+
+       `my_yield_values = tally_data[:,:,:,:,:,:,:,:,ic,:]`
+
+
+    '''
+
+    '''
+    The old [T-Cross] mesh=r-z enclos=0 solution is written below:
+        The solution implemented here uses `ir` to iterate `nr`, `iy` to iterate `nrsurf`, `iz` to
+        iterate `nz`, and `ic` to iterate `nzsurf`.  Since only `rsurf*z [iy,iz]` and `r*zsurf [ir,ic]` pairs exist,
+        when one pair is being written, the other will be `[-1,-1]`, thus the lengths of these dimensions for the array
+        are increased by an extra 1 to prevent an overlap in the data written.
+    '''
+    pickle_filepath = Path(tally_output_filepath.parent, tally_output_filepath.stem + '.pickle')
+    if prefer_reading_existing_pickle and os.path.isfile(pickle_filepath):
+        import pickle
+        print('Reading found pickle file: ', pickle_filepath)
+        with open(pickle_filepath, 'rb') as handle:
+            tally_output = pickle.load(handle)
+        return tally_output
+
+    # main toggled settings
+    #calculate_absolute_errors = True
+    construct_Pandas_frame_from_array = make_PandasDF
+    #process_all_tally_out_files_in_directory = False
+    save_pickle_files_of_output = save_output_pickle  # save metadata, array, and Pandas frame in a pickled dictionary object
+
+    if construct_Pandas_frame_from_array: import pandas as pd
+
+    # Check if is _err or _dmp file (or normal value file)
+    is_val_file = False
+    is_err_file = False
+    is_dmp_file = False
+    if tally_output_filepath.stem[-4:] == '_err':
+        is_err_file = True
+    elif tally_output_filepath.stem[-4:] == '_dmp':
+        is_dmp_file = True
+    else:
+        is_val_file = True
+
+    if is_dmp_file:
+        print('ERROR: The provided file is a "dump" output file. Use the function titled "parse_tally_dump_file" to process it instead.')
+        return None
+
+    if is_err_file:
+        print('WARNING: Provided file contains just relative uncertainties.',str(tally_output_filepath))
+        potential_val_file = Path(tally_output_filepath.parent, tally_output_filepath.stem.replace('_err','') + tally_output_filepath.suffix)
+        if potential_val_file.is_file():
+            print('\t Instead, both it and the file with tally values will be parsed.')
+            potential_err_file = tally_output_filepath
+            tally_output_filepath = potential_val_file
+            is_val_file = True
+            is_err_file = False
+        else:
+            print('\t The corresponding file with tally values could not be found, so only these uncertainties will be parsed.')
+
+    # Split content of output file into header and content
+    if in_debug_mode: print("\nSplitting output into header and content...   ({:0.2f} seconds elapsed)".format(time.time() - start))
+    tally_header, tally_content = split_into_header_and_content(tally_output_filepath)
+    if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
+    # print(len(tally_content))
+
+    # Check if *_err file exists
+    potential_err_file = Path(tally_output_filepath.parent, tally_output_filepath.stem + '_err' + tally_output_filepath.suffix)
+    is_err_in_separate_file = potential_err_file.is_file()  # for some tallies/meshes, uncertainties are stored in a separate identically-formatted file
+
+    # Extract tally metadata
+    if in_debug_mode: print("\nExtracting tally metadata...   ({:0.2f} seconds elapsed)".format(time.time() - start))
+    tally_metadata = parse_tally_header(tally_header, tally_content)
+    if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
+    if in_debug_mode: pprint.pp(dict(tally_metadata))
+    # Check if tally_type is among those supported.
+    unsupported_tally_types = ['[T-WWG]', '[T-WWBG]', '[T-Volume]', '[T-Userdefined]', '[T-Gshow]', '[T-Rshow]',
+                               '[T-3Dshow]', '[T-4Dtrack]', '[T-Dchain]']
+    if tally_metadata['tally_type'] in unsupported_tally_types:
+        print('ERROR! tally type',tally_metadata['tally_type'],'is not supported by this function!')
+        if tally_metadata['tally_type'] == '[T-Dchain]':
+            dchain_tools_url = 'github.com/Lindt8/DCHAIN-Tools'
+            print('However, the DCHAIN Tools module (',dchain_tools_url,') is capable of parsing all DCHAIN-related output.')
+        return None
+    if tally_metadata['tally_type'] == '[T-Yield]' and tally_metadata['axis'] == 'dchain':
+        dchain_tools_url = 'github.com/Lindt8/DCHAIN-Tools'
+        print('This function does not support [T-Yield] with setting "axis = dchain".')
+        print('However, the DCHAIN Tools module (', dchain_tools_url, ') is capable of parsing all DCHAIN-related output.')
+        return None
+
+    # Initialize tally data array with zeros
+    tally_data = initialize_tally_array(tally_metadata, include_abs_err=calculate_absolute_errors)
+
+    # Parse tally data
+    if is_val_file:
+        err_mode = False
+    else: # if is_err_file
+        err_mode = True
+    if in_debug_mode: print("\nParsing tally data...   ({:0.2f} seconds elapsed)".format(time.time() - start))
+    if tally_metadata['tally_type']=='[T-Yield]' and tally_metadata['axis'] in ['chart','charge','mass']: # need to update metadata too
+        tally_data, tally_metadata = parse_tally_content(tally_data, tally_metadata, tally_content, is_err_in_separate_file, err_mode=err_mode)
+    else:
+        tally_data = parse_tally_content(tally_data, tally_metadata, tally_content, is_err_in_separate_file, err_mode=err_mode)
+    if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
+    err_data_found = True
+    if tally_metadata['axis_dimensions'] == 2 and tally_metadata['2D-type'] != 4:
+        if is_err_file:
+            err_data_found = False
+        elif is_err_in_separate_file:
+            err_tally_header, err_tally_content = split_into_header_and_content(potential_err_file)
+            if in_debug_mode: print("\nParsing tally error...   ({:0.2f} seconds elapsed)".format(time.time() - start))
+            if tally_metadata['tally_type'] == '[T-Yield]' and tally_metadata['axis'] in ['chart','charge','mass']:  # need to update metadata too
+                tally_data, tally_metadata = parse_tally_content(tally_data, tally_metadata, err_tally_content, is_err_in_separate_file,err_mode=True)
+            else:
+                tally_data = parse_tally_content(tally_data, tally_metadata, err_tally_content, is_err_in_separate_file, err_mode=True)
+            if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
+        else:
+            print('WARNING: A separate file ending in "_err" containing uncertainties should exist but was not found.')
+            err_data_found = False
+    if calculate_absolute_errors:
+        if err_data_found:
+            if in_debug_mode: print("\nCalculating absolute errors...   ({:0.2f} seconds elapsed)".format(time.time() - start))
+            tally_data = calculate_tally_absolute_errors(tally_data)
+            if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
+        elif is_err_file:
+            print('WARNING: Absolute errors not calculated since the main tally values file was not found.')
+        else:
+            print('WARNING: Absolute errors not calculated since the _err file was not found.')
+    # Generate Pandas dataframe of tally results
+    if construct_Pandas_frame_from_array:
+        if in_debug_mode: print("\nConstructing Pandas dataframe...   ({:0.2f} seconds elapsed)".format(time.time() - start))
+        tally_Pandas_df = build_tally_Pandas_dataframe(tally_data, tally_metadata)
+        if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
+    else:
+        tally_Pandas_df = None
+
+    tally_output = {
+        'tally_data': tally_data,
+        'tally_metadata': tally_metadata,
+        'tally_dataframe': tally_Pandas_df,
+    }
+
+    if save_output_pickle:
+        import pickle
+        path_to_pickle_file = Path(tally_output_filepath.parent, tally_output_filepath.stem + '.pickle')
+        if in_debug_mode: print("\nWriting output to pickle file...   ({:0.2f} seconds elapsed)".format(time.time() - start))
+        with open(path_to_pickle_file, 'wb') as handle:
+            pickle.dump(tally_output, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            print('Pickle file written:', path_to_pickle_file, '\n')
+        if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
+
+    return tally_output
+
+
 
 def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_sequence=None, return_directional_info=False,
                           use_degrees=False,max_entries_read=None,return_namedtuple_list=True,
@@ -295,41 +595,193 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
         return None
 
 
-def split_into_header_and_content(output_file_path):
+
+
+def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.out', output_file_prefix = '',
+                                  output_file_required_string='', include_subdirectories=False,  return_tally_output=False,
+                                  make_PandasDF=True, calculate_absolute_errors=True,
+                                  save_output_pickle=True, prefer_reading_existing_pickle=False,
+                                  include_dump_files=False,
+                                  dump_data_number=None , dump_data_sequence=None,
+                                  dump_return_directional_info=False, dump_use_degrees=False,
+                                  dump_max_entries_read=None,
+                                  dump_save_namedtuple_list=True, dump_save_Pandas_dataframe=True
+                                  ):
     '''
     Description:
-        Initial parsing of a PHITS tally output file to isolate its header section (containing metadata) and main
-        tally results "content" section for later processing.
+        Parse all standard PHITS tally output files in a directory, returning either a list of dictionaries containing
+        tally metadata and an array of values from each tally output (and optionally this data inside of a Pandas dataframe too)
+        or a list of filepaths to pickle files containing these dictionaries, as created with the `parse_tally_output_file()` function.
+        This function allows selective processing of files in the directory by specification of strings which must
+        appear at the start, end, and/or anywhere within each filename.
+        Even if a file satisfies all of these naming criteria, the function will also check the first line of the file
+        to determine if it is a valid tally output file (meaning, it will skip files such as phits.out and batch.out).
+        It will also skip over "_err" uncertainty files as these are automatically found by the `parse_tally_output_file()`
+        function after it processes that tally's main output file.
+        This function will mainly process standard tally output files, but it can optionally process tally "dump" files too,
+        though it can only save the dump outputs to its dill/pickle files and not return the (quite large) dump data objects.
+        The filenames of saved dump data will not be included in the returned list.
+
+    Dependencies:
+        - `import os`
+        - `import numpy as np`
+        - `import pandas as pd` (if `make_PandasDF = True`)
+        - `import pickle` (if `save_output_pickle = True`)
+        - `from munch import *`
+        - `from pathlib import Path`
 
     Inputs:
-        - `output_file_path` = path to a PHITS tally output file
+       (required)
 
-    Outputs:
-        - `header` = list of lines belonging to the tally output's header section
-        - `content` = list of lists of remaining lines after the tally output's header section; the top level list is
-                broken into "blocks" ("newpage:"-separated) which are lists of lines belonging to each block/page.
+        - `tally_output_dirpath` = Path (string or path object) to the tally output directory to be searched and parsed
+
+    Inputs:
+       (optional)
+
+       - `output_file_suffix` = A string specifying what characters processed filenames (including the file extension)
+                      must end in to be included.  This condition is not enforced if set to an empty string `''`. (D=`'.out'`)
+       - `output_file_prefix` = A string specifying what characters processed filenames (including the file extension)
+                      must begin with to be included.  This condition is not enforced if set to an empty string `''`. (D=`''`)
+       - `output_file_required_string` = A string which must be present anywhere within processed filenames (including the
+                      file extension) to be included.  This condition is not enforced if set to an empty string `''`. (D=`''`)
+       - `include_subdirectories` = A Boolean determining whether this function searches and processes all included
+                      tally output files in this directory AND deeper subdirectories if set to `True`
+                      or only the files directly within the provided directory `tally_output_dirpath` if set to `False` (D=`False`)
+       - `return_tally_output` = A Boolean determining whether this function returns a list of `tally_output` dictionaries
+                      if set to `True` or just a list of filepaths to the pickle files containing these dictionaries
+                      if set to `False` (D=`False`)
+       - `include_dump_files` = A Boolean determining whether dump files will be processed too or skipped. (D=`False`)
+                      Settings to be applied to all encountered dump files can be specified per the optional inputs
+                      detailed below which are simply passed to the `parse_tally_dump_file()` function.  Note that parameters
+                      `return_namedtuple_list` and `return_Pandas_dataframe` will always be `False` when dump files are
+                      processed in a directory with this function; instead, `save_namedtuple_list` and `save_Pandas_dataframe`
+                      are by default set to `True` when parsing dump files in a directory with this function.  (Be warned,
+                      if the dump file is large, the produced files from parsing them will be too.)
+
+    Inputs:
+       (optional, the same as in and directly passed to the `parse_tally_output_file()` function)
+
+       - `make_PandasDF` = A Boolean determining whether a Pandas dataframe of the tally data array will be made (D=`True`)
+       - `calculate_absolute_errors` = A Boolean determining whether the absolute uncertainty of each tally output value
+                      is to be calculated (simply as the product of the value and relative error); if `False`, the final
+                      dimension of `tally_data`, `ierr`, will be of length-2 rather than length-3 (D=`True`)
+       - `save_output_pickle` = A Boolean determining whether the `tally_output` dictionary object is saved as a pickle file;
+                      if `True`, the file will be saved with the same path and name as the provided PHITS tally output file
+                      but with the .pickle extension. (D=`True`)
+       - `prefer_reading_existing_pickle` = A Boolean determining what this function does if the pickle file this function
+                      seeks to generate already exists.  If `False` (default behavior), this function will parse the PHITS
+                      output files as usual and overwrite the existing pickle file.  If `True`, this function will instead
+                      simply just read the existing found pickle file and return its stored `tally_output` contents. (D=`False`)
+
+    Inputs:
+       (optional, the same as in and directly passed to the `parse_tally_dump_file()` function)
+
+       - `dump_data_number` = integer number of data per row in dump file, binary if >0 and ASCII if <0.
+                This should match the value following `dump=` in the tally creating the dump file. (D=`None`)
+                If not specified, the search_for_dump_parameters() function will attempt to find it automatically.
+       - `dump_data_sequence` = string or list of integers with the same number of entries as `dump_data_number`,
+                mapping each column in the dump file to their physical quantities.  (D=`None`)
+                This should match the line following the `dump=` line in the tally creating the dump file.
+                See PHITS manual section "6.7.22 dump parameter" for further explanations of these values.
+                If not specified, the search_for_dump_parameters() function will attempt to find it automatically.
+       - `dump_return_directional_info` = (optional, D=`False`) Boolean designating whether extra directional information
+                should be calculated and returned; these include: radial distance `r` from the origin in cm,
+                radial distance `rho` from the z-axis in cm,
+                polar angle `theta` between the direction vector and z-axis in radians [0,pi] (or degrees), and
+                azimuthal angle `phi` of the direction vector in radians [-pi,pi] (or degrees).
+                Note: This option requires all position and direction values [x,y,z,u,v,w] to be included in the dump file.
+       - `dump_use_degrees` = (optional, D=`False`) Boolean designating whether angles `theta` and `phi` are returned
+                in units of degrees. Default setting is to return angles in radians.
+       - `dump_max_entries_read` = (optional, D=`None`) integer number specifying the maximum number of entries/records
+                of the dump file to be read.  By default, all records in the dump file are read.
+       - `dump_save_namedtuple_list` = (optional, D=`True`) Boolean designating whether `dump_data_list` is saved to a dill file
+               (for complicated reasons, objects containing namedtuples cannot be easily saved with pickle but can with dill).
+       - `dump_save_Pandas_dataframe` = (optional, D=`True`) Boolean designating whether `dump_data_frame` is saved to a pickle
+               file (via Pandas .to_pickle()).
+
+    Output:
+        - `tally_output_list` = a list of `tally_output` dictionary objects with the below keys and values / a list of
+             file paths to pickle files containing `tally_output` dictionary objects:
+            - `'tally_data'` = a 10-dimensional NumPy array containing all tally results, explained in more detail below
+            - `'tally_metadata'` = a dictionary/Munch object with various data extracted from the tally output file, such as axis binning and units
+            - `'tally_dataframe'` = (optionally included if setting `make_PandasDF = True`) a Pandas dataframe version of `tally_data`
 
     '''
-    in_content = False
-    header, content = [], [[]]
-    with open(output_file_path, mode='rb') as f:
-        for line in f:
-            if b'\x00' in line:
-                line = line.replace(b"\x00", b"")
-            line = line.decode()
-            #if "\x00" in line: line = line.replace("\x00", "")
-            if '#newpage:' in line:
-                in_content = True
+    import os
+
+    if not os.path.isdir(tally_output_dirpath):
+        print('The provided path to "tally_output_dir" is not a directory:',tally_output_dirpath)
+        if os.path.isfile(tally_output_dirpath):
+            head, tail = os.path.split(tally_output_dirpath)
+            tally_output_dirpath = head
+            print('However, it is a valid path to a file; thus, its parent directory will be used:',tally_output_dirpath)
+        else:
+            print('Nor is it a valid path to a file. ERROR! Aborting...')
+            return None
+
+    if include_subdirectories:
+        # Get paths to all files in this dir and subdirs
+        files_in_dir = []
+        for path, subdirs, files in os.walk(tally_output_dirpath):
+            for name in files:
+                files_in_dir.append(os.path.join(path, name))
+    else:
+        # Just get paths to files in this dir
+        files_in_dir = [os.path.join(tally_output_dirpath, f) for f in os.listdir(tally_output_dirpath) if os.path.isfile(os.path.join(tally_output_dirpath, f))]
+
+    # Determine which files should be parsed
+    filepaths_to_process = []
+    dump_filepaths_to_process = []
+    len_suffix = len(output_file_suffix)
+    len_prefix = len(output_file_prefix)
+    len_reqstr = len(output_file_required_string)
+    for f in files_in_dir:
+        head, tail = os.path.split(f)
+        if len_suffix > 0 and tail[-len_suffix:] != output_file_suffix: continue
+        if len_prefix > 0 and tail[:len_prefix] != output_file_prefix: continue
+        if len_reqstr > 0 and output_file_required_string not in tail: continue
+        if tail[(-4-len_suffix):] == '_err' + output_file_suffix: continue
+        with open(f) as ff:
+            try:
+                first_line = ff.readline().strip()
+            except: # triggered if encountering binary / non ASCII or UTF-8 file
+                if include_dump_files and tail[(-4-len_suffix):] == '_dmp' + output_file_suffix:
+                    dump_filepaths_to_process.append(f)
                 continue
-            if in_content:
-                if 'newpage:' in line:
-                    content.append([])
-                    continue
-                content[-1].append(line.strip())
-            else:
-                header.append(line.strip())
-    # add "footer" to peel off last bit of "content" section?
-    return header, content
+            if len(first_line) == 0: continue
+            if first_line[0] != '[' :
+                if include_dump_files and tail[(-4-len_suffix):] == '_dmp' + output_file_suffix:
+                    dump_filepaths_to_process.append(f)
+                continue
+        filepaths_to_process.append(f)
+
+    tally_output_pickle_path_list = []
+    tally_output_list = []
+    for f in filepaths_to_process:
+        f = Path(f)
+        path_to_pickle_file = Path(f.parent, f.stem + '.pickle')
+        tally_output_pickle_path_list.append(path_to_pickle_file)
+        tally_output = parse_tally_output_file(f, make_PandasDF=make_PandasDF,
+                                               calculate_absolute_errors=calculate_absolute_errors,
+                                               save_output_pickle=save_output_pickle,
+                                               prefer_reading_existing_pickle=prefer_reading_existing_pickle)
+        if return_tally_output: tally_output_list.append(tally_output)
+
+    if include_dump_files:
+        for f in dump_filepaths_to_process:
+            f = Path(f)
+            parse_tally_dump_file(f, dump_data_number=dump_data_number, dump_data_sequence=dump_data_number,
+                                  return_directional_info=dump_return_directional_info, use_degrees=dump_use_degrees,
+                                  max_entries_read=dump_max_entries_read,
+                                  return_namedtuple_list=False, return_Pandas_dataframe=False,
+                                  save_namedtuple_list=dump_save_namedtuple_list,
+                                  save_Pandas_dataframe=dump_save_Pandas_dataframe)
+
+    if return_tally_output:
+        return tally_output_list
+    else:
+        return tally_output_pickle_path_list
+
 
 def is_number(n):
     '''
@@ -348,6 +800,7 @@ def is_number(n):
     except ValueError:
         return False
     return True
+
 
 def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter='-'):
     '''
@@ -414,6 +867,47 @@ def Element_Z_to_Sym(Z):
         print('Z={} is not valid, please select a number from 0 to 118 (inclusive).'.format(str(Z)))
         return None
     return elms[i].strip()
+
+
+
+def split_into_header_and_content(output_file_path):
+    '''
+    Description:
+        Initial parsing of a PHITS tally output file to isolate its header section (containing metadata) and main
+        tally results "content" section for later processing.
+
+    Inputs:
+        - `output_file_path` = path to a PHITS tally output file
+
+    Outputs:
+        - `header` = list of lines belonging to the tally output's header section
+        - `content` = list of lists of remaining lines after the tally output's header section; the top level list is
+                broken into "blocks" ("newpage:"-separated) which are lists of lines belonging to each block/page.
+
+    '''
+    in_content = False
+    header, content = [], [[]]
+    with open(output_file_path, mode='rb') as f:
+        for line in f:
+            if b'\x00' in line:
+                line = line.replace(b"\x00", b"")
+            line = line.decode()
+            #if "\x00" in line: line = line.replace("\x00", "")
+            if '#newpage:' in line:
+                in_content = True
+                continue
+            if in_content:
+                if 'newpage:' in line:
+                    content.append([])
+                    continue
+                content[-1].append(line.strip())
+            else:
+                header.append(line.strip())
+    # add "footer" to peel off last bit of "content" section?
+    return header, content
+
+
+
 
 def extract_data_from_header_line(line):
     '''
@@ -2109,487 +2603,6 @@ def determine_PHITS_output_file_type(output_file):
     return PHITS_file_type
 
 
-
-def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.out', output_file_prefix = '',
-                                  output_file_required_string='', include_subdirectories=False,  return_tally_output=False,
-                                  make_PandasDF=True, calculate_absolute_errors=True,
-                                  save_output_pickle=True, prefer_reading_existing_pickle=False,
-                                  include_dump_files=False,
-                                  dump_data_number=None , dump_data_sequence=None,
-                                  dump_return_directional_info=False, dump_use_degrees=False,
-                                  dump_max_entries_read=None,
-                                  dump_save_namedtuple_list=True, dump_save_Pandas_dataframe=True
-                                  ):
-    '''
-    Description:
-        Parse all standard PHITS tally output files in a directory, returning either a list of dictionaries containing
-        tally metadata and an array of values from each tally output (and optionally this data inside of a Pandas dataframe too)
-        or a list of filepaths to pickle files containing these dictionaries, as created with the `parse_tally_output_file()` function.
-        This function allows selective processing of files in the directory by specification of strings which must
-        appear at the start, end, and/or anywhere within each filename.
-        Even if a file satisfies all of these naming criteria, the function will also check the first line of the file
-        to determine if it is a valid tally output file (meaning, it will skip files such as phits.out and batch.out).
-        It will also skip over "_err" uncertainty files as these are automatically found by the `parse_tally_output_file()`
-        function after it processes that tally's main output file.
-        This function will mainly process standard tally output files, but it can optionally process tally "dump" files too,
-        though it can only save the dump outputs to its dill/pickle files and not return the (quite large) dump data objects.
-        The filenames of saved dump data will not be included in the returned list.
-
-    Dependencies:
-        - `import os`
-        - `import numpy as np`
-        - `import pandas as pd` (if `make_PandasDF = True`)
-        - `import pickle` (if `save_output_pickle = True`)
-        - `from munch import *`
-        - `from pathlib import Path`
-
-    Inputs:
-       (required)
-
-        - `tally_output_dirpath` = Path (string or path object) to the tally output directory to be searched and parsed
-
-    Inputs:
-       (optional)
-
-       - `output_file_suffix` = A string specifying what characters processed filenames (including the file extension)
-                      must end in to be included.  This condition is not enforced if set to an empty string `''`. (D=`'.out'`)
-       - `output_file_prefix` = A string specifying what characters processed filenames (including the file extension)
-                      must begin with to be included.  This condition is not enforced if set to an empty string `''`. (D=`''`)
-       - `output_file_required_string` = A string which must be present anywhere within processed filenames (including the
-                      file extension) to be included.  This condition is not enforced if set to an empty string `''`. (D=`''`)
-       - `include_subdirectories` = A Boolean determining whether this function searches and processes all included
-                      tally output files in this directory AND deeper subdirectories if set to `True`
-                      or only the files directly within the provided directory `tally_output_dirpath` if set to `False` (D=`False`)
-       - `return_tally_output` = A Boolean determining whether this function returns a list of `tally_output` dictionaries
-                      if set to `True` or just a list of filepaths to the pickle files containing these dictionaries
-                      if set to `False` (D=`False`)
-       - `include_dump_files` = A Boolean determining whether dump files will be processed too or skipped. (D=`False`)
-                      Settings to be applied to all encountered dump files can be specified per the optional inputs
-                      detailed below which are simply passed to the `parse_tally_dump_file()` function.  Note that parameters
-                      `return_namedtuple_list` and `return_Pandas_dataframe` will always be `False` when dump files are
-                      processed in a directory with this function; instead, `save_namedtuple_list` and `save_Pandas_dataframe`
-                      are by default set to `True` when parsing dump files in a directory with this function.  (Be warned,
-                      if the dump file is large, the produced files from parsing them will be too.)
-
-    Inputs:
-       (optional, the same as in and directly passed to the `parse_tally_output_file()` function)
-
-       - `make_PandasDF` = A Boolean determining whether a Pandas dataframe of the tally data array will be made (D=`True`)
-       - `calculate_absolute_errors` = A Boolean determining whether the absolute uncertainty of each tally output value
-                      is to be calculated (simply as the product of the value and relative error); if `False`, the final
-                      dimension of `tally_data`, `ierr`, will be of length-2 rather than length-3 (D=`True`)
-       - `save_output_pickle` = A Boolean determining whether the `tally_output` dictionary object is saved as a pickle file;
-                      if `True`, the file will be saved with the same path and name as the provided PHITS tally output file
-                      but with the .pickle extension. (D=`True`)
-       - `prefer_reading_existing_pickle` = A Boolean determining what this function does if the pickle file this function
-                      seeks to generate already exists.  If `False` (default behavior), this function will parse the PHITS
-                      output files as usual and overwrite the existing pickle file.  If `True`, this function will instead
-                      simply just read the existing found pickle file and return its stored `tally_output` contents. (D=`False`)
-
-    Inputs:
-       (optional, the same as in and directly passed to the `parse_tally_dump_file()` function)
-
-       - `dump_data_number` = integer number of data per row in dump file, binary if >0 and ASCII if <0.
-                This should match the value following `dump=` in the tally creating the dump file. (D=`None`)
-                If not specified, the search_for_dump_parameters() function will attempt to find it automatically.
-       - `dump_data_sequence` = string or list of integers with the same number of entries as `dump_data_number`,
-                mapping each column in the dump file to their physical quantities.  (D=`None`)
-                This should match the line following the `dump=` line in the tally creating the dump file.
-                See PHITS manual section "6.7.22 dump parameter" for further explanations of these values.
-                If not specified, the search_for_dump_parameters() function will attempt to find it automatically.
-       - `dump_return_directional_info` = (optional, D=`False`) Boolean designating whether extra directional information
-                should be calculated and returned; these include: radial distance `r` from the origin in cm,
-                radial distance `rho` from the z-axis in cm,
-                polar angle `theta` between the direction vector and z-axis in radians [0,pi] (or degrees), and
-                azimuthal angle `phi` of the direction vector in radians [-pi,pi] (or degrees).
-                Note: This option requires all position and direction values [x,y,z,u,v,w] to be included in the dump file.
-       - `dump_use_degrees` = (optional, D=`False`) Boolean designating whether angles `theta` and `phi` are returned
-                in units of degrees. Default setting is to return angles in radians.
-       - `dump_max_entries_read` = (optional, D=`None`) integer number specifying the maximum number of entries/records
-                of the dump file to be read.  By default, all records in the dump file are read.
-       - `dump_save_namedtuple_list` = (optional, D=`True`) Boolean designating whether `dump_data_list` is saved to a dill file
-               (for complicated reasons, objects containing namedtuples cannot be easily saved with pickle but can with dill).
-       - `dump_save_Pandas_dataframe` = (optional, D=`True`) Boolean designating whether `dump_data_frame` is saved to a pickle
-               file (via Pandas .to_pickle()).
-
-    Output:
-        - `tally_output_list` = a list of `tally_output` dictionary objects with the below keys and values / a list of
-             file paths to pickle files containing `tally_output` dictionary objects:
-            - `'tally_data'` = a 10-dimensional NumPy array containing all tally results, explained in more detail below
-            - `'tally_metadata'` = a dictionary/Munch object with various data extracted from the tally output file, such as axis binning and units
-            - `'tally_dataframe'` = (optionally included if setting `make_PandasDF = True`) a Pandas dataframe version of `tally_data`
-
-    '''
-    import os
-
-    if not os.path.isdir(tally_output_dirpath):
-        print('The provided path to "tally_output_dir" is not a directory:',tally_output_dirpath)
-        if os.path.isfile(tally_output_dirpath):
-            head, tail = os.path.split(tally_output_dirpath)
-            tally_output_dirpath = head
-            print('However, it is a valid path to a file; thus, its parent directory will be used:',tally_output_dirpath)
-        else:
-            print('Nor is it a valid path to a file. ERROR! Aborting...')
-            return None
-
-    if include_subdirectories:
-        # Get paths to all files in this dir and subdirs
-        files_in_dir = []
-        for path, subdirs, files in os.walk(tally_output_dirpath):
-            for name in files:
-                files_in_dir.append(os.path.join(path, name))
-    else:
-        # Just get paths to files in this dir
-        files_in_dir = [os.path.join(tally_output_dirpath, f) for f in os.listdir(tally_output_dirpath) if os.path.isfile(os.path.join(tally_output_dirpath, f))]
-
-    # Determine which files should be parsed
-    filepaths_to_process = []
-    dump_filepaths_to_process = []
-    len_suffix = len(output_file_suffix)
-    len_prefix = len(output_file_prefix)
-    len_reqstr = len(output_file_required_string)
-    for f in files_in_dir:
-        head, tail = os.path.split(f)
-        if len_suffix > 0 and tail[-len_suffix:] != output_file_suffix: continue
-        if len_prefix > 0 and tail[:len_prefix] != output_file_prefix: continue
-        if len_reqstr > 0 and output_file_required_string not in tail: continue
-        if tail[(-4-len_suffix):] == '_err' + output_file_suffix: continue
-        with open(f) as ff:
-            try:
-                first_line = ff.readline().strip()
-            except: # triggered if encountering binary / non ASCII or UTF-8 file
-                if include_dump_files and tail[(-4-len_suffix):] == '_dmp' + output_file_suffix:
-                    dump_filepaths_to_process.append(f)
-                continue
-            if len(first_line) == 0: continue
-            if first_line[0] != '[' :
-                if include_dump_files and tail[(-4-len_suffix):] == '_dmp' + output_file_suffix:
-                    dump_filepaths_to_process.append(f)
-                continue
-        filepaths_to_process.append(f)
-
-    tally_output_pickle_path_list = []
-    tally_output_list = []
-    for f in filepaths_to_process:
-        f = Path(f)
-        path_to_pickle_file = Path(f.parent, f.stem + '.pickle')
-        tally_output_pickle_path_list.append(path_to_pickle_file)
-        tally_output = parse_tally_output_file(f, make_PandasDF=make_PandasDF,
-                                               calculate_absolute_errors=calculate_absolute_errors,
-                                               save_output_pickle=save_output_pickle,
-                                               prefer_reading_existing_pickle=prefer_reading_existing_pickle)
-        if return_tally_output: tally_output_list.append(tally_output)
-
-    if include_dump_files:
-        for f in dump_filepaths_to_process:
-            f = Path(f)
-            parse_tally_dump_file(f, dump_data_number=dump_data_number, dump_data_sequence=dump_data_number,
-                                  return_directional_info=dump_return_directional_info, use_degrees=dump_use_degrees,
-                                  max_entries_read=dump_max_entries_read,
-                                  return_namedtuple_list=False, return_Pandas_dataframe=False,
-                                  save_namedtuple_list=dump_save_namedtuple_list,
-                                  save_Pandas_dataframe=dump_save_Pandas_dataframe)
-
-    if return_tally_output:
-        return tally_output_list
-    else:
-        return tally_output_pickle_path_list
-
-
-def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calculate_absolute_errors = True,
-                            save_output_pickle = True, prefer_reading_existing_pickle = False):
-    '''
-    Description:
-        Parse any PHITS tally output file, returning tally metadata and an array of its values (and optionally
-        this data inside of a Pandas dataframe too).  Note the separate `parse_tally_dump_file` function for
-        parsing PHITS dump files.
-
-    Dependencies:
-        - `import numpy as np`
-        - `import pandas as pd` (if `make_PandasDF = True`)
-        - `import pickle` (if `save_output_pickle = True`)
-        - `from munch import *`
-        - `from pathlib import Path`
-
-    Inputs:
-       (required)
-
-        - `tally_output_filepath` = file or filepath to the tally output file to be parsed
-
-    Inputs:
-       (optional)
-
-       - `make_PandasDF` = A Boolean determining whether a Pandas dataframe of the tally data array will be made (D=`True`)
-       - `calculate_absolute_errors` = A Boolean determining whether the absolute uncertainty of each tally output value
-                      is to be calculated (simply as the product of the value and relative error); if `False`, the final
-                      dimension of `tally_data`, `ierr`, will be of length-2 rather than length-3 (D=`True`)
-       - `save_output_pickle` = A Boolean determining whether the `tally_output` dictionary object is saved as a pickle file;
-                      if `True`, the file will be saved with the same path and name as the provided PHITS tally output file
-                      but with the .pickle extension. (D=`True`)
-       - `prefer_reading_existing_pickle` = A Boolean determining what this function does if the pickle file this function
-                      seeks to generate already exists.  If `False` (default behavior), this function will parse the PHITS
-                      output files as usual and overwrite the existing pickle file.  If `True`, this function will instead
-                      simply just read the existing found pickle file and return its stored `tally_output` contents. (D=`False`)
-
-    Output:
-        - `tally_output` = a dictionary object with the below keys and values:
-            - `'tally_data'` = a 10-dimensional NumPy array containing all tally results, explained in more detail below
-            - `'tally_metadata'` = a dictionary/Munch object with various data extracted from the tally output file, such as axis binning and units
-            - `'tally_dataframe'` = (optionally included if setting `make_PandasDF = True`) a Pandas dataframe version of `tally_data`
-
-
-    Notes:
-
-       Many quantities can be scored across the various tallies in the PHITS code.  This function outputs a "universal"
-       array `tally_data` that can accomodate all of the different scoring geometry meshes, physical quantities with
-       assigned meshes, and output axes provided within PHITS.  This is achieved with a 10-dimensional array accessible as
-
-       `tally_data[ ir, iy, iz, ie, it, ia, il, ip, ic, ierr ]`, with indices explained below:
-
-       Tally data indices and corresponding mesh/axis:
-
-        - `0` | `ir`, Geometry mesh: `reg` / `x` / `r` / `tet` ([T-Cross] `ir surf` if `mesh=r-z` with `enclos=0`)
-        - `1` | `iy`, Geometry mesh:  `1` / `y` / `1`
-        - `2` | `iz`, Geometry mesh:  `1` / `z` / `z` ([T-Cross] `iz surf` if `mesh=xyz` or `mesh=r-z` with `enclos=0`)
-        - `3` | `ie`, Energy mesh: `eng` ([T-Deposit2] `eng1`)
-        - `4` | `it`, Time mesh
-        - `5` | `ia`, Angle mesh
-        - `6` | `il`, LET mesh
-        - `7` | `ip`, Particle type (`part = `)
-        - `8` | `ic`, Special: [T-Deposit2] `eng2`; [T-Yield] `mass`, `charge`, `chart`
-        - `9` | `ierr = 0/1/2`, Value / relative uncertainty / absolute uncertainty (expanded to `3/4/5`, or `2/3` if
-        `calculate_absolute_errors = False`, for [T-Cross] `mesh=r-z` with `enclos=0` case; see notes further below)
-
-       -----
-
-       By default, all array dimensions are length-1 (except `ierr`, which is length-3).  These dimensions are set/corrected
-       automatically when parsing the tally output file.  Thus, for very simple tallies, most of these indices will be
-       set to 0 when accessing tally results, e.g. `tally_data[2,0,0,:,0,0,0,:,0,:]` to access the full energy spectrum
-       in the third region for all scored particles / particle groups with the values and uncertainties.
-
-       The output `tally_metadata` dictionary contains all information needed to identify every bin along every
-       dimension: region numbers/groups, particle names/groups, bin edges and midpoints for all mesh types
-       (x, y, z, r, energy, angle, time, and LET) used in the tally.
-
-       The `tally_dataframe` Pandas dataframe output functions as normal.  Note that a dictionary containing supplemental
-       information that is common to all rows of the dataframe can be accessed with `tally_dataframe.attrs`.
-
-       -----
-
-       At present, the following tallies are NOT supported by this function: [T-WWG], [T-WWBG], [T-Volume],
-       [T-Userdefined], [T-Gshow], [T-Rshow], [T-3Dshow], [T-4Dtrack], and [T-Dchain].
-
-       For [T-Dchain] or [T-Yield] with `axis = dchain`, please use the separate suite of parsing functions included in
-       the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools) module.
-
-       -----
-
-       The [T-Cross] tally is unique (scoring across region boundaries rather than within regions), creating some
-       additional challenges.
-       In the `mesh = reg` case, much is the same except each region number is composed of the `r-from` and `r-to` values, e.g. `'100 - 101'`.
-
-       For `xyz` and `r-z` meshes, an additional parameter is at play: `enclos`.
-       By default, `enclos=0`.
-       In the event `enclos=1` is set, the total number of geometric regions is still either `nx*ny*nz` or `nr*nz` for
-       `xyz` and `r-z` meshes, respectively.
-       For `enclos=0` in the `mesh = xyz` case, the length of the z dimension (`iz` index) is instead equal to `nzsurf`,
-       which is simply one greater than `nz` (# regions = `nx*ny*(nz+1)`).
-
-       For `enclos=0` in the `mesh = r-z` case, this is much more complicated as PHITS will output every combination of
-       `nr*nzsurf` AND `nrsurf*nz`, noting `nzsurf=nz+1` and `nrsurf=nr+1` (or `nrsurf=nr` if the first radius bin edge
-       is `r=0.0`).
-       The solution implemented here is to, for only this circumstance (in only the `enclos=0 mesh=r-z` case),
-       set the length of the `ir` and `iz` dimensions to `nrsurf` and `nzsurf`, respectively, and also
-       to expand the length of the final dimension of `tally_data` from 3 to 6 (or from 2 to 4 if `calculate_absolute_errors=False`), where:
-
-        - `ierr = 0/1/2` refer to the combinations of `nr` and `nzsurf` (or `0/1` if `calculate_absolute_errors=False`)
-        - `ierr = 3/4/5` refer to the combinations of `nrsurf` and `nz` (or `2/3` if `calculate_absolute_errors=False`)
-
-       In this case, the Pandas dataframe, if enabled, will contain 3 (or 2) extra columns `value2` and `rel.err.2` [and `abs.err.2`],
-       which correspond to the combinations of `nrsurf` and `nz` (while the original columns without the "2" refer to
-       values for combinations of and `nr` and `nzsurf`).
-
-       -----
-
-       [T-Yield] is also a bit exceptional.  When setting the `axis` parameter equal to `charge`, `mass`, or `chart`,
-       the `ic` dimension of `tally_data` is used for each entry of charge (proton number, Z), mass (A), or
-       isotope/isomer, respectively.
-
-       In the case of `axis = charge` or `axis = mass`, the value of `ic` refers to the actual charge/proton number Z
-       or mass number A when accessing `tally_data`; for instance, `tally_data[:,:,:,:,:,:,:,:,28,:]`
-       references results from nuclei with Z=28 if `axis = charge` or A=28 if `axis = mass`.  The length of the `ic`
-       dimension is initialized as 130 or 320 but is later reduced to only just include the highest charge or mass value.
-
-       In the case of `axis = chart`, the length of the `ic` dimension is initially set equal to the `mxnuclei` parameter
-       in the [T-Yield] tally.  If `mxnuclei = 0` is set, then the length of the `ic` dimension is initially set to 10,000.
-       This `ic` dimension length is later reduced to the total number of unique nuclides found in the output.
-       Owing to the huge number of possible nuclides, a list of found nuclides with nonzero yield is assembled and
-       added to `tally_metadata` under the keys `nuclide_ZZZAAAM_list` and `nuclide_isomer_list`, i.e.
-       `tally_metadata['nuclide_ZZZAAAM_list']` and `tally_metadata['nuclide_isomer_list']`.
-       These lists should be referenced to see what nuclide each of index `ic` refers to.
-       The entries of the ZZZAAAM list are intergers calculated with the formula 10000\*Z + 10\*A + M, where M is the
-       metastable state of the isomer (0 = ground state, 1 = 1st metastable/isomeric state, etc.).  The entries
-       of the isomer list are these same nuclides in the same order but written as plaintext strings, e.g. `'Al-28'` and `'Xe-133m1'`.
-       The lists are ordered in the same order nuclides are encountered while parsing the output file.
-       Thus, to sensibly access the yield of a specific nuclide, one must first find its index `ic` in one of the two
-       metadata lists of ZZZAAAM values or isomer names and then use that to access `tally_data`.  For example, to get
-       the yield results of production of carbon-14 (C-14), one would use the following code:
-
-       `ic = tally_metadata['nuclide_ZZZAAAM_list'].index(60140)`
-
-       OR
-
-       `ic = tally_metadata['nuclide_isomer_list'].index('C-14')`
-
-       then
-
-       `my_yield_values = tally_data[:,:,:,:,:,:,:,:,ic,:]`
-
-
-    '''
-
-    '''
-    The old [T-Cross] mesh=r-z enclos=0 solution is written below:
-        The solution implemented here uses `ir` to iterate `nr`, `iy` to iterate `nrsurf`, `iz` to
-        iterate `nz`, and `ic` to iterate `nzsurf`.  Since only `rsurf*z [iy,iz]` and `r*zsurf [ir,ic]` pairs exist,
-        when one pair is being written, the other will be `[-1,-1]`, thus the lengths of these dimensions for the array
-        are increased by an extra 1 to prevent an overlap in the data written.
-    '''
-    pickle_filepath = Path(tally_output_filepath.parent, tally_output_filepath.stem + '.pickle')
-    if prefer_reading_existing_pickle and os.path.isfile(pickle_filepath):
-        import pickle
-        print('Reading found pickle file: ', pickle_filepath)
-        with open(pickle_filepath, 'rb') as handle:
-            tally_output = pickle.load(handle)
-        return tally_output
-
-    # main toggled settings
-    #calculate_absolute_errors = True
-    construct_Pandas_frame_from_array = make_PandasDF
-    #process_all_tally_out_files_in_directory = False
-    save_pickle_files_of_output = save_output_pickle  # save metadata, array, and Pandas frame in a pickled dictionary object
-
-    if construct_Pandas_frame_from_array: import pandas as pd
-
-    # Check if is _err or _dmp file (or normal value file)
-    is_val_file = False
-    is_err_file = False
-    is_dmp_file = False
-    if tally_output_filepath.stem[-4:] == '_err':
-        is_err_file = True
-    elif tally_output_filepath.stem[-4:] == '_dmp':
-        is_dmp_file = True
-    else:
-        is_val_file = True
-
-    if is_dmp_file:
-        print('ERROR: The provided file is a "dump" output file. Use the function titled "parse_tally_dump_file" to process it instead.')
-        return None
-
-    if is_err_file:
-        print('WARNING: Provided file contains just relative uncertainties.',str(tally_output_filepath))
-        potential_val_file = Path(tally_output_filepath.parent, tally_output_filepath.stem.replace('_err','') + tally_output_filepath.suffix)
-        if potential_val_file.is_file():
-            print('\t Instead, both it and the file with tally values will be parsed.')
-            potential_err_file = tally_output_filepath
-            tally_output_filepath = potential_val_file
-            is_val_file = True
-            is_err_file = False
-        else:
-            print('\t The corresponding file with tally values could not be found, so only these uncertainties will be parsed.')
-
-    # Split content of output file into header and content
-    if in_debug_mode: print("\nSplitting output into header and content...   ({:0.2f} seconds elapsed)".format(time.time() - start))
-    tally_header, tally_content = split_into_header_and_content(tally_output_filepath)
-    if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
-    # print(len(tally_content))
-
-    # Check if *_err file exists
-    potential_err_file = Path(tally_output_filepath.parent, tally_output_filepath.stem + '_err' + tally_output_filepath.suffix)
-    is_err_in_separate_file = potential_err_file.is_file()  # for some tallies/meshes, uncertainties are stored in a separate identically-formatted file
-
-    # Extract tally metadata
-    if in_debug_mode: print("\nExtracting tally metadata...   ({:0.2f} seconds elapsed)".format(time.time() - start))
-    tally_metadata = parse_tally_header(tally_header, tally_content)
-    if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
-    if in_debug_mode: pprint.pp(dict(tally_metadata))
-    # Check if tally_type is among those supported.
-    unsupported_tally_types = ['[T-WWG]', '[T-WWBG]', '[T-Volume]', '[T-Userdefined]', '[T-Gshow]', '[T-Rshow]',
-                               '[T-3Dshow]', '[T-4Dtrack]', '[T-Dchain]']
-    if tally_metadata['tally_type'] in unsupported_tally_types:
-        print('ERROR! tally type',tally_metadata['tally_type'],'is not supported by this function!')
-        if tally_metadata['tally_type'] == '[T-Dchain]':
-            dchain_tools_url = 'github.com/Lindt8/DCHAIN-Tools'
-            print('However, the DCHAIN Tools module (',dchain_tools_url,') is capable of parsing all DCHAIN-related output.')
-        return None
-    if tally_metadata['tally_type'] == '[T-Yield]' and tally_metadata['axis'] == 'dchain':
-        dchain_tools_url = 'github.com/Lindt8/DCHAIN-Tools'
-        print('This function does not support [T-Yield] with setting "axis = dchain".')
-        print('However, the DCHAIN Tools module (', dchain_tools_url, ') is capable of parsing all DCHAIN-related output.')
-        return None
-
-    # Initialize tally data array with zeros
-    tally_data = initialize_tally_array(tally_metadata, include_abs_err=calculate_absolute_errors)
-
-    # Parse tally data
-    if is_val_file:
-        err_mode = False
-    else: # if is_err_file
-        err_mode = True
-    if in_debug_mode: print("\nParsing tally data...   ({:0.2f} seconds elapsed)".format(time.time() - start))
-    if tally_metadata['tally_type']=='[T-Yield]' and tally_metadata['axis'] in ['chart','charge','mass']: # need to update metadata too
-        tally_data, tally_metadata = parse_tally_content(tally_data, tally_metadata, tally_content, is_err_in_separate_file, err_mode=err_mode)
-    else:
-        tally_data = parse_tally_content(tally_data, tally_metadata, tally_content, is_err_in_separate_file, err_mode=err_mode)
-    if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
-    err_data_found = True
-    if tally_metadata['axis_dimensions'] == 2 and tally_metadata['2D-type'] != 4:
-        if is_err_file:
-            err_data_found = False
-        elif is_err_in_separate_file:
-            err_tally_header, err_tally_content = split_into_header_and_content(potential_err_file)
-            if in_debug_mode: print("\nParsing tally error...   ({:0.2f} seconds elapsed)".format(time.time() - start))
-            if tally_metadata['tally_type'] == '[T-Yield]' and tally_metadata['axis'] in ['chart','charge','mass']:  # need to update metadata too
-                tally_data, tally_metadata = parse_tally_content(tally_data, tally_metadata, err_tally_content, is_err_in_separate_file,err_mode=True)
-            else:
-                tally_data = parse_tally_content(tally_data, tally_metadata, err_tally_content, is_err_in_separate_file, err_mode=True)
-            if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
-        else:
-            print('WARNING: A separate file ending in "_err" containing uncertainties should exist but was not found.')
-            err_data_found = False
-    if calculate_absolute_errors:
-        if err_data_found:
-            if in_debug_mode: print("\nCalculating absolute errors...   ({:0.2f} seconds elapsed)".format(time.time() - start))
-            tally_data = calculate_tally_absolute_errors(tally_data)
-            if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
-        elif is_err_file:
-            print('WARNING: Absolute errors not calculated since the main tally values file was not found.')
-        else:
-            print('WARNING: Absolute errors not calculated since the _err file was not found.')
-    # Generate Pandas dataframe of tally results
-    if construct_Pandas_frame_from_array:
-        if in_debug_mode: print("\nConstructing Pandas dataframe...   ({:0.2f} seconds elapsed)".format(time.time() - start))
-        tally_Pandas_df = build_tally_Pandas_dataframe(tally_data, tally_metadata)
-        if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
-    else:
-        tally_Pandas_df = None
-
-    tally_output = {
-        'tally_data': tally_data,
-        'tally_metadata': tally_metadata,
-        'tally_dataframe': tally_Pandas_df,
-    }
-
-    if save_output_pickle:
-        import pickle
-        path_to_pickle_file = Path(tally_output_filepath.parent, tally_output_filepath.stem + '.pickle')
-        if in_debug_mode: print("\nWriting output to pickle file...   ({:0.2f} seconds elapsed)".format(time.time() - start))
-        with open(path_to_pickle_file, 'wb') as handle:
-            pickle.dump(tally_output, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            print('Pickle file written:', path_to_pickle_file, '\n')
-        if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
-
-    return tally_output
 
 
 
