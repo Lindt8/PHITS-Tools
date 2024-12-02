@@ -12,14 +12,24 @@ There are three main ways one can use this Python module:
     - In your own Python scripts, you can import this module as `from PHITS_tools import *` and call its main functions or any of its other functions documented [here](https://lindt8.github.io/PHITS-Tools/).
 2. As a **command line interface (CLI)**
     - This module can be ran on the command line with the individual PHITS output file to be parsed (or a directory containing multiple files to be parsed) as the required argument. Execute `python PHITS_tools.py --help` to see all of the different options that can be used with this module to parse standard or dump PHITS output files (individually and directories containing them) via the CLI.
-3. As a **graphical user interface (GUI)** *[NOT YET DEVELOPED]*
-    - When the module is executed without any additional arguments, `python PHITS_tools.py`, a GUI will be launched to step you through selecting a file (or directory) to be parsed and the various options for it.
+3. As a **graphical user interface (GUI)** 
+    - When the module is executed without any additional arguments, `python PHITS_tools.py`, (or with the `--GUI` or `-g` flag in the CLI) a GUI will be launched to step you through selecting what "mode" you would like to run PHITS Tools in (`STANDARD`, `DUMP`, or `DIRECTORY`), selecting a file to be parsed (or a directory containing multiple files to be parsed), and the various options for each mode.
 
-Aside from the main PHITS output parsing function **`parse_tally_output_file()`** for general tally output, the **`parse_tally_dump_file()`** function for parsing tally dump file outputs, and the **`parse_all_tally_output_in_dir()`** function for parsing all standard (and, optionally, dump) tally outputs in a directory, PHITS_tools.py also contains a handful other functions which individuals may find useful. 
+Aside from the main PHITS output parsing function **`parse_tally_output_file()`** for general tally output, the **`parse_tally_dump_file()`** function for parsing tally dump file outputs, and the **`parse_all_tally_output_in_dir()`** function for parsing all standard (and, optionally, dump) tally outputs in a directory, PHITS_tools.py also contains a handful of other functions which individuals may find useful. 
 
 The CLI and GUI options result in the parsed file's contents being saved to a [pickle](https://docs.python.org/3/library/pickle.html) (or [dill](https://pypi.org/project/dill/)) file, which can be reopened and used later in a Python script. When using the main functions within a Python script which has imported the PHITS_tools module, you can optionally choose not to save the pickle files (if desired) and only have the tally output/dump parsing functions return the data objects they produce (dictionaries, NumPy arrays, Pandas DataFrames, and *[only for dump outputs]* lists of NamedTuples) for your own further analyses.
 
-One may use the functions by first placing the PHITS_tools.py Python script into a folder in their PYTHONPATH system variable or in the active directory and then just importing them normally (`from PHITS_tools import *`) or by executing the script `python PHITS_tools.py` with the PHITS output file to be parsed as the required argument (see `python PHITS_tools.py --help` for all CLI options) / without a file argument to be guided through with a GUI *(coming soon)*.
+One may use the functions by first placing the PHITS_tools.py Python script into a folder in their PYTHONPATH system variable or in the active directory and then just importing them normally (`from PHITS_tools import *`) or by executing the script `python PHITS_tools.py` with the PHITS output file to be parsed as the required argument (see `python PHITS_tools.py --help` for all CLI options) / without a file argument to be guided through with a GUI.
+
+Pictured below is the main PHITS Tools GUI window followed by the `[DIRECTORY mode]` GUI menu which shows all the options available not only for DIRECTORY mode but also for standard and dump tally output files.
+
+![](/docs/PHITS_tools_GUI_main.png?raw=true "PHITS Tools GUI main window")
+
+![](/docs/PHITS_tools_GUI_directory-mode.png?raw=true "PHITS Tools GUI 'DIRECTORY mode' window")
+
+Below is also a picture of all of the options available for use within the CLI:
+
+![](/docs/PHITS_tools_CLI.png?raw=true "PHITS Tools CLI options")
 
 -----
 
