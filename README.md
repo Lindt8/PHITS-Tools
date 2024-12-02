@@ -13,7 +13,7 @@ There are three main ways one can use this Python module:
 2. As a **command line interface (CLI)**
     - This module can be ran on the command line with the individual PHITS output file to be parsed (or a directory containing multiple files to be parsed) as the required argument. Execute `python PHITS_tools.py --help` to see all of the different options that can be used with this module to parse standard or dump PHITS output files (individually and directories containing them) via the CLI.
 3. As a **graphical user interface (GUI)** 
-    - When the module is executed without any additional arguments, `python PHITS_tools.py`, (or with the `--GUI` or `-g` flag in the CLI) a GUI will be launched to step you through selecting what "mode" you would like to run PHITS Tools in (`STANDARD`, `DUMP`, or `DIRECTORY`), selecting a file to be parsed (or a directory containing multiple files to be parsed), and the various options for each mode.
+    - When the module is executed without any additional arguments, `python PHITS_tools.py`, (or with the `-g` or `--GUI` flag in the CLI) a GUI will be launched to step you through selecting what "mode" you would like to run PHITS Tools in (`STANDARD`, `DUMP`, or `DIRECTORY`), selecting a file to be parsed (or a directory containing multiple files to be parsed), and the various options for each mode.
 
 Aside from the main PHITS output parsing function **`parse_tally_output_file()`** for general tally output, the **`parse_tally_dump_file()`** function for parsing tally dump file outputs, and the **`parse_all_tally_output_in_dir()`** function for parsing all standard (and, optionally, dump) tally outputs in a directory, PHITS_tools.py also contains a handful of other functions which individuals may find useful. 
 
