@@ -1,6 +1,7 @@
 #### Online PHITS Tools documentation: [lindt8.github.io/PHITS-Tools/](https://lindt8.github.io/PHITS-Tools/)
 
 # PHITS Tools
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14262720.svg)](https://doi.org/10.5281/zenodo.14262720)
 
 This module is a collection of Python 3 functions that serve to automatically process output from the PHITS general purpose Monte Carlo particle transport code, which can be obtained at [https://phits.jaea.go.jp/](https://phits.jaea.go.jp/), and interfaces for utilizing these parsing/processing functions.
 
