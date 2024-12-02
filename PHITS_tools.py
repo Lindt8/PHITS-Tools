@@ -21,8 +21,9 @@ There are three main ways one can use this Python module:
           Execute `python PHITS_tools.py --help` to see all of the different options that can be used with this module
           to parse standard or dump PHITS output files (individually and directories containing them) via the CLI.
  3. As a **graphical user interface (GUI)**
-      - [NOT YET DEVELOPED] When the module is executed without any additional arguments, `python PHITS_tools.py`, a GUI
-          will be launched to step you through selecting a file to be parsed and the various options for it.
+      - When the module is executed without any additional arguments, `python PHITS_tools.py`, (or with the `--GUI` or `-g` flag in the CLI)
+          a GUI will be launched to step you through selecting what "mode" you would like to run PHITS Tools in (`STANDARD`, `DUMP`, or `DIRECTORY`),
+          selecting a file to be parsed (or a directory containing multiple files to be parsed), and the various options for each mode.
 
 The CLI and GUI options result in the parsed file's contents being saved to a pickle (or dill) file, which can be reopened
 and used later in a Python script.  When using the main functions below within a Python script which has imported the PHITS_tools
@@ -94,9 +95,12 @@ if __name__ == "__main__":
     elif len(sys.argv) == 1:
         launch_GUI = True
     else:
-        run_with_CLI_inputs = True
-        # CLI for PHITS Tools
-        import argparse
+        if '-g' in sys.argv or '--GUI' in sys.argv:
+            launch_GUI = True
+        else:
+            run_with_CLI_inputs = True
+            # CLI for PHITS Tools
+            import argparse
 
 
 if in_debug_mode:
@@ -466,7 +470,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
     from collections import namedtuple
     from typing import NamedTuple
     from scipy.io import FortranFile
-    if return_Pandas_dataframe:
+    if return_Pandas_dataframe or save_Pandas_dataframe:
         import pandas as pd
     if save_Pandas_dataframe or save_namedtuple_list:
         #import pickle
@@ -2623,6 +2627,7 @@ if run_with_CLI_inputs:
     parser = argparse.ArgumentParser()
     parser.add_argument("file", type=validate_file, help="path to PHITS output file to parse or directory containing files to parse (relative or absolute path)")
     # Flags for standard output files
+    parser.add_argument("-g", "--GUI", help="Launch the PHITS Tools GUI and ignore all other command line inputs", action="store_true")
     parser.add_argument("-np", "--disable_PandasDF", help="[standard output] disable automatic creation of Pandas DataFrame of PHITS output", action="store_true")
     parser.add_argument("-na", "--disable_abs_err_calc", help="[standard output] disable automatic calculation of absolute errors", action="store_true")
     # Not going to add below option. Why would you ever run this in CLI if not trying to generate the pickle file?
@@ -2721,7 +2726,391 @@ if run_with_CLI_inputs:
                                     save_output_pickle=True, prefer_reading_existing_pickle=False)
 
 elif launch_GUI:
-    pass
+    # tkinter GUI below written with the assistance of ChatGPT
+
+    import tkinter as tk
+    from tkinter import filedialog
+    from tkinter import messagebox
+    from tkinter import ttk
+    import warnings
+    import sys
+
+
+    # Function to issue a warning on unexpected closure and then exit the program
+    def on_closing(window):
+        window.destroy()
+        warnings.warn("Window closed unexpectedly", UserWarning)
+        sys.exit()
+
+
+    # Initialize the settings dictionary
+    settings = {}
+
+    standard_mode_short_text = "[STANDARD mode]"
+    dump_mode_short_text = "[DUMP mode]"
+    directory_mode_short_text = "[DIRECTORY mode]"
+
+    standard_mode_full_text = standard_mode_short_text + " for processing a single standard PHITS tally output file"
+    dump_mode_full_text = dump_mode_short_text + " for processing a single PHITS tally dump output file (*_dmp.out)"
+    directory_mode_full_text = directory_mode_short_text + " for processing all PHITS output files in a directory"
+
+
+    def on_option_selected():
+        option = selected_option.get()
+        file_chosen = None
+
+        try:
+            if option in [1, 2]:
+                if option == 1:
+                    window_name_str = 'Select standard PHITS tally output file'
+                else:
+                    window_name_str = 'Select PHITS tally dump output file'
+                file_chosen = filedialog.askopenfilename(title=window_name_str)
+                if not file_chosen:
+                    raise ValueError("File selection is required")
+                settings['file'] = file_chosen
+            elif option == 3:
+                directory_chosen = filedialog.askdirectory(title="Select Directory of PHITS outputs to parse")
+                if not directory_chosen:
+                    raise ValueError("Directory selection is required")
+                settings['directory'] = directory_chosen
+        except:
+            raise ValueError("User closed the file/directory dialog")
+        else:
+            root.withdraw()
+            create_secondary_gui(option)
+
+
+    def create_secondary_gui(option):
+        secondary_gui = tk.Toplevel(root)
+
+        def on_closing_secondary_gui():
+            on_closing(secondary_gui)
+
+        secondary_gui.protocol("WM_DELETE_WINDOW", on_closing_secondary_gui)
+
+
+
+        inputs = {
+            1: ['Checkbox 1', 'Checkbox 2'],
+            2: ['Checkbox A', 'Checkbox B', 'Radio 1', 'Radio 2', 'Radio 3', 'Input 1 (str)', 'Input 2 (int)',
+                'Input 3 (int)'],
+            3: ['Checkbox 1', 'Checkbox 2', 'Checkbox A', 'Checkbox B', 'Radio 1', 'Radio 2', 'Radio 3',
+                'Input 1 (str)', 'Input 2 (int)', 'Input 3 (int)', 'Input 4 (str)', 'Input 5 (str)', 'Input 6 (str)',
+                'Extra Checkbox 1', 'Extra Checkbox 2']
+        }
+
+        def save_settings():
+            settings.update({
+                'main_mode': selected_option.get()
+            })
+            if option == 1:
+                settings.update({
+                    'option_1_cb1': cb1_var.get(),
+                    'option_1_cb2': cb2_var.get()
+                })
+            elif option == 2:
+                settings.update({
+                    'option_2_cb1': cb1_var.get(),
+                    'option_2_cb2': cb2_var.get(),
+                    'radio': radio_var.get(),
+                    'input_str': entry_str.get() or None,
+                    'input_int1': entry_int1.get() or None,
+                    'input_int2': entry_int2.get() or None,
+                })
+            elif option == 3:
+                settings.update({
+                    'option_3_cb1': cb1_var.get(), 'option_3_cb2': cb2_var.get(),
+                    'option_3_cb3': cb3_var.get(), 'option_3_cb4': cb4_var.get(),
+                    'radio': radio_var.get(),
+                    'input_str_1': secondary_entry_str1.get() or None,
+                    'input_int_1': secondary_entry_int1.get() or None,
+                    'input_int_2': secondary_entry_int2.get() or None,
+                    'input_str_2': secondary_entry_str2.get() or None,
+                    'input_str_3': secondary_entry_str3.get() or None,
+                    'input_str_6': extra_entry_str1.get() or None,  # Renamed 'Extra Input 1' to 'Input 6'
+                    'extra_cb1': extra_cb1_var.get(),
+                    'extra_cb2': extra_cb2_var.get(),
+                })
+            secondary_gui.destroy()
+            root.destroy()  # Ensure root window is destroyed after closing secondary GUI
+
+        common_widgets = []
+
+        if option == 1:
+            sample_text_label = tk.Label(secondary_gui, text=standard_mode_full_text,
+                                         anchor=tk.W, font='16')
+            sample_text_label.pack(anchor=tk.W, padx=10, pady=2)
+            cb1_var = tk.BooleanVar()
+            cb2_var = tk.BooleanVar()
+            common_widgets.append(tk.Checkbutton(secondary_gui, text="Also make and save Pandas DataFrame object of results (in addition to default NumPy array)", variable=cb1_var, anchor=tk.W))
+            common_widgets[-1].select()  # This makes the checkbox be ticked by default
+            common_widgets.append(tk.Checkbutton(secondary_gui, text="Also calculate absolute uncertainties", variable=cb2_var, anchor=tk.W))
+            common_widgets[-1].select()  # This makes the checkbox be ticked by default
+
+        elif option == 2:
+            sample_text_label = tk.Label(secondary_gui, text=dump_mode_full_text,
+                                         anchor=tk.W, font='16')
+            sample_text_label.pack(anchor=tk.W, padx=10, pady=2)
+            cb1_var = tk.BooleanVar()
+            cb2_var = tk.BooleanVar()
+            radio_var = tk.IntVar(value=3)
+            entry_str = tk.Entry(secondary_gui, width=50)
+            entry_int1 = tk.Entry(secondary_gui)
+            entry_int2 = tk.Entry(secondary_gui)
+
+            dir_info_str = "Return extra directional information (relative to the origin and z-axis); \nthis requires all position and direction values [x,y,z,u,v,w] to be included in the dump file."
+            common_widgets.append(tk.Checkbutton(secondary_gui, text=dir_info_str, variable=cb1_var, anchor=tk.W, justify='left'))
+            common_widgets.append(tk.Checkbutton(secondary_gui, text="Use degrees (instead of radians) for extra directional information", variable=cb2_var, anchor=tk.W))
+
+            options_frame = tk.LabelFrame(secondary_gui, text="Data output format options")
+            options_frame.pack(padx=10, pady=10, anchor=tk.W)
+
+            tk.Radiobutton(options_frame, text="Save only a dill file of a list of named tuples with dump event information", variable=radio_var, value=1, anchor=tk.W).pack(anchor=tk.W)
+            tk.Radiobutton(options_frame, text="Save only a pickle file of a Pandas DataFrame of dump event information", variable=radio_var, value=2, anchor=tk.W).pack(anchor=tk.W)
+            tk.Radiobutton(options_frame, text="Save both the named tuples list dill file and the Pandas DataFrame pickle file", variable=radio_var, value=3, anchor=tk.W).pack(anchor=tk.W)
+
+            dump_instrcutions = 'If in the same directory as your dump file exists the corresponding standard tally output file,\n' + \
+                                'and the only difference in their file names is the "_dmp" at the end of the dump file, the \n' + \
+                                'below two fields can be left blank as PHITS Tools should automatically find this information.\n' + \
+                                'Otherwise, in the below two boxes, place what you entered following "dump = " in your PHITS tally.\n' + \
+                                'In the first box, enter a nonzero integer between -20 and 20 specifying the number of dump\n' + \
+                                'columns and whether the data will be in ASCII (<0) or binary (>0) format.\n' + \
+                                'In the second box, enter a sequence of that many numbers, separated by spaces, describing \n' + \
+                                'the column order of the dump file.'
+            common_widgets.append(tk.Label(secondary_gui, text=dump_instrcutions, anchor=tk.W, justify="left"))
+            common_widgets.append(entry_int1)
+            #common_widgets.append(tk.Label(secondary_gui, text="Input 1 (string)", anchor=tk.W))
+            common_widgets.append(entry_str)
+
+
+
+            common_widgets.append(tk.Label(secondary_gui, text="\nMaximum number of dump entries to read. Leave blank to read all.", anchor=tk.W))
+            common_widgets.append(entry_int2)
+
+        elif option == 3:
+            cb1_var = tk.BooleanVar()
+            cb2_var = tk.BooleanVar()
+            cb3_var = tk.BooleanVar()
+            cb4_var = tk.BooleanVar()
+            radio_var = tk.IntVar(value=3)
+
+            secondary_entry_str1 = tk.Entry(secondary_gui, width=50)  # Extra width added here
+            secondary_entry_int1 = tk.Entry(secondary_gui)
+            secondary_entry_int2 = tk.Entry(secondary_gui)
+            secondary_entry_str2 = tk.Entry(secondary_gui)
+            secondary_entry_str2.insert(0, ".out") # this is how default values have to be specified for tkinter...
+            secondary_entry_str3 = tk.Entry(secondary_gui)
+
+            extra_entry_str1 = tk.Entry(secondary_gui)
+            extra_cb1_var = tk.BooleanVar()
+            extra_cb2_var = tk.BooleanVar()
+
+            # Add extra sample text label at the top of the secondary GUI
+            top_sample_label = tk.Label(secondary_gui, text=directory_mode_full_text,
+                                        anchor=tk.W, font='16')
+            top_sample_label.pack(anchor=tk.W, padx=10, pady=10)
+
+            common_widgets.append(tk.Checkbutton(secondary_gui, text="Also include contents of all subdirectories", variable=cb1_var, anchor=tk.W))
+            common_widgets.append(tk.Checkbutton(secondary_gui, text="Include dump files (otherwise, they will be skipped)", variable=cb2_var, anchor=tk.W))
+
+        # Pack common widgets with left alignment.
+        for widget in common_widgets:
+            widget.pack(anchor=tk.W, padx=10, pady=2)
+
+        if option == 3:
+            name_instructions_str = 'In the below 3 fields, specify what characters processed filenames (including the file extension)\n' + \
+                                    'must either end with, start with, or contain in order to be processed. Leave blank to ignore.'
+            tk.Label(secondary_gui, text=name_instructions_str, anchor=tk.W, justify='left').pack(anchor=tk.W, padx=10, pady=2)
+
+            tk.Label(secondary_gui, text="End of filename character string (suffix)", anchor=tk.W).pack(anchor=tk.W, padx=10, pady=2)
+            secondary_entry_str2.pack(anchor=tk.W, padx=10, pady=2)
+
+            tk.Label(secondary_gui, text="Start of filename character string (prefix)", anchor=tk.W).pack(anchor=tk.W, padx=10, pady=2)
+            secondary_entry_str3.pack(anchor=tk.W, padx=10, pady=2)
+
+            tk.Label(secondary_gui, text="String which must appear in filename (anywhere)", anchor=tk.W).pack(anchor=tk.W, padx=10, pady=2)
+            extra_entry_str1.pack(anchor=tk.W, padx=10, pady=2)
+
+
+            # Add horizontal separator immediately beneath "Checkbox 2"
+            separator = ttk.Separator(secondary_gui, orient='horizontal')
+            separator.pack(fill=tk.X, padx=10, pady=10)
+
+            sample_text_label2 = tk.Label(secondary_gui, text="Options for processing standard PHITS tally output files",
+                                         anchor=tk.W, font='14')
+            sample_text_label2.pack(anchor=tk.W, padx=10, pady=2)
+
+            cb3obj = tk.Checkbutton(secondary_gui, text="Also make and save Pandas DataFrame object of results (in addition to default NumPy array)", variable=cb3_var, anchor=tk.W)
+            cb3obj.select() # This makes the checkbox be ticked by default
+            cb3obj.pack(anchor=tk.W, padx=10, pady=2)
+            cb4obj = tk.Checkbutton(secondary_gui, text="Also calculate absolute uncertainties", variable=cb4_var, anchor=tk.W)
+            cb4obj.select() # This makes the checkbox be ticked by default
+            cb4obj.pack(anchor=tk.W, padx=10, pady=2)
+
+            options_frame = tk.LabelFrame(secondary_gui, text="Data output format options for dump files")
+            tk.Radiobutton(options_frame, text="Save only a dill file of a list of named tuples with dump event information", variable=radio_var, value=1, anchor=tk.W).pack(anchor=tk.W)
+            tk.Radiobutton(options_frame, text="Save only a pickle file of a Pandas DataFrame of dump event information", variable=radio_var, value=2, anchor=tk.W).pack(anchor=tk.W)
+            tk.Radiobutton(options_frame, text="Save both the named tuples list dill file and the Pandas DataFrame pickle file", variable=radio_var, value=3, anchor=tk.W).pack(anchor=tk.W)
+
+
+
+            # Add horizontal separator immediately beneath "Input 3 (integer)"
+            separator_1 = ttk.Separator(secondary_gui, orient='horizontal')
+            separator_1.pack(fill=tk.X, padx=10, pady=10)
+
+            sample_text_label = tk.Label(secondary_gui, text="Options for processing PHITS tally dump output files",
+                                         anchor=tk.W, font='14')
+            sample_text_label.pack(anchor=tk.W, padx=10, pady=2)
+
+            options_frame.pack(padx=10, pady=10, anchor=tk.W) # radio buttons
+
+            dir_info_str = "Return extra directional information (relative to the origin and z-axis); \nthis requires all position and direction values [x,y,z,u,v,w] to be included in the dump file."
+            tk.Checkbutton(secondary_gui, text=dir_info_str, variable=extra_cb1_var, anchor=tk.W, justify='left').pack(
+                anchor=tk.W, padx=10, pady=2)
+            tk.Checkbutton(secondary_gui, text="Use degrees (instead of radians) for extra directional information", variable=extra_cb2_var, anchor=tk.W).pack(
+                anchor=tk.W, padx=10, pady=2)
+
+            dump_instrcutions = 'If in the same directory as the found dump file exists the corresponding standard tally output file,\n' + \
+                                'and the only difference in their file names is the "_dmp" at the end of the dump file, the \n' + \
+                                'below two fields can be left blank as PHITS Tools should automatically find this information.\n' + \
+                                'Otherwise, in the below two boxes, place what you entered following "dump = " in your PHITS tally.\n' + \
+                                'In the first box, enter a nonzero integer between -20 and 20 specifying the number of dump\n' + \
+                                'columns and whether the data will be in ASCII (<0) or binary (>0) format.\n' + \
+                                'In the second box, enter a sequence of that many numbers, separated by spaces, describing \n' + \
+                                'the column order of the dump file.'
+
+            tk.Label(secondary_gui, text=dump_instrcutions, anchor=tk.W, justify='left').pack(anchor=tk.W, padx=10, pady=2)
+            secondary_entry_int1.pack(anchor=tk.W, padx=10, pady=2)
+            #tk.Label(secondary_gui, text="Input 1 (string)", anchor=tk.W).pack(anchor=tk.W, padx=10, pady=2)
+            secondary_entry_str1.pack(anchor=tk.W, padx=10, pady=2)
+
+
+
+            tk.Label(secondary_gui, text="\nMaximum number of dump entries to read. Leave blank to read all.", anchor=tk.W).pack(anchor=tk.W, padx=10, pady=2)
+            secondary_entry_int2.pack(anchor=tk.W, padx=10, pady=2)
+
+
+
+        save_btn = tk.Button(secondary_gui, text="Run PHITS Tools with selected settings", command=save_settings)
+        save_btn.pack(pady=10)
+
+
+    root = tk.Tk()
+    root.title('PHITS Tools')
+
+    # protocol for main menu window to issue warning and exit if closed
+    root.protocol("WM_DELETE_WINDOW", lambda: on_closing(root))
+
+    selected_option = tk.IntVar(value=1)
+
+    sample_text_label2 = tk.Label(text="Select what mode PHITS Tools should be ran in:",anchor=tk.W,font='16')
+    sample_text_label2.pack(anchor=tk.W, padx=10, pady=2)
+
+    tk.Radiobutton(root, text=standard_mode_full_text, variable=selected_option, value=1).pack(anchor=tk.W)
+    tk.Radiobutton(root, text=dump_mode_full_text, variable=selected_option, value=2).pack(anchor=tk.W)
+    tk.Radiobutton(root, text=directory_mode_full_text, variable=selected_option, value=3).pack(anchor=tk.W)
+
+    confirm_btn = tk.Button(root, text="Select", command=on_option_selected)
+    confirm_btn.pack(pady=4)
+
+    root.mainloop()
+
+    # Print final settings dictionary
+    if in_debug_mode:
+        print("Settings:", settings)
+
+    if settings['main_mode'] == 1: # standard tally mode
+        make_PandasDF = settings['option_1_cb1']
+        calculate_absolute_errors = settings['option_1_cb2']
+        parse_tally_output_file(Path(settings['file']), make_PandasDF=make_PandasDF,
+                                calculate_absolute_errors=calculate_absolute_errors,
+                                save_output_pickle=True, prefer_reading_existing_pickle=False)
+
+    elif settings['main_mode'] == 2:  # dump tally mode
+        output_file_path = Path(settings['file'])
+        return_directional_info = settings['option_2_cb1']
+        use_degrees = settings['option_2_cb2']
+        save_namedtuple_list = False
+        save_Pandas_dataframe = False
+        if settings['radio'] == 1:
+            save_namedtuple_list = True
+        elif settings['radio'] == 2:
+            save_Pandas_dataframe = True
+        elif settings['radio'] == 3:
+            save_namedtuple_list = True
+            save_Pandas_dataframe = True
+        dump_data_number = settings['input_int1']
+        if dump_data_number != None: dump_data_number = int(dump_data_number)
+        dump_data_sequence = settings['input_str']
+        max_entries_read = settings['input_int2']
+        if max_entries_read != None: max_entries_read = int(max_entries_read)
+
+        if dump_data_number == None:
+            dump_data_number, dump_data_sequence = search_for_dump_parameters(output_file_path)
+            if dump_data_number == None or dump_data_sequence == None:
+                print(
+                    'You MUST provide a space-delimited list of integers to the -dvals / --dump_data_sequence input specifying ' +
+                    'how the data columns in the dump file are to be interpreted, the same as the line following "dump = " in your PHITS tally input. ' +
+                    'An attempt was made to automatically find these values, but it failed (thus, manual specification is required).')
+                sys.exit()
+        parse_tally_dump_file(output_file_path, dump_data_number, dump_data_sequence,
+                              return_directional_info=return_directional_info, use_degrees=use_degrees,
+                              max_entries_read=max_entries_read,
+                              return_namedtuple_list=False,
+                              return_Pandas_dataframe=False,
+                              save_namedtuple_list=save_namedtuple_list,
+                              save_Pandas_dataframe=save_Pandas_dataframe)
+
+    elif settings['main_mode'] == 3:  # directory mode
+        recursive_search = settings['option_3_cb1']
+        include_dump_files = settings['option_3_cb2']
+        make_PandasDF = settings['option_3_cb3']
+        calculate_absolute_errors = settings['option_3_cb4']
+        file_suffix = settings['input_str_2']
+        if file_suffix == None: file_suffix = ''
+        file_prefix = settings['input_str_3']
+        if file_prefix == None: file_prefix = ''
+        file_reqstr = settings['input_str_6']
+        if file_reqstr == None: file_reqstr = ''
+
+        save_namedtuple_list = False
+        save_Pandas_dataframe = False
+        if settings['radio'] == 1:
+            save_namedtuple_list = True
+        elif settings['radio'] == 2:
+            save_Pandas_dataframe = True
+        elif settings['radio'] == 3:
+            save_namedtuple_list = True
+            save_Pandas_dataframe = True
+        dump_data_sequence = settings['input_str_1']
+        dump_data_number = settings['input_int_1']
+        if dump_data_number != None: dump_data_number = int(dump_data_number)
+        max_entries_read = dump_data_number = settings['input_int_2']
+        if max_entries_read != None: max_entries_read = int(max_entries_read)
+        return_directional_info = settings['extra_cb1']
+        use_degrees = settings['extra_cb2']
+
+        parse_all_tally_output_in_dir(Path(settings['directory']),
+                                      output_file_suffix=file_suffix, output_file_prefix=file_prefix,
+                                      output_file_required_string=file_reqstr, include_subdirectories=recursive_search,
+                                      return_tally_output=False,
+                                      make_PandasDF=make_PandasDF, calculate_absolute_errors=calculate_absolute_errors,
+                                      save_output_pickle=True, prefer_reading_existing_pickle=False,
+                                      include_dump_files=include_dump_files,
+                                      dump_data_number=dump_data_number, dump_data_sequence=dump_data_sequence,
+                                      dump_return_directional_info=return_directional_info,
+                                      dump_use_degrees=use_degrees,
+                                      dump_max_entries_read=max_entries_read,
+                                      dump_save_namedtuple_list=save_namedtuple_list,
+                                      dump_save_Pandas_dataframe=save_Pandas_dataframe
+                                      )
+
+    else:
+        print('ERROR: Main mode for PHITS Tools not selected correctly in first GUI')
+        sys.exit()
+
+
 
 
 
