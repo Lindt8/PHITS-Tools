@@ -3,10 +3,11 @@
 This module contains a variety of tools used for parsing PHITS output files.
 
 Specifically, it seeks to be a (nearly) universal PHITS output parser, supporting output from
-all tallies, both normal output as well as dump file outputs (in ASCII and binary).
+all tallies, both normal "standard" output as well as dump file outputs (in ASCII and binary formats).
+It is also capable of automatically parsing all such PHITS output files in a directory.
 
 The functions contained in this module and brief descriptions of their functions are included below.
-However, provided first is a description of the three different ways one can use this module.
+However, provided first is a description of the three different ways one can use and interface with this module.
 
 ### **How to use the PHITS_tools.py module**
 
@@ -194,6 +195,8 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
 
        -----
 
+       **Unsupported tallies**
+
        At present, the following tallies are NOT supported by this function: [T-WWG], [T-WWBG], [T-Volume],
        [T-Userdefined], [T-Gshow], [T-Rshow], [T-3Dshow], [T-4Dtrack], and [T-Dchain].
 
@@ -201,6 +204,8 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools) module.
 
        -----
+
+       **[T-Cross] special case**
 
        The [T-Cross] tally is unique (scoring across region boundaries rather than within regions), creating some
        additional challenges.
@@ -228,6 +233,8 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        values for combinations of and `nr` and `nzsurf`).
 
        -----
+
+       **[T-Yield] special case**
 
        [T-Yield] is also a bit exceptional.  When setting the `axis` parameter equal to `charge`, `mass`, or `chart`,
        the `ic` dimension of `tally_data` is used for each entry of charge (proton number, Z), mass (A), or
@@ -461,8 +468,9 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
         - `dump_data_list` = List of length equal to the number of records contained in the file. Each entry in the list
                  is a namedtuple containing all of the physical information in the dump file for a given particle event,
                  in the same order as specified in `dump_data_sequence` and using the same naming conventions for keys as
-                 described in the PHITS manual section "6.7.22 dump parameter". If `return_directional_info = True`,
-                 `r`, `rho`, `theta`, and `phi` are appended to the end of this namedtuple, in that order.
+                 described in the PHITS manual section "6.7.22 dump parameter"
+                 (`kf`, `x`, `y`, `z`, `u`, `v`, `w`, `e`, `wt`, `time`, `c1`, `c2`, `c3`, `sx`, `sy`, `sz`, `name`, `nocas`, `nobch`, `no`).
+                 If `return_directional_info = True`, `r`, `rho`, `theta`, and `phi` are appended to the end of this namedtuple, in that order.
         - `dump_data_frame` = A Pandas dataframe created from `dump_data_list` with columns for each physical quantity
                  and rows for each record included in the dump file.
     '''

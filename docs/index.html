@@ -24,9 +24,10 @@
 <section id="section-intro">
 <p>This module contains a variety of tools used for parsing PHITS output files.</p>
 <p>Specifically, it seeks to be a (nearly) universal PHITS output parser, supporting output from
-all tallies, both normal output as well as dump file outputs (in ASCII and binary).</p>
+all tallies, both normal "standard" output as well as dump file outputs (in ASCII and binary formats).
+It is also capable of automatically parsing all such PHITS output files in a directory.</p>
 <p>The functions contained in this module and brief descriptions of their functions are included below.
-However, provided first is a description of the three different ways one can use this module.</p>
+However, provided first is a description of the three different ways one can use and interface with this module.</p>
 <h3 id="how-to-use-the-phits_toolspy-module"><strong>How to use the PHITS_tools.py module</strong></h3>
 <p>There are three main ways one can use this Python module:</p>
 <ol>
@@ -107,10 +108,11 @@ functions return the data objects they produce for your own further analyses.</p
 This module contains a variety of tools used for parsing PHITS output files.
 
 Specifically, it seeks to be a (nearly) universal PHITS output parser, supporting output from
-all tallies, both normal output as well as dump file outputs (in ASCII and binary).
+all tallies, both normal &#34;standard&#34; output as well as dump file outputs (in ASCII and binary formats).
+It is also capable of automatically parsing all such PHITS output files in a directory.
 
 The functions contained in this module and brief descriptions of their functions are included below.
-However, provided first is a description of the three different ways one can use this module.
+However, provided first is a description of the three different ways one can use and interface with this module.
 
 ### **How to use the PHITS_tools.py module**
 
@@ -298,6 +300,8 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
 
        -----
 
+       **Unsupported tallies**
+
        At present, the following tallies are NOT supported by this function: [T-WWG], [T-WWBG], [T-Volume],
        [T-Userdefined], [T-Gshow], [T-Rshow], [T-3Dshow], [T-4Dtrack], and [T-Dchain].
 
@@ -305,6 +309,8 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools) module.
 
        -----
+
+       **[T-Cross] special case**
 
        The [T-Cross] tally is unique (scoring across region boundaries rather than within regions), creating some
        additional challenges.
@@ -332,6 +338,8 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        values for combinations of and `nr` and `nzsurf`).
 
        -----
+
+       **[T-Yield] special case**
 
        [T-Yield] is also a bit exceptional.  When setting the `axis` parameter equal to `charge`, `mass`, or `chart`,
        the `ic` dimension of `tally_data` is used for each entry of charge (proton number, Z), mass (A), or
@@ -565,8 +573,9 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
         - `dump_data_list` = List of length equal to the number of records contained in the file. Each entry in the list
                  is a namedtuple containing all of the physical information in the dump file for a given particle event,
                  in the same order as specified in `dump_data_sequence` and using the same naming conventions for keys as
-                 described in the PHITS manual section &#34;6.7.22 dump parameter&#34;. If `return_directional_info = True`,
-                 `r`, `rho`, `theta`, and `phi` are appended to the end of this namedtuple, in that order.
+                 described in the PHITS manual section &#34;6.7.22 dump parameter&#34;
+                 (`kf`, `x`, `y`, `z`, `u`, `v`, `w`, `e`, `wt`, `time`, `c1`, `c2`, `c3`, `sx`, `sy`, `sz`, `name`, `nocas`, `nobch`, `no`).
+                 If `return_directional_info = True`, `r`, `rho`, `theta`, and `phi` are appended to the end of this namedtuple, in that order.
         - `dump_data_frame` = A Pandas dataframe created from `dump_data_list` with columns for each physical quantity
                  and rows for each record included in the dump file.
     &#39;&#39;&#39;
@@ -3421,11 +3430,13 @@ dimension: region numbers/groups, particle names/groups, bin edges and midpoints
 Note that a dictionary containing supplemental
 information that is common to all rows of the dataframe can be accessed with <code>tally_dataframe.attrs</code>.</p>
 <hr>
+<p><strong>Unsupported tallies</strong></p>
 <p>At present, the following tallies are NOT supported by this function: [T-WWG], [T-WWBG], [T-Volume],
 [T-Userdefined], [T-Gshow], [T-Rshow], [T-3Dshow], [T-4Dtrack], and [T-Dchain].</p>
 <p>For [T-Dchain] or [T-Yield] with <code>axis = dchain</code>, please use the separate suite of parsing functions included in
 the <a href="https://github.com/Lindt8/DCHAIN-Tools">DCHAIN Tools</a> module.</p>
 <hr>
+<p><strong>[T-Cross] special case</strong></p>
 <p>The [T-Cross] tally is unique (scoring across region boundaries rather than within regions), creating some
 additional challenges.
 In the <code>mesh = reg</code> case, much is the same except each region number is composed of the <code>r-from</code> and <code>r-to</code> values, e.g. <code>'100 - 101'</code>.</p>
@@ -3449,6 +3460,7 @@ to expand the length of the final dimension of <code>tally_data</code> from 3 to
 which correspond to the combinations of <code>nrsurf</code> and <code>nz</code> (while the original columns without the "2" refer to
 values for combinations of and <code>nr</code> and <code>nzsurf</code>).</p>
 <hr>
+<p><strong>[T-Yield] special case</strong></p>
 <p>[T-Yield] is also a bit exceptional.
 When setting the <code>axis</code> parameter equal to <code>charge</code>, <code>mass</code>, or <code>chart</code>,
 the <code>ic</code> dimension of <code>tally_data</code> is used for each entry of charge (proton number, Z), mass (A), or
@@ -3564,6 +3576,8 @@ the yield results of production of carbon-14 (C-14), one would use the following
 
        -----
 
+       **Unsupported tallies**
+
        At present, the following tallies are NOT supported by this function: [T-WWG], [T-WWBG], [T-Volume],
        [T-Userdefined], [T-Gshow], [T-Rshow], [T-3Dshow], [T-4Dtrack], and [T-Dchain].
 
@@ -3571,6 +3585,8 @@ the yield results of production of carbon-14 (C-14), one would use the following
        the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools) module.
 
        -----
+
+       **[T-Cross] special case**
 
        The [T-Cross] tally is unique (scoring across region boundaries rather than within regions), creating some
        additional challenges.
@@ -3598,6 +3614,8 @@ the yield results of production of carbon-14 (C-14), one would use the following
        values for combinations of and `nr` and `nzsurf`).
 
        -----
+
+       **[T-Yield] special case**
 
        [T-Yield] is also a bit exceptional.  When setting the `axis` parameter equal to `charge`, `mass`, or `chart`,
        the `ic` dimension of `tally_data` is used for each entry of charge (proton number, Z), mass (A), or
@@ -3833,8 +3851,9 @@ file (via Pandas .to_pickle()).</li>
 <li><code>dump_data_list</code> = List of length equal to the number of records contained in the file. Each entry in the list
 is a namedtuple containing all of the physical information in the dump file for a given particle event,
 in the same order as specified in <code>dump_data_sequence</code> and using the same naming conventions for keys as
-described in the PHITS manual section "6.7.22 dump parameter". If <code>return_directional_info = True</code>,
-<code>r</code>, <code>rho</code>, <code>theta</code>, and <code>phi</code> are appended to the end of this namedtuple, in that order.</li>
+described in the PHITS manual section "6.7.22 dump parameter"
+(<code>kf</code>, <code>x</code>, <code>y</code>, <code>z</code>, <code>u</code>, <code>v</code>, <code>w</code>, <code>e</code>, <code>wt</code>, <code>time</code>, <code>c1</code>, <code>c2</code>, <code>c3</code>, <code>sx</code>, <code>sy</code>, <code>sz</code>, <code>name</code>, <code>nocas</code>, <code>nobch</code>, <code>no</code>).
+If <code>return_directional_info = True</code>, <code>r</code>, <code>rho</code>, <code>theta</code>, and <code>phi</code> are appended to the end of this namedtuple, in that order.</li>
 <li><code>dump_data_frame</code> = A Pandas dataframe created from <code>dump_data_list</code> with columns for each physical quantity
 and rows for each record included in the dump file.</li>
 </ul></div>
@@ -3892,8 +3911,9 @@ and rows for each record included in the dump file.</li>
         - `dump_data_list` = List of length equal to the number of records contained in the file. Each entry in the list
                  is a namedtuple containing all of the physical information in the dump file for a given particle event,
                  in the same order as specified in `dump_data_sequence` and using the same naming conventions for keys as
-                 described in the PHITS manual section &#34;6.7.22 dump parameter&#34;. If `return_directional_info = True`,
-                 `r`, `rho`, `theta`, and `phi` are appended to the end of this namedtuple, in that order.
+                 described in the PHITS manual section &#34;6.7.22 dump parameter&#34;
+                 (`kf`, `x`, `y`, `z`, `u`, `v`, `w`, `e`, `wt`, `time`, `c1`, `c2`, `c3`, `sx`, `sy`, `sz`, `name`, `nocas`, `nobch`, `no`).
+                 If `return_directional_info = True`, `r`, `rho`, `theta`, and `phi` are appended to the end of this namedtuple, in that order.
         - `dump_data_frame` = A Pandas dataframe created from `dump_data_list` with columns for each physical quantity
                  and rows for each record included in the dump file.
     &#39;&#39;&#39;
