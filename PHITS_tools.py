@@ -1805,14 +1805,22 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
             row_ivar = tdata_ivar_strs[meta.axis_index_of_tally_array]
             # determine meaning of table columns
             hcols = parse_group_string(data_table[0][3:])
+            nhcols = len(hcols)
             col_names_line_str = data_table[1][1:]
             icol_mod = 0 # account for weirdness in column presence/absence
             if 'r surface position' in col_names_line_str:
                 icol_mod = -1
                 ierr_mod = int(ierr_max / 2)
-            is_col_data = np.full(len(hcols),False)
+            # Test for error in hcols
+            num_data_vals_in_first_row = len(data_row_to_num_list(data_table[2])) # first row of data
+            if num_data_vals_in_first_row != nhcols:
+                if num_data_vals_in_first_row == (nhcols+1):
+                    # most likely issue is hcol string is missing the "n" for the ?-lower column
+                    nhcols = nhcols + 1
+                    icol_mod = 1
+            is_col_data = np.full(nhcols,False)
             data_col_indices = []
-            is_col_err = np.full(len(hcols),False)
+            is_col_err = np.full(nhcols,False)
             err_col_indices = []
             for iii in range(len(hcols)):
                 if hcols[iii][0] == 'y':
