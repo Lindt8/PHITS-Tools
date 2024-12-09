@@ -1050,6 +1050,10 @@ def parse_tally_header(tally_header,tally_content):
     tally_type = tally_header[0].replace(' ','')
     meta = Munch({})
     meta.tally_type = tally_type
+    unsupported_tally_types = ['[T-WWG]', '[T-WWBG]', '[T-Volume]', '[T-Userdefined]', '[T-Gshow]', '[T-Rshow]',
+                               '[T-3Dshow]', '[T-4Dtrack]', '[T-Dchain]']
+    if tally_type in unsupported_tally_types:
+        return meta
     # Initialize variables for possible array
     mesh_types = ['e','t','x','y','z','r','a','l']
     for m in mesh_types: meta['n'+m] = None
@@ -1113,8 +1117,23 @@ def parse_tally_header(tally_header,tally_content):
                         meta['reg_groups'].append(rfrom+' - '+rto)
                 else:
                     reg_groups = parse_group_string(str(value))
-                    meta['reg_groups'] = reg_groups
-                    meta['num_reg_groups'] = len(reg_groups)
+                    if 'all' in reg_groups and 'volume' in tally_header[li+1] and '=' not in tally_header[li+1]:
+                        # parse table of regions...
+                        found_reg_grps = []
+                        meta['reg_groups_inputted'] = reg_groups
+                        reg_lines = tally_header[li+3:]
+                        for reg_line in reg_lines:
+                            if '=' in reg_line: break
+                            line_parts = reg_line.split('#')
+                            if len(line_parts) >= 2:
+                                found_reg_grps.append(line_parts[1].strip())
+                            else:
+                                found_reg_grps.append(line_parts[0].split()[1])
+                        meta['reg_groups'] = found_reg_grps
+                        meta['num_reg_groups'] = len(found_reg_grps)
+                    else:
+                        meta['reg_groups'] = reg_groups
+                        meta['num_reg_groups'] = len(reg_groups)
             if key == 'point':
                 num_regs = value
                 meta['point_detectors'] = {'non':[], 'x':[], 'y':[], 'z':[], 'r0':[]} # [T-Point] points
@@ -1343,7 +1362,8 @@ def parse_tally_header(tally_header,tally_content):
                 if ndatacol != 1:  # multiple columns are present "samepage"
                     # get first string with y
                     col_groups = parse_group_string(line)
-                    first_data_col_header = col_groups[3][2:]
+                    i_first_y = next((i for i,v in enumerate(col_groups) if v[0]=='y'), None) # index of first column with "y"
+                    first_data_col_header = col_groups[i_first_y][2:]
                     for m in mesh_types:
                         if first_data_col_header[0] == m:
                             if m == 'e':
@@ -2035,16 +2055,42 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                             data_write_format_str = line[1:]
                             break
                 #print(data_write_format_str)
-                for dsi in data_write_format_str.split():
-                    if 'data' in dsi:
-                        data_index_str = dsi
-                        ax_vars = data_index_str.replace('data','').replace('(','').replace(')','')
-                        #print(data_index_str)
-                        #print(ax_vars)
-                        ax1_ivar, ax2_ivar = ax_vars.split(',')[:2]
-                        ax1_ivar = 'i' + ax1_ivar
-                        ax2_ivar = 'i' + ax2_ivar
-                #print(data_write_format_str)
+                if 'data' not in data_write_format_str:
+                    # failed to find a "data" line telling us how the values are ordered
+                    # have to make guesses about output ordering...
+                    # axis variable should give us a hint
+                    axis = meta['axis']
+                    if 'eng' in axis or 'e1' in axis or 'e2' in axis:
+                        if axis == 'e12' or axis == 'e21':
+                            ax1_ivar = 'ie'
+                            ax2_ivar = 'ie'
+                        else: # energy vs time
+                            if axis[0] == 't':
+                                ax1_ivar = 'it'
+                                ax2_ivar = 'ie'
+                            else:
+                                ax1_ivar = 'ie'
+                                ax2_ivar = 'it'
+                    else:
+                        if 'axis1_label' in meta and meta['axis1_label'][0] in axis:
+                            # we know horizontal axis variable
+                            ax1_ivar = 'i' + meta['axis1_label'][0]
+                            ax2_ivar = 'i' + axis.replace(meta['axis1_label'][0],'')
+                        else:
+                            ax1_ivar = 'i' + meta['axis'][1]
+                            ax2_ivar = 'i' + meta['axis'][0]
+                else:
+                    # We can, with confidence, determine output value ordering :)
+                    for dsi in data_write_format_str.split():
+                        if 'data' in dsi:
+                            data_index_str = dsi
+                            ax_vars = data_index_str.replace('data','').replace('(','').replace(')','')
+                            #print(data_index_str)
+                            #print(ax_vars)
+                            ax1_ivar, ax2_ivar = ax_vars.split(',')[:2]
+                            ax1_ivar = 'i' + ax1_ivar
+                            ax2_ivar = 'i' + ax2_ivar
+                    #print(data_write_format_str)
             else:  # 2D-type = 4
                 cols = data_table[1][1:].split()
                 ax1_ivar, ax2_ivar = cols[0], cols[1]
@@ -3134,7 +3180,7 @@ elif launch_GUI:
 
 
 elif in_debug_mode:
-    base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\\'
+    #base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\\'
     #output_file_path = Path(base_path + 't-deposit\deposit_reg.out')
     #output_file_path = Path(base_path + 't-deposit\deposit_eng_sp-reg.out')
     #output_file_path = Path(base_path + 't-track\\track_reg.out')
@@ -3190,8 +3236,14 @@ elif in_debug_mode:
     #output_file_path = Path(base_path + r't-time\time_xyz.out')
     #output_file_path = Path(base_path + r't-yield\yield_reg_axis-charge.out')
     #output_file_path = Path(base_path + r't-yield\yield_reg_axis-mass.out')
-    output_file_path = Path(base_path + r't-yield\yield_reg_axis-chart.out')
+    #output_file_path = Path(base_path + r't-yield\yield_reg_axis-chart.out')
     #output_file_path = Path(base_path + r't-yield\yield_xyz_axis-chart.out')
+
+    base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\\'
+    #output_file_path = Path(base_path + r'tally\t-deposit\deposit_reg_spec-all.out')
+    #output_file_path = Path(base_path + r'sample\icrp\mrcp\External\result\Dose_MRCP-AF_reg.out')
+    output_file_path = Path(base_path + r'sample\misc\batch_source\track_yz_001.out')
+
 
     test_parsing_of_dir = False #True
     if test_parsing_of_dir:
@@ -3231,6 +3283,7 @@ elif in_debug_mode:
     #                ir, iy, iz, ie, it, ia, il, ip, ic, ierr
     print(tally_data[ :,  0,  0,  :,  0,  0,  0,  0,  0, 0])
     print(tally_data[ :,  0,  0,  :,  0,  0,  0,  0,  0, 1])
+    print(tally_data[0, :, :, 0, 0, 0, 0, 0, 0, 0])
     print(np.shape(tally_data))
 
     #print(tally_data[ 1,  0,  0,  0,  0,  0,  0,  0,  :, 0])
