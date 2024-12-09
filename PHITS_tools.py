@@ -87,6 +87,7 @@ from pathlib import Path
 launch_GUI = False
 run_with_CLI_inputs = False
 in_debug_mode = False
+#in_debug_mode = True
 
 if __name__ == "__main__":
     #in_debug_mode = True
@@ -340,7 +341,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
     if in_debug_mode: pprint.pp(dict(tally_metadata))
     # Check if tally_type is among those supported.
     unsupported_tally_types = ['[T-WWG]', '[T-WWBG]', '[T-Volume]', '[T-Userdefined]', '[T-Gshow]', '[T-Rshow]',
-                               '[T-3Dshow]', '[T-4Dtrack]', '[T-Dchain]']
+                               '[T-3Dshow]', '[T-4Dtrack]', '[T-Dchain]', 'UNKNOWN']
     if tally_metadata['tally_type'] in unsupported_tally_types:
         print('ERROR! tally type',tally_metadata['tally_type'],'is not supported by this function!')
         if tally_metadata['tally_type'] == '[T-Dchain]':
@@ -1048,10 +1049,15 @@ def parse_tally_header(tally_header,tally_content):
     '''
     nlines = len(tally_header)
     tally_type = tally_header[0].replace(' ','')
+    if '[' not in tally_type and ']' not in tally_type: # file is not PHITS tally output
+        if 'htitle' in tally_type:
+            tally_type = '[T-Dchain]'
+        else:
+            tally_type = 'UNKNOWN'
     meta = Munch({})
     meta.tally_type = tally_type
     unsupported_tally_types = ['[T-WWG]', '[T-WWBG]', '[T-Volume]', '[T-Userdefined]', '[T-Gshow]', '[T-Rshow]',
-                               '[T-3Dshow]', '[T-4Dtrack]', '[T-Dchain]']
+                               '[T-3Dshow]', '[T-4Dtrack]', '[T-Dchain]', 'UNKNOWN']
     if tally_type in unsupported_tally_types:
         return meta
     # Initialize variables for possible array
@@ -1100,10 +1106,18 @@ def parse_tally_header(tally_header,tally_content):
             if key=='part':
                 part_groups = parse_group_string(str(value))
                 kf_groups = parse_group_string(tally_header[li + 1].split(':')[1])
-                meta['part_groups'] = part_groups
-                meta['kf_groups'] = kf_groups
-                meta['npart'] = len(part_groups)
-                meta['part_serial_groups'] = ['p'+str(gi+1)+'-group' for gi in range(len(part_groups))]
+                if meta['npart'] == None: # first instance of "part"
+                    meta['part_groups'] = part_groups
+                    meta['kf_groups'] = kf_groups
+                    meta['npart'] = len(part_groups)
+                    meta['part_serial_groups'] = ['p'+str(gi+1)+'-group' for gi in range(len(part_groups))]
+                else: # an additional occurance of part?
+                    for pi,pg in enumerate(part_groups):
+                        if pg not in meta['part_groups']:
+                            meta['part_groups'] += [pg]
+                            meta['kf_groups'] += kf_groups[pi]
+                            meta['npart'] += 1
+                            meta['part_serial_groups'] += ['p' + str(pi + 1) + '-group']
             if key=='reg':
                 if meta['tally_type']=='[T-Cross]':
                     num_regs = value
@@ -1358,7 +1372,7 @@ def parse_tally_header(tally_header,tally_content):
         h_line_str = ''
         if line[0] == 'h' and (line[1] == ':' or line[2] == ':'):
             if meta['axis_dimensions'] == 1:
-                ndatacol = line.count('y')
+                ndatacol = line.count(' y')
                 if ndatacol != 1:  # multiple columns are present "samepage"
                     # get first string with y
                     col_groups = parse_group_string(line)
@@ -1382,7 +1396,7 @@ def parse_tally_header(tally_header,tally_content):
                     if meta['samepage'] == 'part':  # still is default value
                         # double check to see if it could be region numbers vs particle names
                         if ndatacol != meta['npart']:
-                            if ndatacol == meta['num_reg_groups']:
+                            if 'num_reg_groups' in meta and ndatacol == meta['num_reg_groups']:
                                 meta['samepage'] = 'reg'
                             else:
                                 print('"samepage" was not correctly identified; needs to be implemented')
@@ -1911,7 +1925,7 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
             for li, line in enumerate(block):
                 if meta['2D-type'] in [1, 2, 3, 6, 7]:
                     if len(line) == 0: continue
-                    if line[:3].lower() in ['hc:', 'h2:', 'hd:']:  # start of data is here
+                    if line[:3].lower() in ['hc:', 'h2:', 'hd:', 'hc2']:  # start of data is here
                         hli = li
                     if line[:12] == '#-----------':
                         fli = li
@@ -1974,7 +1988,10 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                             continue
                         elif mesh_char == 'part.' or mesh_char == 'partcle':
                             part_grp_name = part.split('=')[1].strip()
-                            ip = (meta.part_groups).index(part_grp_name)
+                            try:
+                                ip = (meta.part_groups).index(part_grp_name)
+                            except:
+                                ip = (meta.part_serial_groups).index(part_grp_name)
                         elif mesh_char == 'reg': # and meta['samepage'] != 'reg':
                             regnum = part.split('=')[1].strip()
                             ir = (meta.reg_num).index(regnum)
@@ -3242,7 +3259,9 @@ elif in_debug_mode:
     base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\\'
     #output_file_path = Path(base_path + r'tally\t-deposit\deposit_reg_spec-all.out')
     #output_file_path = Path(base_path + r'sample\icrp\mrcp\External\result\Dose_MRCP-AF_reg.out')
-    output_file_path = Path(base_path + r'sample\misc\batch_source\track_yz_001.out')
+    #output_file_path = Path(base_path + r'sample\misc\batch_source\track_yz_001.out')
+    #output_file_path = Path(base_path + r'sample\source\Cosmicray\GCR-ground\cross.out')
+    output_file_path = Path(base_path + r'recommendation\Fusion\track.out')
 
 
     test_parsing_of_dir = False #True
