@@ -1,0 +1,375 @@
+ID	Name	Source
+1	A-150 Tissue-Equivalent Plastic (A150TEP)	PNNL-15870 Rev. 1
+2	Acetone	PNNL-15870 Rev. 1
+3	Acetylene	PNNL-15870 Rev. 1
+4	Air (dry, near sea level)	PNNL-15870 Rev. 1
+5	Alanine	PNNL-15870 Rev. 1
+6	Aluminum	PNNL-15870 Rev. 1
+7	Aluminum Oxide	PNNL-15870 Rev. 1
+8	Aluminum, alloy 2024-O	PNNL-15870 Rev. 1
+9	Aluminum, alloy 2090-T83	PNNL-15870 Rev. 1
+10	Aluminum, alloy 3003	PNNL-15870 Rev. 1
+11	Aluminum, alloy 4043-O	PNNL-15870 Rev. 1
+12	Aluminum, alloy 5086-O	PNNL-15870 Rev. 1
+13	Aluminum, alloy 6061-O	PNNL-15870 Rev. 1
+14	Aluminum, alloy 7075-O	PNNL-15870 Rev. 1
+15	Ammonia (liquid at T= -79 C)	PNNL-15870 Rev. 1
+16	Anthracene	PNNL-15870 Rev. 1
+17	Argon	PNNL-15870 Rev. 1
+18	Asphalt	PNNL-15870 Rev. 1
+19	Asphalt pavement	PNNL-15870 Rev. 1
+20	Bakelite	PNNL-15870 Rev. 1
+21	Barium Fluoride	PNNL-15870 Rev. 1
+22	Barium sulfate	PNNL-15870 Rev. 1
+23	Benzene	PNNL-15870 Rev. 1
+24	Beryllium	PNNL-15870 Rev. 1
+25	Beryllium Carbide	PNNL-15870 Rev. 1
+26	Beryllium Oxide	PNNL-15870 Rev. 1
+27	Bismuth	PNNL-15870 Rev. 1
+28	Bismuth Germanate (BGO)	PNNL-15870 Rev. 1
+29	Blood (ICRP)	PNNL-15870 Rev. 1
+30	Bone Equivalent Plastic, B-100	PNNL-15870 Rev. 1
+31	Bone Equivalent Plastic, B-110	PNNL-15870 Rev. 1
+32	Bone, Compact (ICRU)	PNNL-15870 Rev. 1
+33	Bone, Cortical (ICRP)	PNNL-15870 Rev. 1
+34	Boral (65% Al-35% B4C)	PNNL-15870 Rev. 1
+35	Boral (Aluminum 10% boron alloy)	PNNL-15870 Rev. 1
+36	Boral (Aluminum 5% boron alloy)	PNNL-15870 Rev. 1
+37	Borax	PNNL-15870 Rev. 1
+38	Boric Acid	PNNL-15870 Rev. 1
+39	Boron	PNNL-15870 Rev. 1
+40	Boron Carbide	PNNL-15870 Rev. 1
+41	Boron Fluoride (B2F4)	PNNL-15870 Rev. 1
+42	Boron Fluoride (BF3)	PNNL-15870 Rev. 1
+43	Boron Oxide	PNNL-15870 Rev. 1
+44	Brain (ICRP)	PNNL-15870 Rev. 1
+45	Brass (typical composition)	PNNL-15870 Rev. 1
+46	Brick, Common Silica	PNNL-15870 Rev. 1
+47	Brick, Fire	PNNL-15870 Rev. 1
+48	Brick, Kaolin (white)	PNNL-15870 Rev. 1
+49	Bronze (typical composition)	PNNL-15870 Rev. 1
+50	C-552 Air-Equivalent Plastic	PNNL-15870 Rev. 1
+51	Cadmium	PNNL-15870 Rev. 1
+52	Cadmium Nitrate Tetrahydrate	PNNL-15870 Rev. 1
+53	Cadmium Telluride	PNNL-15870 Rev. 1
+54	Cadmium Tungstate (CWO)	PNNL-15870 Rev. 1
+55	Calcium Carbonate	PNNL-15870 Rev. 1
+56	Calcium Fluoride	PNNL-15870 Rev. 1
+57	Calcium Oxide	PNNL-15870 Rev. 1
+58	Calcium Sulfate	PNNL-15870 Rev. 1
+59	Carbon Dioxide	PNNL-15870 Rev. 1
+60	Carbon Tetrachloride	PNNL-15870 Rev. 1
+61	Carbon, Activated	PNNL-15870 Rev. 1
+62	Carbon, Amorphous	PNNL-15870 Rev. 1
+63	Carbon, Graphite (reactor grade)	PNNL-15870 Rev. 1
+64	Cat litter (clumping)	PNNL-15870 Rev. 1
+65	Cat litter (non-clumping)	PNNL-15870 Rev. 1
+66	Cellulose Acetate	PNNL-15870 Rev. 1
+67	Celotex	PNNL-15870 Rev. 1
+68	Ceric Sulfate Dosimeter Solution	PNNL-15870 Rev. 1
+69	Cerium Fluoride	PNNL-15870 Rev. 1
+70	Cesium Iodide	PNNL-15870 Rev. 1
+71	Chromium	PNNL-15870 Rev. 1
+72	Clay	PNNL-15870 Rev. 1
+73	Coal, Anthracite	PNNL-15870 Rev. 1
+74	Coal, Bituminous	PNNL-15870 Rev. 1
+75	Coal, Lignite	PNNL-15870 Rev. 1
+76	Concrete, Barite (Type BA)	PNNL-15870 Rev. 1
+77	Concrete, Barytes-Limonite	PNNL-15870 Rev. 1
+78	Concrete, Boron Frits-baryte	PNNL-15870 Rev. 1
+79	Concrete, Colemanite-baryte	PNNL-15870 Rev. 1
+80	Concrete, Ferro-phosphorus	PNNL-15870 Rev. 1
+81	Concrete, Hanford Dry	PNNL-15870 Rev. 1
+82	Concrete, Hanford Wet	PNNL-15870 Rev. 1
+83	Concrete, Iron-limonite	PNNL-15870 Rev. 1
+84	Concrete, Iron-Portland	PNNL-15870 Rev. 1
+85	Concrete, Limonite and steel	PNNL-15870 Rev. 1
+86	Concrete, Los Alamos (MCNP)	PNNL-15870 Rev. 1
+87	Concrete, Luminite-colemanite-baryte	PNNL-15870 Rev. 1
+88	Concrete, Luminite-Portland-colemanite-baryte	PNNL-15870 Rev. 1
+89	Concrete, M-1	PNNL-15870 Rev. 1
+90	Concrete, Magnetite	PNNL-15870 Rev. 1
+91	Concrete, Magnetite and steel	PNNL-15870 Rev. 1
+92	Concrete, Magnuson	PNNL-15870 Rev. 1
+93	Concrete, MO	PNNL-15870 Rev. 1
+94	Concrete, Oak Ridge (ORNL)	PNNL-15870 Rev. 1
+95	Concrete, Ordinary (NBS 03)	PNNL-15870 Rev. 1
+96	Concrete, Ordinary (NBS 04)	PNNL-15870 Rev. 1
+97	Concrete, Ordinary (NIST)	PNNL-15870 Rev. 1
+98	Concrete, Portland	PNNL-15870 Rev. 1
+99	Concrete, Regular	PNNL-15870 Rev. 1
+100	Concrete, Rocky Flats	PNNL-15870 Rev. 1
+101	Concrete, Serpentine	PNNL-15870 Rev. 1
+102	Copper	PNNL-15870 Rev. 1
+103	Diatomaceous Earth	PNNL-15870 Rev. 1
+104	Earth, Typical Western U.S.	PNNL-15870 Rev. 1
+105	Earth, U.S. Average	PNNL-15870 Rev. 1
+106	Ethane	PNNL-15870 Rev. 1
+107	Ethyl Acetate	PNNL-15870 Rev. 1
+108	Ethyl Alcohol	PNNL-15870 Rev. 1
+109	Ethylene	PNNL-15870 Rev. 1
+110	Ethylene Glycol	PNNL-15870 Rev. 1
+111	Explosive compound, AN	PNNL-15870 Rev. 1
+112	Explosive compound, EGDN	PNNL-15870 Rev. 1
+113	Explosive compound, HMX	PNNL-15870 Rev. 1
+114	Explosive compound, NC	PNNL-15870 Rev. 1
+115	Explosive compound, NG	PNNL-15870 Rev. 1
+116	Explosive compound, PETN	PNNL-15870 Rev. 1
+117	Explosive compound, RDX	PNNL-15870 Rev. 1
+118	Explosive compound, TNT	PNNL-15870 Rev. 1
+119	Eye Lens (ICRP)	PNNL-15870 Rev. 1
+120	Felt	PNNL-15870 Rev. 1
+121	Ferric Oxide	PNNL-15870 Rev. 1
+122	Ferrous Sulfate Dosimeter Solution	PNNL-15870 Rev. 1
+123	Fertilizer (Muriate of Potash)	PNNL-15870 Rev. 1
+124	Fiberglass, Type C	PNNL-15870 Rev. 1
+125	Fiberglass, Type E	PNNL-15870 Rev. 1
+126	Fiberglass, Type R	PNNL-15870 Rev. 1
+127	Freon-12	PNNL-15870 Rev. 1
+128	Freon-12B2	PNNL-15870 Rev. 1
+129	Freon-13	PNNL-15870 Rev. 1
+130	Freon-13B1	PNNL-15870 Rev. 1
+131	Freon-13I1	PNNL-15870 Rev. 1
+132	Gadolinium	PNNL-15870 Rev. 1
+133	Gadolinium Oxysulfide	PNNL-15870 Rev. 1
+134	Gadolinium Silicate (GSO)	PNNL-15870 Rev. 1
+135	Gafchromic Sensor (GS)	PNNL-15870 Rev. 1
+136	Gallium Arsenide	PNNL-15870 Rev. 1
+137	Gasoline	PNNL-15870 Rev. 1
+138	Germanium, High Purity	PNNL-15870 Rev. 1
+139	Glass Scintillator, Li Doped  (GS1, GS2, GS3)	PNNL-15870 Rev. 1
+140	Glass Scintillator, Li Doped  (GS10, GS20, GS30)	PNNL-15870 Rev. 1
+141	Glass Scintillator, Li Doped  (GSF1)	PNNL-15870 Rev. 1
+142	Glass Scintillator, Li Doped  (KG1, KG2, KG3)	PNNL-15870 Rev. 1
+143	Glass, Borosilicate (Pyrex Glass)	PNNL-15870 Rev. 1
+144	Glass, Foam	PNNL-15870 Rev. 1
+145	Glass, Lead	PNNL-15870 Rev. 1
+146	Glass, Plate	PNNL-15870 Rev. 1
+147	Glycerol	PNNL-15870 Rev. 1
+148	Gold	PNNL-15870 Rev. 1
+149	Gypsum (Plaster of Paris)	PNNL-15870 Rev. 1
+150	He-3 proportional gas	PNNL-15870 Rev. 1
+151	Helium, Natural	PNNL-15870 Rev. 1
+152	Hydrogen	PNNL-15870 Rev. 1
+153	Incoloy-800	PNNL-15870 Rev. 1
+154	Inconel-600	PNNL-15870 Rev. 1
+155	Inconel-625	PNNL-15870 Rev. 1
+156	Inconel-718	PNNL-15870 Rev. 1
+157	Indium	PNNL-15870 Rev. 1
+158	Iron	PNNL-15870 Rev. 1
+159	Iron Boride (Fe2B)	PNNL-15870 Rev. 1
+160	Iron Boride (FeB)	PNNL-15870 Rev. 1
+161	Iron, Armco Ingot	PNNL-15870 Rev. 1
+162	Iron, Cast (gray)	PNNL-15870 Rev. 1
+163	Iron, Wrought (Byers No.1)	PNNL-15870 Rev. 1
+164	Kaowool	PNNL-15870 Rev. 1
+165	Kapton Polyimide Film	PNNL-15870 Rev. 1
+166	Kennertium	PNNL-15870 Rev. 1
+167	Kernite	PNNL-15870 Rev. 1
+168	Kerosene	PNNL-15870 Rev. 1
+169	Krypton	PNNL-15870 Rev. 1
+170	Kynar	PNNL-15870 Rev. 1
+171	Lead	PNNL-15870 Rev. 1
+172	Lead Tungstate (PWO)	PNNL-15870 Rev. 1
+173	Lithium	PNNL-15870 Rev. 1
+174	Lithium Amide	PNNL-15870 Rev. 1
+175	Lithium Fluoride	PNNL-15870 Rev. 1
+176	Lithium Gadrium Borate (LGB)	PNNL-15870 Rev. 1
+177	Lithium Hydride	PNNL-15870 Rev. 1
+178	Lithium Iodide (high density)	PNNL-15870 Rev. 1
+179	Lithium Iodide (low density)	PNNL-15870 Rev. 1
+180	Lithium Oxide	PNNL-15870 Rev. 1
+181	Lithium Tetraborate	PNNL-15870 Rev. 1
+182	Lucite	PNNL-15870 Rev. 1
+183	Lutetium Aluminum Garnet (LuAG)	PNNL-15870 Rev. 1
+184	Lutetium Orthoaluminate (LuAP)	PNNL-15870 Rev. 1
+185	Lutetium Oxyorthosilicate (LSO)	PNNL-15870 Rev. 1
+186	Lutetium Yttrium OxyorthoSilicate (LYSO)	PNNL-15870 Rev. 1
+187	Magnesium	PNNL-15870 Rev. 1
+188	Magnesium Oxide	PNNL-15870 Rev. 1
+189	Magnesium Tetraborate	PNNL-15870 Rev. 1
+190	Masonite	PNNL-15870 Rev. 1
+191	Melamine	PNNL-15870 Rev. 1
+192	Mercury	PNNL-15870 Rev. 1
+193	Mercury Iodide	PNNL-15870 Rev. 1
+194	Methane	PNNL-15870 Rev. 1
+195	Methanol	PNNL-15870 Rev. 1
+196	Methylene Chloride	PNNL-15870 Rev. 1
+197	Molybdenum	PNNL-15870 Rev. 1
+198	Monosodium Titanate, MST	PNNL-15870 Rev. 1
+199	Muscle Equivalent-Liquid, with sucrose	PNNL-15870 Rev. 1
+200	Muscle Equivalent-Liquid, without sucrose	PNNL-15870 Rev. 1
+201	Muscle, Skeletal	PNNL-15870 Rev. 1
+202	Muscle, Striated	PNNL-15870 Rev. 1
+203	Neon	PNNL-15870 Rev. 1
+204	Nickel	PNNL-15870 Rev. 1
+205	Niobium	PNNL-15870 Rev. 1
+206	Nitrogen	PNNL-15870 Rev. 1
+207	Nylon, Dupont ELVAmide 8062	PNNL-15870 Rev. 1
+208	Nylon, Type 11 (Rilsan)	PNNL-15870 Rev. 1
+209	Nylon, Type 6 and Type 6/6	PNNL-15870 Rev. 1
+210	Nylon, Type 6/10	PNNL-15870 Rev. 1
+211	Oil, Crude (Heavy, Cold Lake, Canada)	PNNL-15870 Rev. 1
+212	Oil, Crude (Heavy, Mexican)	PNNL-15870 Rev. 1
+213	Oil, Crude (Heavy, Qayarah, Iraq)	PNNL-15870 Rev. 1
+214	Oil, Crude (Light, Texas)	PNNL-15870 Rev. 1
+215	Oil, Fuel (Calif.)	PNNL-15870 Rev. 1
+216	Oil, Hydraulic	PNNL-15870 Rev. 1
+217	Oil, Lard	PNNL-15870 Rev. 1
+218	Oxygen	PNNL-15870 Rev. 1
+219	P-10 gas	PNNL-15870 Rev. 1
+220	P-5 gas	PNNL-15870 Rev. 1
+221	Palladium	PNNL-15870 Rev. 1
+222	Photographic Emulsion, Gel in	PNNL-15870 Rev. 1
+223	Photographic Emulsion, Kodak Type AA	PNNL-15870 Rev. 1
+224	Photographic Emulsion, Standard Nuclear	PNNL-15870 Rev. 1
+225	Platinum	PNNL-15870 Rev. 1
+226	Plutonium Bromide	PNNL-15870 Rev. 1
+227	Plutonium Carbide	PNNL-15870 Rev. 1
+228	Plutonium Chloride	PNNL-15870 Rev. 1
+229	Plutonium Dioxide	PNNL-15870 Rev. 1
+230	Plutonium Flouride (PuF3)	PNNL-15870 Rev. 1
+231	Plutonium Flouride (PuF4)	PNNL-15870 Rev. 1
+232	Plutonium Flouride (PuF6)	PNNL-15870 Rev. 1
+233	Plutonium Iodide	PNNL-15870 Rev. 1
+234	Plutonium Nitrate	PNNL-15870 Rev. 1
+235	Plutonium Nitride	PNNL-15870 Rev. 1
+236	Plutonium Oxide (Pu2O3)	PNNL-15870 Rev. 1
+237	Plutonium Oxide (PuO)	PNNL-15870 Rev. 1
+238	Plutonium, Aged WGPu (A: 4-7% Pu-240)	PNNL-15870 Rev. 1
+239	Plutonium, Aged WGPu (B: 10-13% Pu-240)	PNNL-15870 Rev. 1
+240	Plutonium, Aged WGPu (C: 16-19% Pu-240)	PNNL-15870 Rev. 1
+241	Plutonium, DOE 3013 WGPu	PNNL-15870 Rev. 1
+242	Plutonium, Fuel Grade	PNNL-15870 Rev. 1
+243	Plutonium, Power Grade	PNNL-15870 Rev. 1
+244	Plutonium, Shefelbine WGPu	PNNL-15870 Rev. 1
+245	Polycarbonate	PNNL-15870 Rev. 1
+246	Polyethylene Terephthalate (PET)	PNNL-15870 Rev. 1
+247	Polyethylene, Borated	PNNL-15870 Rev. 1
+248	Polyethylene, Non-borated	PNNL-15870 Rev. 1
+249	Polyisocyanurate (PIR)	PNNL-15870 Rev. 1
+250	Polypropylene (PP)	PNNL-15870 Rev. 1
+251	Polystyrene (PS)	PNNL-15870 Rev. 1
+252	Polytetrafluoroethylene (PTFE)	PNNL-15870 Rev. 1
+253	Polyurethane Foam (PUR)	PNNL-15870 Rev. 1
+254	Polyvinyl Acetate (PVA)	PNNL-15870 Rev. 1
+255	Polyvinyl Chloride (PVC)	PNNL-15870 Rev. 1
+256	Polyvinyl Toluene (PVT)	PNNL-15870 Rev. 1
+257	Polyvinylidene Chloride (PVDC)	PNNL-15870 Rev. 1
+258	Potassium Aluminum Silicate	PNNL-15870 Rev. 1
+259	Potassium Iodide	PNNL-15870 Rev. 1
+260	Potassium Oxide	PNNL-15870 Rev. 1
+261	Propane (gas)	PNNL-15870 Rev. 1
+262	Propane (liquid)	PNNL-15870 Rev. 1
+263	P-terphenyl	PNNL-15870 Rev. 1
+264	Radiochromic Dye Film, Nylon Base  (RDF: NB)	PNNL-15870 Rev. 1
+265	Rock (Average of 5 types)	PNNL-15870 Rev. 1
+266	Rock, Basalt	PNNL-15870 Rev. 1
+267	Rock, Granite	PNNL-15870 Rev. 1
+268	Rock, Limestone	PNNL-15870 Rev. 1
+269	Rock, Sandstone	PNNL-15870 Rev. 1
+270	Rock, Shale	PNNL-15870 Rev. 1
+271	Rubber, Butyl	PNNL-15870 Rev. 1
+272	Rubber, Natural	PNNL-15870 Rev. 1
+273	Rubber, Neoprene	PNNL-15870 Rev. 1
+274	Rubber, Silicon	PNNL-15870 Rev. 1
+275	Salt Water (T=0 C)	PNNL-15870 Rev. 1
+276	Salt Water (T=20 C)	PNNL-15870 Rev. 1
+277	Sand	PNNL-15870 Rev. 1
+278	Sea Water, Simple Artificial	PNNL-15870 Rev. 1
+279	Sea Water, Standard	PNNL-15870 Rev. 1
+280	Sepiolite	PNNL-15870 Rev. 1
+281	Silicon	PNNL-15870 Rev. 1
+282	Silicon Carbide (hexagonal)	PNNL-15870 Rev. 1
+283	Silicon Dioxide (Alpha-quartz)	PNNL-15870 Rev. 1
+284	Silicon Dioxide (Silica)	PNNL-15870 Rev. 1
+285	Silver	PNNL-15870 Rev. 1
+286	Skin (ICRP)	PNNL-15870 Rev. 1
+287	Sodium	PNNL-15870 Rev. 1
+288	Sodium Bismuth Tungstate (NBWO)	PNNL-15870 Rev. 1
+289	Sodium Chloride	PNNL-15870 Rev. 1
+290	Sodium Iodide	PNNL-15870 Rev. 1
+291	Sodium Nitrate	PNNL-15870 Rev. 1
+292	Sodium Oxide	PNNL-15870 Rev. 1
+293	Steel, Boron Stainless	PNNL-15870 Rev. 1
+294	Steel, Carbon	PNNL-15870 Rev. 1
+295	Steel, HT9 Stainless	PNNL-15870 Rev. 1
+296	Steel, Stainless 202	PNNL-15870 Rev. 1
+297	Steel, Stainless 302	PNNL-15870 Rev. 1
+298	Steel, Stainless 304	PNNL-15870 Rev. 1
+299	Steel, Stainless 304L	PNNL-15870 Rev. 1
+300	Steel, Stainless 316	PNNL-15870 Rev. 1
+301	Steel, Stainless 316L	PNNL-15870 Rev. 1
+302	Steel, Stainless 321	PNNL-15870 Rev. 1
+303	Steel, Stainless 347	PNNL-15870 Rev. 1
+304	Steel, Stainless 409	PNNL-15870 Rev. 1
+305	Steel, Stainless 440	PNNL-15870 Rev. 1
+306	Sterotex	PNNL-15870 Rev. 1
+307	Stilbene (trans-stilbene isomer)	PNNL-15870 Rev. 1
+308	Sulphur	PNNL-15870 Rev. 1
+309	Tantalum	PNNL-15870 Rev. 1
+310	Thorium	PNNL-15870 Rev. 1
+311	Thorium Dioxide	PNNL-15870 Rev. 1
+312	Tin	PNNL-15870 Rev. 1
+313	Tissue Equivalent, MS20	PNNL-15870 Rev. 1
+314	Tissue Equivalent-Gas, methane based  (TEG: MB)	PNNL-15870 Rev. 1
+315	Tissue Equivalent-Gas, propane based  (TEG: PB)	PNNL-15870 Rev. 1
+316	Tissue, Adipose (ICRP)	PNNL-15870 Rev. 1
+317	Tissue, Breast	PNNL-15870 Rev. 1
+318	Tissue, Lung (ICRP)	PNNL-15870 Rev. 1
+319	Tissue, Ovary	PNNL-15870 Rev. 1
+320	Tissue, Soft (ICRP)	PNNL-15870 Rev. 1
+321	Tissue, Soft (ICRU four component)	PNNL-15870 Rev. 1
+322	Tissue, Testes (ICRP)	PNNL-15870 Rev. 1
+323	Tissue, Testis (ICRU)	PNNL-15870 Rev. 1
+324	Titanium	PNNL-15870 Rev. 1
+325	Titanium alloy, grade 5	PNNL-15870 Rev. 1
+326	Titanium Dioxide	PNNL-15870 Rev. 1
+327	Titanium Hydride	PNNL-15870 Rev. 1
+328	Toluene	PNNL-15870 Rev. 1
+329	Tributyl Borate	PNNL-15870 Rev. 1
+330	Tributyl Phosphate (TBP)	PNNL-15870 Rev. 1
+331	Tungsten	PNNL-15870 Rev. 1
+332	Uranium Carbide	PNNL-15870 Rev. 1
+333	Uranium Dicarbide	PNNL-15870 Rev. 1
+334	Uranium Dioxide	PNNL-15870 Rev. 1
+335	Uranium Hexafluoride	PNNL-15870 Rev. 1
+336	Uranium Hydride	PNNL-15870 Rev. 1
+337	Uranium Nitride	PNNL-15870 Rev. 1
+338	Uranium Oxide	PNNL-15870 Rev. 1
+339	Uranium Tetrafluoride	PNNL-15870 Rev. 1
+340	Uranium Trioxide	PNNL-15870 Rev. 1
+341	Uranium, Depleted, Typical	PNNL-15870 Rev. 1
+342	Uranium, Enriched, Typical Commercial	PNNL-15870 Rev. 1
+343	Uranium, HEU, Health Physics Society	PNNL-15870 Rev. 1
+344	Uranium, HEU, Russian Average	PNNL-15870 Rev. 1
+345	Uranium, HEU, US Average	PNNL-15870 Rev. 1
+346	Uranium, Low Enriched (LEU)	PNNL-15870 Rev. 1
+347	Uranium, Natural (NU)	PNNL-15870 Rev. 1
+348	Uranium-Plutonium, Mixed Oxide (MOX)	PNNL-15870 Rev. 1
+349	Uranyl Fluoride	PNNL-15870 Rev. 1
+350	Uranyl Nitrate	PNNL-15870 Rev. 1
+351	Vermiculite, Exfoliated	PNNL-15870 Rev. 1
+352	Viton Fluoroelastomer	PNNL-15870 Rev. 1
+353	Water, Heavy	PNNL-15870 Rev. 1
+354	Water, Liquid	PNNL-15870 Rev. 1
+355	Water, Vapor	PNNL-15870 Rev. 1
+356	Wax, M3	PNNL-15870 Rev. 1
+357	Wax, Mix D	PNNL-15870 Rev. 1
+358	Wax, Paraffin	PNNL-15870 Rev. 1
+359	Wood (Southern Pine)	PNNL-15870 Rev. 1
+360	Xenon	PNNL-15870 Rev. 1
+361	Yttrium Aluminum Garnet (YAG)	PNNL-15870 Rev. 1
+362	Yttrium Aluminum Perovskite (YAP)	PNNL-15870 Rev. 1
+363	Yttrium OxyorthoSilicate (YSO)	PNNL-15870 Rev. 1
+364	Zeolite (Natrolite)	PNNL-15870 Rev. 1
+365	Zinc	PNNL-15870 Rev. 1
+366	Zinc Selenide	PNNL-15870 Rev. 1
+367	Zinc Sulfide	PNNL-15870 Rev. 1
+368	Zircaloy-2	PNNL-15870 Rev. 1
+369	Zircaloy-4	PNNL-15870 Rev. 1
+370	Zirconium	PNNL-15870 Rev. 1
+371	Zirconium Hydride (Zr5H8)	PNNL-15870 Rev. 1
+372	Zirconium Hydride (ZrH2)	PNNL-15870 Rev. 1
+373	Martian Atmosphere	Mahaffy 2013, DOI: 10.1126/science.1237966
+374	Martian Regolith	McKenna-Lawlor 2012, DOI: 10.1016/j.icarus.2011.04.004

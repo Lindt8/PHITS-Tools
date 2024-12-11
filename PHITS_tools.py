@@ -39,9 +39,16 @@ functions return the data objects they produce for your own further analyses.
 
 ### General Purpose Functions
 
+- `fetch_MC_material`               : returns a string of a formatted material for PHITS or MCNP
+- `tally`                           : tally/histogram values (and their indices) falling within a desired binning structure
+- `rebinner`                        : rebin a set of y-data to a new x-binning structure (edges not necessarily preserved)
 - `is_number`                       : returns Boolean denoting whether provided string is that of a number
 - `ZZZAAAM_to_nuclide_plain_str`    : returns a nuclide plaintext string for a given "ZZZAAAM" number (1000Z+10A+M)
+- `nuclide_plain_str_to_latex_str`  : convert a plaintext string for a nuclide to a LaTeX formatted raw string
 - `Element_Z_to_Sym`                : return an elemental symbol string given its proton number Z
+- `Element_Sym_to_Z`                : returns an atomic number Z provided the elemental symbol
+- `find`                            : return index of the first instance of a value in a list
+- `ICRP116_effective_dose_coeff`    : returns effective dose of a mono-energetic particle of some species and some geometry
 
 ### Subfunctions for PHITS output parsing
 (These are meant as dependencies more so than for standalone usage.)
@@ -798,6 +805,334 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
         return tally_output_pickle_path_list
 
 
+def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=None,particle=None):
+    '''
+    Description:
+        Returns a materials definition string formatted for use in PHITS or MCNP
+
+    Dependencies:
+        - `import os`
+        - `import pickle`
+        - PYTHONPATH environmental variable must be set and one entry must contain the directory
+                which contains the vital "MC_materials/Compiled_MC_materials.pkl" file.
+
+    Inputs:
+       (required to enter `matid` OR `matname`, with `matid` taking priority if conflicting)
+
+       - `matid` = ID number in the "Compiled_MC_materials" file
+       - `matname` = exact name of material in "Compiled_MC_materials" file
+       - `matsource` = exact source of material in "Compiled_MC_materials" file, only used when multiple
+                materials have identical names
+       - `concentration_type` = selection between `'weight fraction'` (default if no formula) and `'atom fraction'` (default if formula present) to be returned
+       - `particle` = selection of whether natural (`'photons'`, default) or isotopic (`'neutrons'`) elements are used
+                Note that if "enriched" or "depleted" appears in the material's name, particle=`'neutrons'` is set automatically.
+
+    Outputs:
+       - `mat_str` = string containing the material's information, ready to be inserted directly into a PHITS/MCNP input file
+    '''
+    import os
+    import pickle
+    if not matid and not matname:
+        print('Either "matid" or "matname" MUST be defined')
+        return None
+
+    # First, locate and open materials library
+    try:
+        user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
+        lib_file = None
+        for i in user_paths:
+            if 'phits_tools' in i.lower() or 'phits-tools' in i.lower():
+                lib_file = i + r"\MC_materials\Compiled_MC_materials"
+        if not lib_file:
+            print('Could not find "PHITS_tools" folder in PYTHONPATH; this folder contains the vital "MC_materials/Compiled_MC_materials.pkl" file.')
+    except KeyError:
+        print('The PYTHONPATH environmental variable must be defined and contain the path to the directory holding "MC_materials/Compiled_MC_materials.pkl"')
+        return None
+
+    # Load materials library
+    def load_obj(name ):
+        with open(name + '.pkl', 'rb') as f:
+            return pickle.load(f)
+    all_mats_list = load_obj(lib_file)
+
+    if matid: # use mat ID number
+        mi = int(matid)-1
+        matname = all_mats_list[mi]['name']
+    else: # use material name and possibly source too
+        # determine material
+        mi = None
+        # first check for exact matches
+        matching_mi = []
+        for i in range(len(all_mats_list)):
+            if all_mats_list[i]['name'].lower()==matname.lower():
+                matching_mi.append(i)
+        if len(matching_mi)==1:
+            mi = matching_mi[0]
+        elif len(matching_mi)>1:
+            print('Found multiple materials with this identical matname value:')
+            for mmi in matching_mi:
+                print('\tmatid={}  matname="{}"  source="{}"'.format(str(mmi+1),all_mats_list[mmi]['name'],all_mats_list[mmi]['source']))
+                if all_mats_list[mmi]['source'] and all_mats_list[mmi]['source']==matsource:
+                    mi = mmi
+                    print('\t\t^ matches inputed "matsource" and will be used')
+            if mi==None:
+                print('Please enter a "matsource" value identical to one of these two (or the matid).')
+                return None
+        else: # Exact material name not found
+            # search for similar entries
+            similar_mi = []
+            for i in range(len(all_mats_list)):
+                if matname.lower() in all_mats_list[i]['name'].lower():
+                    similar_mi.append(i)
+            if len(similar_mi)==0:
+                print('No materials with that exact name or names containing "matname" were found.')
+                return None
+            elif len(similar_mi)==1:
+                mi = similar_mi[0]
+                print('Found one similar material (matid={}  matname="{}"  source="{}"); using it.'.format(str(mi+1),all_mats_list[mi]['name'],all_mats_list[mi]['source']))
+            else:
+                print('Found no material with exact "matname" but {} with similar names:'.format(len(similar_mi)))
+                for smi in similar_mi:
+                    print('\tmatid={}  matname="{}"  source="{}"'.format(str(smi+1),all_mats_list[smi]['name'],all_mats_list[smi]['source']))
+                print('The first of these will be used.  If another material was desired, please enter its "matid" or exact "matname".')
+                mi = similar_mi[0]
+
+    # Now that material ID has been found, generate text entry
+    mat = all_mats_list[mi]
+    banner_width = 60
+    cc = '$'  # comment character
+
+    entry_text  = '\n'+cc+'*'*banner_width + '\n'
+    entry_text += cc+'  {:<3d} : {} \n'.format(mi+1,mat['name'])
+    if mat['source'] and mat['source']!='-':
+        entry_text += cc+'  Source = {} \n'.format(mat['source'])
+    if mat['formula'] and mat['formula']!='-':
+        entry_text += cc+'  Formula = {} \n'.format(mat['formula'])
+    if mat['molecular weight'] and mat['molecular weight']!='-':
+        entry_text += cc+'  Molecular weight (g/mole) = {} \n'.format(mat['molecular weight'])
+    if mat['density'] and mat['density']!='-':
+        entry_text += cc+'  Density (g/cm3) = {} \n'.format(mat['density'])
+    if mat['total atom density'] and mat['total atom density']!='-':
+        if isinstance(mat['total atom density'],str):
+            entry_text += cc+'  Total atom density (atoms/b-cm) = {} \n'.format(mat['total atom density'])
+        else:
+            entry_text += cc+'  Total atom density (atoms/b-cm) = {:<13.4E} \n'.format(mat['total atom density'])
+
+    if concentration_type==None: # user did not select this, determine which is more appropriate automatically
+        if mat['formula'] and mat['formula']!='-':
+            concentration_type = 'atom fraction'
+        else:
+            concentration_type = 'weight fraction'
+
+    entry_text += cc+'  Composition by {} \n'.format(concentration_type)
+
+    # Determine if neutron or photon entry will be used
+    neutron_keyword_list = ['depleted','enriched',' heu',' leu','uranium','plutonium','uranyl']
+    if particle==None: # user did not select this, determine which is more appropriate automatically
+        neutron_kw_found_in_name = False
+        for nki in neutron_keyword_list:
+            if nki in matname.lower():
+                neutron_kw_found_in_name = True
+        if neutron_kw_found_in_name:
+            particle = 'neutrons'
+        else:
+            particle = 'photons'
+
+
+    for j in range(len(mat[particle][concentration_type]['ZA'])):
+
+        if isinstance(mat[particle][concentration_type]['value'][j],str):
+            entry_format = '{:4}    {:>7}  {:13}   '+cc+'  {}'  + '\n'
+        else:
+            entry_format = '{:4}    {:>7d}  {:<13.6f}   '+cc+'  {}'  + '\n'
+
+        if j==0:
+            mstr = 'M{:<3}'.format(mi+1)
+        else:
+            mstr = ' '*4
+
+        ZZZAAA = mat[particle][concentration_type]['ZA'][j]
+        if ZZZAAA == '-':
+            ZZZAAA = mat['photons'][concentration_type]['ZA'][j]
+
+        Z = int(str(ZZZAAA)[:-3])
+        A = str(ZZZAAA)[-3:]
+        sym = Element_Z_to_Sym(Z)
+        if A != '000':
+            isotope = sym+'-'+A.lstrip('0')
+        else:
+            isotope = sym
+
+        entry_text += entry_format.format(mstr,ZZZAAA,mat[particle][concentration_type]['value'][j],isotope)
+    entry_text  += cc+'*'*banner_width + '\n'
+
+    return entry_text
+
+def tally(data, bin_edges=[], min_bin_left_edge=None, max_bin_right_edge=None, nbins=None, bin_width=None, divide_by_bin_width=False, normalization=None, scaling_factor=1, place_overflow_at_ends=True, return_uncertainties=False, return_event_indices_histogram=False):
+    '''
+    Description:
+        Tally number of incidences of values falling within a desired binning structure
+
+    Inputs:
+        - `data` = list of values to be tallied/histogrammed
+        - `bin_edges` = list of N+1 bin edge values for a tally of N bins
+        - `min_bin_left_edge` = left/minimum edge value of the first bin
+        - `max_bin_right_edge` = right/maximum edge value of the last bin
+        - `nbins` = number of equally-sized bins to be created from `min_bin_left_edge` to `max_bin_right_edge`
+        - `bin_width` = constant width of bins to be created from `min_bin_left_edge` to `max_bin_right_edge`
+        - `divide_by_bin_width` = Boolean denoting whether final bin values are divided by their bin widths (D=`False`)
+        - `normalization` = determine how the resulting histogram is normalized (D=`None`), options are:
+                       `[None, 'unity-sum', 'unity-max-val']`.  If `None`, no additional normalization is done.
+                       If `unity-sum`, the data is normalized such that its sum will be 1.  If `unity-max-val`, the
+                       data is normalized such that the maximum value is 1.  The operation occurs after any bin
+                       width normalization from `divide_by_bin_width` but before any scaling from `scaling_factor`.
+        - `scaling_factor` = value which all final bins are multiplied/scaled by (D=`1`)
+        - `place_overflow_at_ends` = handling of values outside of binning range (D=`True`); if `True` extreme
+                       values are tallied in the first/last bin, if `False` extreme values are discarded
+        - `return_uncertainties` = Boolean denoting if should return an extra N-length list whose elements
+                       are the statistical uncertainties (square root w/ normalizations) of the tally bins (D=`False`)
+        - `return_event_indices_histogram` = Boolean denoting if should return an extra N-length list whose elements
+                       are each a list of the event indices corresponding to each bin (D=`False`)
+
+    Notes:
+        Regarding the binning structure, this function only needs to be provided `bin_edges` directly (takes priority)
+        or the information needed to calculate `bin_edges`, that is: `min_bin_left_edge` and `max_bin_right_edge` and
+        either `nbins` or `bin_width`.  (Priority is given to `nbins` if both are provided.)
+
+    Outputs:
+        - `tallied_hist` = N-length list of tallied data
+        - `bin_edges` = list of N+1 bin edge values for a tally of N bins
+        - `tallied_hist_err` = (optional) N-length list of statistical uncertainties of tallied data
+        - `tallied_event_indicies` = (optional) N-length list of, for each bin, a list of the event indices populating it
+    '''
+
+    normalization_valid_entries = [None, 'unity-sum', 'unity-max-val']
+    if normalization not in normalization_valid_entries:
+        print("Entered normalization option of ",normalization," is not a valid option; please select from the following: [None, 'unity-sum', 'unity-max-val']".format())
+
+    if len(bin_edges)!=0:
+        bin_edges = np.array(bin_edges)
+    else:
+        if nbins != None:
+            bin_edges = np.linspace(min_bin_left_edge,max_bin_right_edge,num=nbins+1)
+        else:
+            bin_edges = np.arange(min_bin_left_edge,max_bin_right_edge+bin_width,step=bin_width)
+
+    nbins = len(bin_edges) - 1
+
+    if return_event_indices_histogram:
+        tallied_event_indicies = []
+        tallied_hist = np.zeros(nbins)
+        for i in range(nbins):
+            tallied_event_indicies.append([])
+        # events must be histogrammed manually
+        for i, val in enumerate(data):
+            if val < bin_edges[0]:
+                if place_overflow_at_ends:
+                    tallied_hist[0] += 1
+                    tallied_event_indicies[0].append(i)
+                continue
+            if val > bin_edges[-1]:
+                if place_overflow_at_ends:
+                    tallied_hist[-1] += 1
+                    tallied_event_indicies[-1].append(i)
+                continue
+            for j, be in enumerate(bin_edges):
+                if be > val: # found right edge of bin containing val
+                    tallied_hist[j-1] += 1
+                    tallied_event_indicies[j-1].append(i)
+                    break
+
+
+
+    else:
+        tallied_hist, bins = np.histogram(data,bins=bin_edges)
+
+    if return_uncertainties:
+        tallied_hist_err = np.sqrt(tallied_hist)
+        if divide_by_bin_width: tallied_hist_err = tallied_hist_err/(bin_edges[1:]-bin_edges[:-1])
+        if normalization=='unity-sum': tallied_hist_err = tallied_hist_err/np.sum(tallied_hist)
+        if normalization=='unity-max-val': tallied_hist_err = tallied_hist_err/np.max(tallied_hist)
+        if scaling_factor != 1: tallied_hist_err = tallied_hist_err*scaling_factor
+
+    if divide_by_bin_width: tallied_hist = tallied_hist/(bin_edges[1:]-bin_edges[:-1])
+    if normalization=='unity-sum': tallied_hist = tallied_hist/np.sum(tallied_hist)
+    if normalization=='unity-max-val': tallied_hist = tallied_hist/np.max(tallied_hist)
+    if scaling_factor != 1: tallied_hist = tallied_hist*scaling_factor
+
+    if return_event_indices_histogram:
+        if return_uncertainties:
+            return tallied_hist,bin_edges,tallied_hist_err,tallied_event_indicies
+        else:
+            return tallied_hist,bin_edges,tallied_event_indicies
+    else:
+        if return_uncertainties:
+            return tallied_hist,bin_edges,tallied_hist_err
+        else:
+            return tallied_hist,bin_edges
+
+
+
+
+
+def rebinner(output_xbins,input_xbins,input_ybins):
+    """
+    Description:
+        The purpose of this function is to rebin a set of y values corresponding to a set of x bins to a new set of x bins.
+        The function seeks to be as generalized as possible, meaning bin sizes do not need to be consistent.
+
+    Dependencies:
+        `import numpy as np`
+
+    Inputs:
+      - `output_xbins` = output array containing bounds of x bins of length N; first entry is leftmost bin boundary
+      - `input_xbins`  = input array containing bounds of x bins of length M; first entry is leftmost bin boundary
+      - `input_ybins`  = input array containing y values of length M-1
+
+    Outputs:
+      - `output_ybins` = output array containing y values of length N-1
+    """
+
+    N = len(output_xbins)
+    M = len(input_xbins)
+    output_ybins = np.zeros(N-1)
+
+    for i in range(0,N-1):
+        # For each output bin
+        lxo = output_xbins[i]   # lower x value of output bin
+        uxo = output_xbins[i+1] # upper x value of output bin
+        dxo = uxo - lxo         # width of current x output bin
+
+        # Scan input x bins to see if any fit in this output bin
+        for j in range(0,M-1):
+            lxi = input_xbins[j]    # lower x value of input bin
+            uxi = input_xbins[j+1]  # upper x value of input bin
+            dxi = uxi - lxi         # width of current x input bin
+
+            if uxi<lxo or lxi>uxo:
+                # no bins are aligned
+                continue
+            elif lxi >= lxo and lxi < uxo:
+                # start of an input bin occurs in this output bin
+                if lxi >= lxo and uxi <= uxo:
+                    # input bin completely encompassed by output bin
+                    output_ybins[i] = output_ybins[i] + input_ybins[j]
+                else:
+                    # input bin spans over at least one output bin
+                    # count fraction in current output x bin
+                    f_in_dxo = (uxo-lxi)/dxi
+                    output_ybins[i] = output_ybins[i] + f_in_dxo*input_ybins[j]
+            elif lxi < lxo and uxi > uxo:
+                # output bin is completely encompassed by input bin
+                f_in_dxo = (uxo-lxo)/dxi
+                output_ybins[i] = output_ybins[i] + f_in_dxo*input_ybins[j]
+            elif lxi < lxo and uxi > lxo and uxi <= uxo:
+                # tail of input bin is located in this output bin
+                f_in_dxo = (uxi-lxo)/dxi
+                output_ybins[i] = output_ybins[i] + f_in_dxo*input_ybins[j]
+
+    return output_ybins
+
 def is_number(n):
     '''
     Description:
@@ -853,6 +1188,134 @@ def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter=
 
     return nuc_str
 
+
+def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
+    '''
+    Description:
+        Converts a plaintext string of a nuclide to a LaTeX-formatted raw string
+        Note: if you already have the Z, A, and isomeric state information determined, the "nuclide_to_Latex_form" function can be used instead
+
+    Dependencies:
+        - `Element_Z_to_Sym` (function within the "Hunter's tools" package) (only required if `include_Z = True`)
+
+    Input:
+        (required)
+
+       - `nuc_str` = string to be converted; a huge variety of formats are supported, but they all must follow the following rules:
+           + Isomeric/metastable state characters must always immediately follow the atomic mass characters.
+               Isomeric state labels MUST either:
+               - (1) be a single lower-case character OR
+               - (2) begin with any non-numeric character and end with a number
+           + Atomic mass numbers must be nonnegative integers OR the string `"nat"` (in which case no metastable states can be written)
+           + Elemental symbols MUST begin with an upper-case character
+
+    Input:
+       (optional)
+
+       - `include_Z` = `True`/`False` determining whether the nuclide's atomic number Z will be printed as a subscript beneath the atomic mass
+
+    Output:
+        - LaTeX-formatted raw string of nuclide
+    '''
+    tex_str = r''
+
+    # remove unwanted characters from provided string
+    delete_characters_list = [' ', '-', '_']
+    for dc in delete_characters_list:
+        nuc_str = nuc_str.replace(dc,'')
+
+    # determine which characters are letters versus numbers
+    isalpha_list = []
+    isdigit_list = []
+    for c in nuc_str:
+        isalpha_list.append(c.isalpha())
+        isdigit_list.append(c.isdigit())
+
+    symbol = ''
+    mass = ''
+    isost = ''
+
+    # string MUST begin with either mass number or elemental symbol
+    if isdigit_list[0] or nuc_str[0:3]=='nat': # mass first
+        mass_first = True
+    else:
+        mass_first = False
+
+    if mass_first:
+        if nuc_str[0:3]=='nat':
+            mass = 'nat'
+            ci = 3
+        else:
+            ci = 0
+            while isdigit_list[ci]:
+                mass += nuc_str[ci]
+                ci += 1
+            mass = str(int(mass)) # eliminate any extra leading zeros
+            # encountered a non-numeric character, end of mass
+            # now, determine if metastable state is listed or if element is listed next
+            # first, check to see if any other numerals are in string
+            lni = 0 # last numeral index
+            for i in range(ci,len(nuc_str)):
+                if isdigit_list[i]:
+                    lni = i
+            if lni != 0:
+                # grab all characters between ci and last numeral as metastable state
+                isost = nuc_str[ci:lni+1]
+                ci = lni + 1
+            else: # no more numerals in string, now check for single lower-case letter
+                if isalpha_list[ci] and nuc_str[ci].islower():
+                    isost = nuc_str[ci]
+                    ci += 1
+
+            # Now extract elemental symbol
+            for i in range(ci,len(nuc_str)):
+                if isalpha_list[i]:
+                    symbol += nuc_str[i]
+
+    else: # if elemental symbol is listed first
+        if 'nat' in nuc_str:
+            mass = 'nat'
+            nuc_str = nuc_str.replace('nat','')
+
+        ci = 0
+        # Extract all characters before first number as the elemental symbol
+        while nuc_str[ci].isalpha():
+            symbol += nuc_str[ci]
+            ci += 1
+
+        # now, extract mass
+        if mass != 'nat':
+            while nuc_str[ci].isdigit():
+                mass += nuc_str[ci]
+                ci += 1
+                if ci == len(nuc_str):
+                    break
+
+            # lastly, extract isomeric state, if present
+            if ci != len(nuc_str):
+                isost = nuc_str[ci:]
+
+    # treating the cases of lowercase-specified particles (n, d, t, etc.)
+    if symbol == '' and isost != '':
+        symbol = isost
+        isost = ''
+
+    # Now assemble LaTeX string for nuclides
+    if include_Z:
+        if symbol == 'n':
+            Z = 0
+        elif symbol == 'p' or symbol == 'd' or symbol == 't':
+            Z = 1
+        else:
+            Z = Element_Sym_to_Z(symbol)
+        Z = str(int(Z))
+        tex_str = r"$^{{{}{}}}_{{{}}}$".format(mass,isost,Z) + "{}".format(symbol)
+    else:
+        tex_str = r"$^{{{}{}}}$".format(mass,isost) + "{}".format(symbol)
+
+    return tex_str
+
+
 def Element_Z_to_Sym(Z):
     '''
     Description:
@@ -883,7 +1346,275 @@ def Element_Z_to_Sym(Z):
         return None
     return elms[i].strip()
 
+def Element_Sym_to_Z(sym):
+    '''
+    Description:
+        Returns atomic number Z for a provided elemental symbol
 
+    Dependencies:
+        `find` (function within the "Hunter's tools" package)
+
+    Inputs:
+        - `sym` = string of elemental symbol for element of atomic number Z
+
+    Outputs:
+        - `Z` = atomic number
+    '''
+    elms = ["n ",\
+            "H ","He","Li","Be","B ","C ","N ","O ","F ","Ne",\
+            "Na","Mg","Al","Si","P ","S ","Cl","Ar","K ","Ca",\
+            "Sc","Ti","V ","Cr","Mn","Fe","Co","Ni","Cu","Zn",\
+            "Ga","Ge","As","Se","Br","Kr","Rb","Sr","Y ","Zr",\
+            "Nb","Mo","Tc","Ru","Rh","Pd","Ag","Cd","In","Sn",\
+            "Sb","Te","I ","Xe","Cs","Ba","La","Ce","Pr","Nd",\
+            "Pm","Sm","Eu","Gd","Tb","Dy","Ho","Er","Tm","Yb",\
+            "Lu","Hf","Ta","W ","Re","Os","Ir","Pt","Au","Hg",\
+            "Tl","Pb","Bi","Po","At","Rn","Fr","Ra","Ac","Th",\
+            "Pa","U ","Np","Pu","Am","Cm","Bk","Cf","Es","Fm",\
+            "Md","No","Lr","Rf","Db","Sg","Bh","Hs","Mt","Ds",\
+            "Rg","Cn","Nh","Fl","Mc","Lv","Ts","Og"]
+
+    if len(sym.strip())>2:
+        print('Please provide a valid elemental symbol (1 or 2 characters), {} is too long'.format(sym))
+        return -1
+
+    # handle exception for neutron first
+    if sym.strip()=='XX':
+        return 0
+
+    # make sure string is formatted to match entries in elms list
+    sym2 = sym.strip()
+    if len(sym2)==1: sym2 += ' '
+    sym2 = sym2[0].upper() + sym2[1].lower()
+
+    Z = find(sym2,elms)
+
+    if Z==None:
+        print('Z could not be found for element "{}"; please make sure entry is correct.'.format(sym))
+        return -1
+
+    return Z
+
+def find(target, myList):
+    '''
+    Description:
+        Search for and return the index of the first occurance of a value in a list.
+
+    Inputs:
+        - `target` = value to be searched for
+        - `myList` = list of values
+
+    Output:
+        - index of first instance of `target` in `myList`
+    '''
+    for i in range(len(myList)):
+        if myList[i] == target:
+            return i
+
+def ICRP116_effective_dose_coeff(E=1.0,particle='photon',geometry='AP',interp_scale='log',interp_type='cubic',extrapolation_on=False):
+    '''
+    Description:
+        For a given particle at a given energy in a given geometry, returns its
+        effective dose conversion coefficient from ICRP 116
+
+    Dependencies:
+        - `import numpy as np`
+        - `from scipy.interpolate import CubicSpline, lagrange, interp1d`
+        - `find` (function within the "PHITS Tools" package)
+
+    Inputs:
+       - `E` = energy of the particle in MeV (D=`1`)
+       - `particle` = select particle (D=`'photon'`, options include: `['photon', 'electron', 'positron' ,'neutron' ,'proton', 'negmuon', 'posmuon', 'negpion', 'pospion', 'He3ion']`)
+       - `geometry` = geometric arrangement (D=`'AP'`, options include: `['AP', 'PA', 'LLAT', 'RLAT', 'ROT', 'ISO', 'H*(10)']` (`'LLAT'`,`'RLAT'`,`'ROT'` only available for photon, proton, and neutron))
+              - Meanings:
+               AP, antero-posterior; PA, postero-anterior; LLAT, left lateral; RLAT, right lateral; ROT, rotational; ISO, isotropic.
+              - Note: `'H*(10)'` ambient dose equivalent is available for photons only
+       - `interp_scale` = interpolation scale (D=`'log'` to interpolate on a log scale, options include: `['log','lin']`, ICRP 74/116 suggest log-log cubic interpolation)
+       - `interp_type`  = interpolation method (D=`'cubic'` to interpolate with a cubic spline, options include: `['cubic','linear']`, ICRP 74/116 suggest log-log cubic interpolation)
+                                              technically, any options available for scipy.interpolate.interp1d() can be used: `['linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic', 'previous']`
+       - `extrapolation_on` = boolean designating whether values outside of the tabulated energies will be extrapolated (D=`False`)
+
+             |                      |                                                                       |
+             | -------------------- | --------------------------------------------------------------------- |
+             | if False & E < E_min | f(E) = 0                                                              |
+             | if False & E > E_max | f(E) = f(E_max)                                                       |
+             | if True  & E < E_min | f(E) is linearly interpolated between (0,0) and (E_min,f(E_min))      |
+             | if True  & E > E_max | f(E) is extrapolated using the specified interpolation scale and type |
+    Outputs:
+       - `f` = effective dose conversion coefficient in pSv*cm^2
+    '''
+    import numpy as np
+    from scipy.interpolate import CubicSpline, lagrange, interp1d
+
+    pars_list = ['photon','electron','positron','neutron','proton','negmuon','posmuon','negpion','pospion','He3ion']
+    geo_list_all = ['AP','PA','LLAT','RLAT','ROT','ISO','H*(10)']
+    geo_list_short = ['AP','PA','ISO']
+
+    if particle not in pars_list or geometry not in geo_list_all:
+        pstr = 'Please select a valid particle and geometry.\n'
+        pstr += "Particle selected = {}, options include: ['photon','electron','positron','neutron','proton','negmuon','posmuon','negpion','pospion','He3ion']".format(particle)
+        pstr += "Geometry selected = {}, options include: ['AP','PA','LLAT','RLAT','ROT','ISO'] ('LLAT','RLAT','ROT' only available for photon, proton, and neutron)"
+        print(pstr)
+        return None
+
+    if (particle not in ['photon','neutron','proton'] and geometry in ['LLAT','RLAT','ROT']) or (particle!='photon' and geometry=='H*(10)'):
+        if (particle!='photon' and geometry=='H*(10)'):
+            pstr = "geometry = {} is only available for photons\n".format(geometry)
+        else:
+            pstr = "geometry = {} is only available for photon, neutron, and proton\n".format(geometry)
+            pstr += "For selected particle = {}, please choose geometry from ['AP','PA','ISO']".format(particle)
+        print(pstr)
+        return None
+
+    E_photon = [0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.511, 0.6, 0.662, 0.8, 1, 1.117, 1.33, 1.5, 2, 3, 4, 5, 6, 6.129, 8, 10, 15, 20, 30, 40, 50, 60, 80, 100, 150, 200, 300, 400, 500, 600, 800, 1000, 1500, 2000, 3000, 4000, 5000, 6000, 8000, 10000]
+    f_photon = [
+    [0.0685, 0.156, 0.225, 0.313, 0.351, 0.37, 0.39, 0.413, 0.444, 0.519, 0.748, 1, 1.51, 2, 2.47, 2.52, 2.91, 3.17, 3.73, 4.49, 4.9, 5.59, 6.12, 7.48, 9.75, 11.7, 13.4, 15, 15.1, 17.8, 20.5, 26.1, 30.8, 37.9, 43.1, 47.1, 50.1, 54.5, 57.8, 63.3, 67.3, 72.3, 75.5, 77.5, 78.9, 80.5, 81.7, 83.8, 85.2, 86.9, 88.1, 88.9, 89.5, 90.2, 90.7],
+    [0.0184, 0.0155, 0.026, 0.094, 0.161, 0.208, 0.242, 0.271, 0.301, 0.361, 0.541, 0.741, 1.16, 1.57, 1.98, 2.03, 2.38, 2.62, 3.13, 3.83, 4.22, 4.89, 5.39, 6.75, 9.12, 11.2, 13.1, 15, 15.2, 18.6, 22, 30.3, 38.2, 51.4, 62, 70.4, 76.9, 86.6, 93.2, 104, 111, 119, 124, 128, 131, 135, 138, 142, 145, 148, 150, 152, 153, 155, 155],
+    [0.0189, 0.0416, 0.0655, 0.11, 0.14, 0.16, 0.177, 0.194, 0.214, 0.259, 0.395, 0.552, 0.888, 1.24, 1.58, 1.62, 1.93, 2.14, 2.59, 3.23, 3.58, 4.2, 4.68, 5.96, 8.21, 10.2, 12, 13.7, 13.9, 17, 20.1, 27.4, 34.4, 47.4, 59.2, 69.5, 78.3, 92.4, 103, 121, 133, 148, 158, 165, 170, 178, 183, 193, 198, 206, 212, 216, 219, 224, 228],
+    [0.0182, 0.039, 0.0573, 0.0891, 0.114, 0.133, 0.15, 0.167, 0.185, 0.225, 0.348, 0.492, 0.802, 1.13, 1.45, 1.49, 1.78, 1.98, 2.41, 3.03, 3.37, 3.98, 4.45, 5.7, 7.9, 9.86, 11.7, 13.4, 13.6, 16.6, 19.7, 27.1, 34.4, 48.1, 60.9, 72.2, 82, 97.9, 110, 130, 143, 161, 172, 180, 186, 195, 201, 212, 220, 229, 235, 240, 244, 251, 255],
+    [0.0337, 0.0664, 0.0986, 0.158, 0.199, 0.226, 0.248, 0.273, 0.297, 0.355, 0.528, 0.721, 1.12, 1.52, 1.92, 1.96, 2.3, 2.54, 3.04, 3.72, 4.1, 4.75, 5.24, 6.55, 8.84, 10.8, 12.7, 14.4, 14.6, 17.6, 20.6, 27.7, 34.4, 46.1, 56, 64.4, 71.2, 82, 89.7, 102, 111, 121, 128, 133, 136, 142, 145, 152, 156, 161, 165, 168, 170, 172, 175],
+    [0.0288, 0.056, 0.0812, 0.127, 0.158, 0.18, 0.199, 0.218, 0.239, 0.287, 0.429, 0.589, 0.932, 1.28, 1.63, 1.67, 1.97, 2.17, 2.62, 3.25, 3.6, 4.2, 4.66, 5.9, 8.08, 10, 11.8, 13.5, 13.7, 16.6, 19.6, 26.8, 33.8, 46.1, 56.9, 66.2, 74.1, 87.2, 97.5, 116, 130, 147, 159, 168, 174, 185, 193, 208, 218, 232, 243, 251, 258, 268, 276],
+    [0.061, 0.83, 1.05, 0.81, 0.64, 0.55, 0.51, 0.52, 0.53, 0.61, 0.89, 1.20, 1.80, 2.38, 2.93, 2.99, 3.44, 3.73, 4.38, 5.20, 5.60, 6.32, 6.90, 8.60, 11.10, 13.40, 15.50, 17.60, 17.86, 21.60, 25.60, 8.53, 8.29, 8.23, 8.26, 8.64, 8.71, 8.86, 9.00, 9.60, 10.20, 10.73, 11.27, 11.80, 11.78, 11.74, 11.70, 11.60, 11.50, 12.10, 12.70, 13.30, 13.08, 12.64, 12.20]
+    ]
+
+    E_electron = [0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1, 1.5, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 40, 50, 60, 80, 100, 150, 200, 300, 400, 500, 600, 800, 1000, 1500, 2000, 3000, 4000, 5000, 6000, 8000, 10000]
+    f_electron = [
+    [0.0269, 0.0404, 0.0539, 0.081, 0.108, 0.135, 0.163, 0.218, 0.275, 0.418, 0.569, 0.889, 1.24, 1.63, 2.05, 4.04, 7.1, 15, 22.4, 36.1, 48.2, 59.3, 70.6, 97.9, 125, 188, 236, 302, 329, 337, 341, 346, 349, 355, 359, 365, 369, 372, 375, 379, 382, 387, 391, 397, 401, 405, 407, 411, 414],
+    [0.0268, 0.0402, 0.0535, 0.0801, 0.107, 0.133, 0.16, 0.213, 0.267, 0.399, 0.53, 0.787, 1.04, 1.28, 1.5, 1.68, 1.68, 1.62, 1.62, 1.95, 2.62, 3.63, 5.04, 9.46, 18.3, 53.1, 104, 220, 297, 331, 344, 358, 366, 379, 388, 399, 408, 414, 419, 428, 434, 446, 455, 468, 477, 484, 490, 499, 507],
+    [0.0188, 0.0283, 0.0377, 0.0567, 0.0758, 0.0948, 0.114, 0.152, 0.191, 0.291, 0.393, 0.606, 0.832, 1.08, 1.35, 1.97, 2.76, 4.96, 7.24, 11.9, 16.4, 21, 25.5, 35.5, 46.7, 76.9, 106, 164, 212, 249, 275, 309, 331, 363, 383, 410, 430, 445, 457, 478, 495, 525, 549, 583, 608, 628, 646, 675, 699]
+    ]
+
+    E_positron = [0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1, 1.5, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 40, 50, 60, 80, 100, 150, 200, 300, 400, 500, 600, 800, 1000, 1500, 2000, 3000, 4000, 5000, 6000, 8000, 10000]
+    f_positron = [
+    [3.28, 3.29, 3.3, 3.33, 3.36, 3.39, 3.42, 3.47, 3.53, 3.67, 3.84, 4.16, 4.52, 4.9, 5.36, 7.41, 10.5, 18.3, 25.7, 39.1, 51, 61.7, 72.9, 99, 126, 184, 229, 294, 320, 327, 333, 339, 342, 349, 354, 362, 366, 369, 372, 376, 379, 385, 389, 395, 399, 402, 404, 408, 411],
+    [1.62, 1.64, 1.65, 1.68, 1.71, 1.73, 1.76, 1.82, 1.87, 2.01, 2.14, 2.4, 2.65, 2.9, 3.12, 3.32, 3.37, 3.44, 3.59, 4.19, 5.11, 6.31, 8.03, 14, 23.6, 59, 111, 221, 291, 321, 334, 349, 357, 371, 381, 393, 402, 409, 415, 424, 430, 443, 451, 465, 473, 480, 486, 495, 503],
+    [1.39, 1.4, 1.41, 1.43, 1.45, 1.47, 1.49, 1.53, 1.57, 1.67, 1.77, 1.98, 2.21, 2.45, 2.72, 3.38, 4.2, 6.42, 8.7, 13.3, 18, 22.4, 26.9, 36.7, 47.6, 75.5, 104, 162, 209, 243, 268, 302, 323, 356, 377, 405, 425, 440, 453, 474, 491, 522, 545, 580, 605, 627, 645, 674, 699]
+    ]
+
+    E_neutron = [1.00E-09, 1.00E-08, 2.50E-08, 1.00E-07, 2.00E-07, 5.00E-07, 1.00E-06, 2.00E-06, 5.00E-06, 1.00E-05, 2.00E-05, 5.00E-05, 1.00E-04, 2.00E-04, 5.00E-04, 0.001, 0.002, 0.005, 0.01, 0.02, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3, 0.5, 0.7, 0.9, 1, 1.2, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 15, 16, 18, 20, 21, 30, 50, 75, 100, 130, 150, 180, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 2000, 5000, 10000]
+    f_neutron = [
+    [3.09, 3.55, 4, 5.2, 5.87, 6.59, 7.03, 7.39, 7.71, 7.82, 7.84, 7.82, 7.79, 7.73, 7.54, 7.54, 7.61, 7.97, 9.11, 12.2, 15.7, 23, 30.6, 41.9, 60.6, 78.8, 114, 177, 232, 279, 301, 330, 365, 407, 458, 483, 494, 498, 499, 499, 500, 500, 499, 495, 493, 490, 484, 477, 474, 453, 433, 420, 402, 382, 373, 363, 359, 363, 389, 422, 457, 486, 508, 524, 537, 612, 716, 933],
+    [1.85, 2.11, 2.44, 3.25, 3.72, 4.33, 4.73, 5.02, 5.3, 5.44, 5.51, 5.55, 5.57, 5.59, 5.6, 5.6, 5.62, 5.95, 6.81, 8.93, 11.2, 15.7, 20, 25.9, 34.9, 43.1, 58.1, 85.9, 112, 136, 148, 167, 195, 235, 292, 330, 354, 371, 383, 392, 398, 404, 412, 417, 419, 420, 422, 423, 423, 422, 428, 439, 444, 446, 446, 447, 448, 464, 496, 533, 569, 599, 623, 640, 654, 740, 924, 1.17E+03],
+    [1.04, 1.15, 1.32, 1.7, 1.94, 2.21, 2.4, 2.52, 2.64, 2.65, 2.68, 2.66, 2.65, 2.66, 2.62, 2.61, 2.6, 2.74, 3.13, 4.21, 5.4, 7.91, 10.5, 14.4, 20.8, 27.2, 39.7, 63.7, 85.5, 105, 115, 130, 150, 179, 221, 249, 269, 284, 295, 303, 310, 316, 325, 333, 336, 338, 343, 347, 348, 360, 380, 399, 409, 416, 420, 425, 427, 441, 472, 510, 547, 579, 603, 621, 635, 730, 963, 1.23E+03],
+    [0.893, 0.978, 1.12, 1.42, 1.63, 1.86, 2.02, 2.11, 2.21, 2.24, 2.26, 2.24, 2.23, 2.24, 2.21, 2.21, 2.2, 2.33, 2.67, 3.6, 4.62, 6.78, 8.95, 12.3, 17.9, 23.4, 34.2, 54.4, 72.6, 89.3, 97.4, 110, 128, 153, 192, 220, 240, 255, 267, 276, 284, 290, 301, 310, 313, 317, 323, 328, 330, 345, 370, 392, 404, 413, 418, 425, 429, 451, 483, 523, 563, 597, 620, 638, 651, 747, 979, 1.26E+03],
+    [1.7, 2.03, 2.31, 2.98, 3.36, 3.86, 4.17, 4.4, 4.59, 4.68, 4.72, 4.73, 4.72, 4.67, 4.6, 4.58, 4.61, 4.86, 5.57, 7.41, 9.46, 13.7, 18, 24.3, 34.7, 44.7, 63.8, 99.1, 131, 160, 174, 193, 219, 254, 301, 331, 351, 365, 374, 381, 386, 390, 395, 398, 398, 399, 399, 398, 398, 395, 395, 402, 406, 411, 414, 418, 422, 443, 472, 503, 532, 558, 580, 598, 614, 718, 906, 1.14E+03],
+    [1.29, 1.56, 1.76, 2.26, 2.54, 2.92, 3.15, 3.32, 3.47, 3.52, 3.54, 3.55, 3.54, 3.52, 3.47, 3.46, 3.48, 3.66, 4.19, 5.61, 7.18, 10.4, 13.7, 18.6, 26.6, 34.4, 49.4, 77.1, 102, 126, 137, 153, 174, 203, 244, 271, 290, 303, 313, 321, 327, 332, 339, 344, 346, 347, 350, 352, 353, 358, 371, 387, 397, 407, 412, 421, 426, 455, 488, 521, 553, 580, 604, 624, 642, 767, 1.01E+03, 1.32E+03]
+    ]
+
+    E_proton = [1, 1.5, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 40, 50, 60, 80, 100, 150, 200, 300, 400, 500, 600, 800, 1000, 1500, 2000, 3000, 4000, 5000, 6000, 8000, 10000]
+    f_proton = [
+    [5.46, 8.2, 10.9, 16.4, 21.9, 27.3, 32.8, 43.7, 54.9, 189, 428, 750, 1.02E+03, 1.18E+03, 1.48E+03, 2.16E+03, 2.51E+03, 2.38E+03, 1.77E+03, 1.38E+03, 1.23E+03, 1.15E+03, 1.16E+03, 1.11E+03, 1.09E+03, 1.15E+03, 1.12E+03, 1.23E+03, 1.27E+03, 1.23E+03, 1.37E+03, 1.45E+03, 1.41E+03],
+    [5.47, 8.21, 10.9, 16.4, 21.9, 27.3, 32.8, 43.7, 54.6, 56.1, 43.6, 36.1, 45.5, 71.5, 156, 560, 1.19E+03, 2.82E+03, 1.93E+03, 1.45E+03, 1.30E+03, 1.24E+03, 1.23E+03, 1.23E+03, 1.23E+03, 1.25E+03, 1.28E+03, 1.34E+03, 1.40E+03, 1.45E+03, 1.53E+03, 1.65E+03, 1.74E+03],
+    [2.81, 4.21, 5.61, 8.43, 11.2, 14, 16.8, 22.4, 28.1, 50.7, 82.8, 180, 290, 379, 500, 799, 994, 1.64E+03, 2.15E+03, 1.44E+03, 1.27E+03, 1.21E+03, 1.20E+03, 1.19E+03, 1.18E+03, 1.21E+03, 1.25E+03, 1.32E+03, 1.31E+03, 1.39E+03, 1.44E+03, 1.56E+03, 1.63E+03],
+    [2.81, 4.2, 5.62, 8.41, 11.2, 14, 16.8, 22.4, 28.1, 48.9, 78.8, 172, 278, 372, 447, 602, 818, 1.46E+03, 2.18E+03, 1.45E+03, 1.28E+03, 1.21E+03, 1.20E+03, 1.20E+03, 1.20E+03, 1.23E+03, 1.25E+03, 1.32E+03, 1.33E+03, 1.41E+03, 1.45E+03, 1.59E+03, 1.67E+03],
+    [4.5, 6.75, 8.98, 13.4, 17.8, 22.1, 26.3, 34.5, 50.1, 93.7, 165, 296, 422, 532, 687, 1.09E+03, 1.44E+03, 2.16E+03, 1.96E+03, 1.44E+03, 1.28E+03, 1.22E+03, 1.22E+03, 1.20E+03, 1.19E+03, 1.23E+03, 1.23E+03, 1.30E+03, 1.29E+03, 1.35E+03, 1.41E+03, 1.49E+03, 1.56E+03],
+    [3.52, 5.28, 7.02, 10.5, 13.9, 17.3, 20.5, 26.8, 45.8, 80.1, 136, 249, 358, 451, 551, 837, 1.13E+03, 1.79E+03, 1.84E+03, 1.42E+03, 1.25E+03, 1.18E+03, 1.17E+03, 1.17E+03, 1.15E+03, 1.21E+03, 1.22E+03, 1.31E+03, 1.40E+03, 1.43E+03, 1.57E+03, 1.71E+03, 1.78E+03]
+    ]
+
+    E_negmuon = [1, 1.5, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 40, 50, 60, 80, 100, 150, 200, 300, 400, 500, 600, 800, 1000, 1500, 2000, 3000, 4000, 5000, 6000, 8000, 10000]
+    f_negmuon = [
+    [180, 180, 184, 188, 193, 205, 242, 293, 332, 414, 465, 657, 735, 755, 628, 431, 382, 340, 326, 319, 320, 321, 325, 327, 333, 331, 333, 336, 337, 337, 337, 337, 338],
+    [75.2, 76.8, 78.3, 81.4, 84.8, 87.7, 86.7, 86.8, 88.6, 100, 122, 251, 457, 703, 775, 485, 402, 345, 329, 321, 321, 324, 326, 332, 337, 338, 341, 344, 345, 346, 346, 347, 347],
+    [78.7, 79.5, 80.9, 83.7, 87.1, 91.5, 98.1, 113, 127, 161, 191, 275, 363, 446, 496, 498, 432, 354, 332, 321, 321, 323, 326, 331, 337, 338, 341, 344, 346, 347, 347, 348, 348]
+    ]
+
+    E_posmuon = [1, 1.5, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 40, 50, 60, 80, 100, 150, 200, 300, 400, 500, 600, 800, 1000, 1500, 2000, 3000, 4000, 5000, 6000, 8000, 10000]
+    f_posmuon = [
+    [194, 196, 198, 202, 207, 216, 251, 300, 340, 425, 481, 674, 751, 768, 635, 431, 381, 339, 326, 318, 319, 320, 322, 325, 327, 331, 333, 336, 337, 337, 337, 337, 339],
+    [82.6, 84.1, 85.7, 88.9, 92.1, 94.3, 92.5, 92.8, 94.8, 108, 133, 265, 473, 721, 787, 483, 399, 345, 328, 320, 321, 323, 325, 330, 333, 339, 341, 344, 345, 346, 346, 347, 347],
+    [85.2, 86.2, 87.5, 90.3, 93.6, 97.7, 103, 117, 132, 167, 199, 284, 373, 456, 506, 502, 432, 354, 332, 320, 320, 322, 324, 329, 333, 338, 341, 344, 346, 347, 347, 348, 348]
+    ]
+
+    E_negpion = [1, 1.5, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 40, 50, 60, 80, 100, 150, 200, 300, 400, 500, 600, 800, 1000, 1500, 2000, 3000, 4000, 5000, 6000, 8000, 10000, 15000, 20000, 30000, 40000, 50000, 60000, 80000, 100000, 150000, 200000]
+    f_negpion = [
+    [406, 422, 433, 458, 491, 528, 673, 965, 1.09E+03, 1.25E+03, 1.28E+03, 1.77E+03, 1.92E+03, 1.93E+03, 1.68E+03, 1.14E+03, 995, 927, 902, 848, 844, 869, 901, 947, 977, 1.03E+03, 1.05E+03, 1.03E+03, 1.03E+03, 1.06E+03, 1.09E+03, 1.14E+03, 1.17E+03, 1.21E+03, 1.24E+03, 1.30E+03, 1.35E+03, 1.39E+03, 1.42E+03, 1.48E+03, 1.54E+03, 1.67E+03, 1.78E+03],
+    [194, 201, 210, 225, 233, 237, 208, 181, 178, 197, 244, 547, 1.02E+03, 1.70E+03, 1.99E+03, 1.31E+03, 991, 889, 871, 843, 850, 880, 917, 976, 1.02E+03, 1.08E+03, 1.12E+03, 1.11E+03, 1.13E+03, 1.18E+03, 1.22E+03, 1.29E+03, 1.34E+03, 1.41E+03, 1.47E+03, 1.56E+03, 1.63E+03, 1.70E+03, 1.75E+03, 1.86E+03, 1.95E+03, 2.15E+03, 2.33E+03],
+    [176, 189, 198, 215, 232, 251, 271, 317, 361, 439, 508, 676, 868, 1.02E+03, 1.15E+03, 1.15E+03, 1.03E+03, 857, 815, 794, 807, 838, 875, 935, 979, 1.05E+03, 1.09E+03, 1.11E+03, 1.15E+03, 1.20E+03, 1.26E+03, 1.36E+03, 1.43E+03, 1.55E+03, 1.64E+03, 1.79E+03, 1.91E+03, 2.02E+03, 2.11E+03, 2.29E+03, 2.46E+03, 2.80E+03, 3.04E+03]
+    ]
+
+    E_pospion = [1, 1.5, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 40, 50, 60, 80, 100, 150, 200, 300, 400, 500, 600, 800, 1000, 1500, 2000, 3000, 4000, 5000, 6000, 8000, 10000, 15000, 20000, 30000, 40000, 50000, 60000, 80000, 100000, 150000, 200000]
+    f_pospion = [
+    [314, 324, 340, 379, 429, 489, 540, 717, 819, 1000, 1.10E+03, 1.52E+03, 1.75E+03, 1.83E+03, 1.66E+03, 1.22E+03, 1.13E+03, 1.22E+03, 1.25E+03, 1.07E+03, 969, 943, 952, 999, 1.04E+03, 1.10E+03, 1.10E+03, 1.06E+03, 1.06E+03, 1.07E+03, 1.10E+03, 1.14E+03, 1.17E+03, 1.22E+03, 1.25E+03, 1.30E+03, 1.34E+03, 1.38E+03, 1.42E+03, 1.48E+03, 1.54E+03, 1.67E+03, 1.78E+03],
+    [121, 125, 133, 151, 170, 183, 185, 177, 179, 201, 247, 494, 906, 1.48E+03, 1.82E+03, 1.38E+03, 1.12E+03, 1.15E+03, 1.23E+03, 1.10E+03, 998, 970, 980, 1.04E+03, 1.09E+03, 1.16E+03, 1.19E+03, 1.16E+03, 1.16E+03, 1.20E+03, 1.24E+03, 1.31E+03, 1.35E+03, 1.42E+03, 1.48E+03, 1.57E+03, 1.64E+03, 1.70E+03, 1.75E+03, 1.84E+03, 1.94E+03, 2.14E+03, 2.33E+03],
+    [151, 160, 168, 183, 198, 216, 233, 265, 296, 367, 439, 602, 787, 953, 1.09E+03, 1.16E+03, 1.10E+03, 1.05E+03, 1.08E+03, 1.02E+03, 953, 930, 938, 993, 1.05E+03, 1.13E+03, 1.16E+03, 1.16E+03, 1.18E+03, 1.23E+03, 1.28E+03, 1.37E+03, 1.43E+03, 1.55E+03, 1.64E+03, 1.79E+03, 1.90E+03, 2.01E+03, 2.10E+03, 2.27E+03, 2.42E+03, 2.76E+03, 3.07E+03]
+    ]
+
+    E_He3ion = [1, 2, 3, 5, 10, 14, 20, 30, 50, 75, 100, 150, 200, 300, 500, 700, 1000, 2000, 3000, 5000, 10000, 20000, 50000, 100000]
+    f_He3ion = [
+    [219, 438, 656, 1.09E+03, 2.19E+03, 4.61E+03, 1.72E+04, 3.01E+04, 4.75E+04, 8.05E+04, 1.01E+05, 9.25E+04, 6.74E+04, 5.14E+04, 4.27E+04, 4.11E+04, 4.00E+04, 4.02E+04, 4.08E+04, 4.12E+04, 4.56E+04, 5.12E+04, 6.12E+04, 7.14E+04],
+    [219, 438, 657, 1.09E+03, 2.19E+03, 2.56E+03, 1.74E+03, 1.44E+03, 2.88E+03, 1.75E+04, 4.84E+04, 1.10E+05, 7.29E+04, 5.33E+04, 4.49E+04, 4.60E+04, 4.47E+04, 4.80E+04, 5.01E+04, 5.17E+04, 6.26E+04, 6.10E+04, 8.14E+04, 1.01E+05],
+    [141, 281, 419, 689, 1.82E+03, 2.81E+03, 5.46E+03, 9.86E+03, 1.78E+04, 3.00E+04, 4.55E+04, 6.95E+04, 7.01E+04, 5.25E+04, 4.27E+04, 4.19E+04, 4.09E+04, 4.31E+04, 4.50E+04, 4.76E+04, 5.73E+04, 7.10E+04, 9.67E+04, 1.24E+05]
+    ]
+
+
+    E_all = [E_photon, E_electron, E_positron, E_neutron, E_proton, E_negmuon, E_posmuon, E_negpion, E_pospion, E_He3ion]
+    f_all = [f_photon, f_electron, f_positron, f_neutron, f_proton, f_negmuon, f_posmuon, f_negpion, f_pospion, f_He3ion]
+
+    pi = find(particle, pars_list)
+    if particle in ['photon','neutron','proton']:
+        gi = find(geometry, geo_list_all)
+    else:
+        gi = find(geometry, geo_list_short)
+
+    E_list = E_all[pi]
+    f_list = f_all[pi][gi]
+
+    # Interpolate f given E
+    if E in E_list:
+        f = f_list[find(E,E_list)]
+    else:
+        if not extrapolation_on and (E < E_list[0] or E > E_list[-1]):  # E is outside of bounds and extrapolation is off
+            if E < E_list[0]:
+                f = 0   # assume negligibly low energy particle
+            if E > E_list[-1]:
+                f = f_list[-1]  # just set equal to max energy particle's coefficient
+        else:
+            if E < E_list[0]:
+                E_list = [0] + E_list
+                f_list = [0] + f_list
+                interp_scale = 'linear'
+
+            if interp_scale=='log':
+                cs = interp1d(np.log10(np.array(E_list)),np.log10(np.array(f_list)), kind=interp_type,fill_value='extrapolate')
+                f = 10**cs(np.log10(E))
+            else:
+                cs = interp1d(np.array(E_list),np.array(f_list), kind=interp_type,fill_value='extrapolate')
+                f = cs(E)
+
+            # for sake of sanity, return zero for values quite below minimum coefficients
+            if f < 1e-4:
+                f = 0.0
+
+
+        #if interp_type=='cubic':
+        #    if interp_scale=='log':
+        #        cs = interp1d(np.log10(np.array(E_list)),np.log10(np.array(f_list)), kind='cubic',fill_value='extrapolate')
+        #        f = 10**cs(np.log10(E))
+        #    else:
+        #        cs = interp1d(np.array(E_list),np.array(f_list), kind='cubic',fill_value='extrapolate')
+        #        f = cs(E)
+        #else:
+        #    if interp_scale=='log':
+        #        f = 10**np.interp(np.log10(E),np.log10(np.array(E_list)),np.log10(np.array(f_list)))
+        #    else:
+        #        f = np.interp(E,np.array(E_list),np.array(f_list))
+
+        #if interp_type=='cubic':
+        #    if interp_scale=='log':
+        #        cs = lagrange(np.log10(np.array(E_list)),np.log10(np.array(f_list)))
+        #        f = 10**cs(np.log10(E))
+        #    else:
+        #        cs = lagrange(np.array(E_list),np.array(f_list))
+        #        f = cs(E)
+        #if interp_type=='cubic':
+        #    if interp_scale=='log':
+        #        cs = CubicSpline(np.log10(np.array(E_list)),np.log10(np.array(f_list)))
+        #        f = 10**cs(np.log10(E))
+        #    else:
+        #        cs = CubicSpline(np.array(E_list),np.array(f_list))
+        #        f = cs(E)
+
+    return f
 
 def split_into_header_and_content(output_file_path):
     '''
