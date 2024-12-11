@@ -83,16 +83,20 @@ import numpy as np
 from munch import *
 from pathlib import Path
 
+
 # default program settings
 launch_GUI = False
 run_with_CLI_inputs = False
-in_debug_mode = False
-#in_debug_mode = True
+in_debug_mode = False # toggles printing of debug messages throughout the code
+#in_debug_mode = True # toggles printing of debug messages throughout the code
+test_explicit_files_dirs = False # used for testing specific files at the bottom of this file
+#test_explicit_files_dirs = True
 
 if __name__ == "__main__":
     #in_debug_mode = True
 
-    if in_debug_mode:
+    if test_explicit_files_dirs:
+        in_debug_mode = True
         pass
     elif len(sys.argv) == 1:
         launch_GUI = True
@@ -486,14 +490,13 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
         import dill
 
     if not return_namedtuple_list and not return_Pandas_dataframe and not save_namedtuple_list and not save_Pandas_dataframe:
-        print('ERROR: All "return_namedtuple_list", "return_Pandas_dataframe", "save_namedtuple_list", and "save_Pandas_dataframe" are False. Enable at least one to use this function.')
-        sys.exit()
+        raise ValueError('ERROR: All "return_namedtuple_list", "return_Pandas_dataframe", "save_namedtuple_list", and "save_Pandas_dataframe" are False. Enable at least one to use this function.')
 
     if dump_data_number == None or dump_data_sequence == None:
         dump_data_number, dump_data_sequence = search_for_dump_parameters(path_to_dump_file)
     if dump_data_number == None or dump_data_sequence == None:
-        print("Please manually specify 'dump_data_number' and 'dump_data_sequence'; these were not inputted and could not be automatically found from an origin tally standard output file.")
-        return None
+        raise ValueError("Please manually specify 'dump_data_number' and 'dump_data_sequence'; these were not inputted and could not be automatically found from an origin tally standard output file.")
+        #return None
 
     if isinstance(dump_data_sequence, str):
         dump_data_sequence = dump_data_sequence.split()
@@ -501,8 +504,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
     dump_file_is_binary = True if (dump_data_number > 0) else False  # if not binary, file will be ASCII
     data_values_per_line = abs(dump_data_number)
     if data_values_per_line != len(dump_data_sequence):
-        print('ERROR: Number of values in "dump_data_sequence" is not equal to "dump_data_number"')
-        sys.exit()
+        raise ValueError('ERROR: Number of values in "dump_data_sequence" is not equal to "dump_data_number"')
 
     # Generate NamedTuple for storing record information
     # See PHITS manual section "6.7.22 dump parameter" for descriptions of these values
@@ -1475,8 +1477,7 @@ def initialize_tally_array(tally_metadata,include_abs_err=True):
     elif tally_metadata['mesh'] == 'point' or tally_metadata['mesh'] == 'ring':
         ir_max = tally_metadata.nreg
     else:
-        print('ERROR! Unknown geometry mesh:', tally_metadata['mesh'])
-        sys.exit()
+        raise ValueError('ERROR! Unknown geometry mesh:'+ str(tally_metadata['mesh']))
 
     if tally_metadata.na != None: ia_max = tally_metadata.na
     if tally_metadata.nt != None: it_max = tally_metadata.nt
@@ -1758,8 +1759,7 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                             elif part_grp_name in meta.part_serial_groups:
                                 ip = (meta.part_serial_groups).index(part_grp_name)
                             else:
-                                print('ERROR! Particle "',part_grp_name,'" could not be identified.')
-                                sys.exit()
+                                raise ValueError('ERROR! Particle "'+part_grp_name+'" could not be identified.')
                         elif mesh_char == 'reg':
                             regnum = part.split('=')[1].strip()
                             ir = (meta.reg_num).index(regnum)
@@ -1812,8 +1812,7 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                                     #iy, iz = -1, -1
                                     # imesh = mesh_kind_chars.index('c')
                                 else:
-                                    print('ERROR! Unregistered potential index [', part.split('=')[0].strip(),'] found')
-                                    sys.exit()
+                                    raise ValueError('ERROR! Unregistered potential index ['+ part.split('=')[0].strip()+'] found')
                                 tdata_ivar_str = tdata_ivar_strs[itdata_axis]
                                 value_str = part.split('=')[1].strip()
                                 if ' - ' in value_str:
@@ -1825,13 +1824,11 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                                 value = str(int(value_str) - 1)
                                 exec(tdata_ivar_str + ' = ' + value, globals())
                             else:
-                                print('ERROR! Unregistered potential index [', part.split('=')[0].strip(), '] found')
-                                sys.exit()
+                                raise ValueError('ERROR! Unregistered potential index ['+ part.split('=')[0].strip()+ '] found')
                         elif meta['tally_type'] == '[T-Heat]':
                             banked_uninterpreted_lines.append(line)
                         else:
-                            print('ERROR! Unregistered potential index [',part.split('=')[0].strip(),'] found')
-                            sys.exit()
+                            raise ValueError('ERROR! Unregistered potential index ['+part.split('=')[0].strip()+'] found')
 
 
             # extract data from table
@@ -1871,14 +1868,12 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
             # by default, this is usually particles (samepage = part by default)
             if meta.samepage == 'part':
                 if meta.npart != ndata_cols:
-                    print('ERROR! samepage number of particle types (',meta.npart,') not equal to number of data columns y(part) = ',ndata_cols)
-                    sys.exit()
+                    raise ValueError('ERROR! samepage number of particle types ('+str(meta.npart)+') not equal to number of data columns y(part) = '+str(ndata_cols))
                 data_ivar = 'ip'
                 data_ivar_indices = [j for j in range(ndata_cols)]
             else: # figure out what axis samepage is on
                 if meta.samepage not in axes_1D:
-                    print('ERROR! samepage parameter (',meta.samepage,') must be "part" or one of valid options for "axis" parameter')
-                    sys.exit()
+                    raise ValueError('ERROR! samepage parameter ('+str(meta.samepage)+') must be "part" or one of valid options for "axis" parameter')
                 data_ivar = tdata_ivar_strs[axes_ital_1D[axes_1D.index(meta.samepage)]]
                 if ndata_cols != eval(data_ivar+'_max'):
                     if meta['tally_type']=='[T-Cross]' and ndata_cols+1 == eval(data_ivar+'_max'):
@@ -1888,8 +1883,7 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                         # This is fine; for T-Cross, ndata cols for radius can be two less than max length if rmin=0...
                         pass
                     else:
-                        print('ERROR! number of data columns (',ndata_cols,') not equal to tally array dimension for ',data_ivar,', ',str(eval(data_ivar+'_max')))
-                        sys.exit()
+                        raise ValueError('ERROR! number of data columns ('+str(ndata_cols)+') not equal to tally array dimension for '+str(data_ivar)+', '+str(eval(data_ivar+'_max')))
                 data_ivar_indices = [j for j in range(ndata_cols)]
             #print(cols)
             #print(ndata_cols)
@@ -2042,14 +2036,11 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                                     iy, iz = -1, -1
                                     ierr_mod = 0
                                 else:
-                                    print('ERROR! Unregistered potential index [', part.split('=')[0].strip(),'] found')
-                                    sys.exit()
+                                    raise ValueError('ERROR! Unregistered potential index ['+ part.split('=')[0].strip()+'] found')
                             else:
-                                print('ERROR! Unregistered potential index [', part.split('=')[0].strip(), '] found')
-                                sys.exit()
+                                raise ValueError('ERROR! Unregistered potential index ['+ part.split('=')[0].strip()+ '] found')
                         else:
-                            print('ERROR! Unregistered potential index [',part.split('=')[0].strip(),'] found')
-                            sys.exit()
+                            raise ValueError('ERROR! Unregistered potential index ['+part.split('=')[0].strip()+'] found')
 
 
             # Now read data_table, with formatting dependent on 2D-type, and can be inferred from last line of header
@@ -2148,9 +2139,10 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                     #axis2_ivar = tdata_ivar_strs.index(ax2_ivar)
                     #print('backwards!')
                 else:
-                    print('ERROR! Unknown axes (',ax1_ivar,ax2_ivar,') encountered that did not match expected axes (',
-                          tdata_ivar_strs[meta.axis_index_of_tally_array[0]],tdata_ivar_strs[meta.axis_index_of_tally_array[1]],')')
-                    sys.exit()
+                    raise ValueError('ERROR! Unknown axes ('+ax1_ivar+' '+ax2_ivar +
+                                     ') encountered that did not match expected axes (' +
+                                     tdata_ivar_strs[meta.axis_index_of_tally_array[0]]+' ' +
+                                     tdata_ivar_strs[meta.axis_index_of_tally_array[1]]+')')
 
                 axis1_ivar_str = tdata_ivar_strs[axis1_ivar]
                 axis2_ivar_str = tdata_ivar_strs[axis2_ivar]
@@ -2258,12 +2250,10 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                         break
 
             else:
-                print('ERROR! unsupported 2D-type of ',meta['2D-type'],' provided; legal values are [1,2,3,4,5,6,7]')
-                sys.exit()
+                raise ValueError('ERROR! unsupported 2D-type of '+str(meta['2D-type'])+' provided; legal values are [1,2,3,4,5,6,7]')
 
     else:
-        print(meta.axis_dimensions,'axis dimensions is unknown, ERROR!')
-        sys.exit()
+        raise ValueError(str(meta.axis_dimensions)+'axis dimensions is unknown, ERROR!')
 
     if len(banked_uninterpreted_lines) != 0:
         print('The following potentially useful output lines were found but not stored anywhere:')
@@ -2735,8 +2725,7 @@ if run_with_CLI_inputs:
     is_path_a_file = output_file_path.is_file()
 
     if not is_path_a_file and not is_path_a_dir:
-        print("ERROR! The inputted filepath is neither a recognized file nor directory.")
-        sys.exit()
+        raise ValueError("ERROR! The inputted filepath is neither a recognized file nor directory.")
 
     # directory options
     recursive_search = args.recursive_search
@@ -2784,14 +2773,12 @@ if run_with_CLI_inputs:
             if dump_data_number == None:
                 dump_data_number, dump_data_sequence = search_for_dump_parameters(output_file_path)
                 if dump_data_number == None or dump_data_sequence == None:
-                    print('You MUST provide a space-delimited list of integers to the -dvals / --dump_data_sequence input specifying ' +
+                    raise ValueError('You MUST provide a space-delimited list of integers to the -dvals / --dump_data_sequence input specifying ' +
                           'how the data columns in the dump file are to be interpreted, the same as the line following "dump = " in your PHITS tally input. ' +
                           'An attempt was made to automatically find these values, but it failed (thus, manual specification is required).')
-                    sys.exit()
             if no_save_namedtuple_list and no_save_Pandas_dataframe:
-                print('You MUST select how the dump file data is to be saved by disabling either or both of the following flags:' +
+                raise ValueError('You MUST select how the dump file data is to be saved by disabling either or both of the following flags:' +
                       ' -dsl / --dump_save_namedtuple_list AND/OR -dsp / --dump_save_Pandas_dataframe')
-                sys.exit()
             parse_tally_dump_file(output_file_path, dump_data_number, dump_data_sequence,
                                   return_directional_info=return_directional_info, use_degrees=use_degrees,
                                   max_entries_read=max_entries_read,
@@ -3128,11 +3115,10 @@ elif launch_GUI:
         if dump_data_number == None:
             dump_data_number, dump_data_sequence = search_for_dump_parameters(output_file_path)
             if dump_data_number == None or dump_data_sequence == None:
-                print(
+                raise ValueError(
                     'You MUST provide a space-delimited list of integers to the -dvals / --dump_data_sequence input specifying ' +
                     'how the data columns in the dump file are to be interpreted, the same as the line following "dump = " in your PHITS tally input. ' +
                     'An attempt was made to automatically find these values, but it failed (thus, manual specification is required).')
-                sys.exit()
         parse_tally_dump_file(output_file_path, dump_data_number, dump_data_sequence,
                               return_directional_info=return_directional_info, use_degrees=use_degrees,
                               max_entries_read=max_entries_read,
@@ -3186,8 +3172,7 @@ elif launch_GUI:
                                       )
 
     else:
-        print('ERROR: Main mode for PHITS Tools not selected correctly in first GUI')
-        sys.exit()
+        raise ValueError('ERROR: Main mode for PHITS Tools not selected correctly in first GUI')
 
 
 
@@ -3196,7 +3181,7 @@ elif launch_GUI:
 
 
 
-elif in_debug_mode:
+elif test_explicit_files_dirs:
     #base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\\'
     #output_file_path = Path(base_path + 't-deposit\deposit_reg.out')
     #output_file_path = Path(base_path + 't-deposit\deposit_eng_sp-reg.out')
