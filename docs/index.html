@@ -561,6 +561,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
         - `from scipy.io import FortranFile`
         - `import pandas as pd` (if `return_Pandas_dataframe = True`)
         - `import dill` (if `save_namedtuple_list = True`)
+        - `import lzma` (if `save_namedtuple_list = True`)
 
     Inputs:
        (required)
@@ -590,8 +591,11 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
                  of the dump file to be read.  By default, all records in the dump file are read.
         - `return_namedtuple_list` = (optional, D=`True`) Boolean designating whether `dump_data_list` is returned.
         - `return_Pandas_dataframe` = (optional, D=`True`) Boolean designating whether `dump_data_frame` is returned.
-        - `save_namedtuple_list` = (optional, D=`False`) Boolean designating whether `dump_data_list` is saved to a dill file
+        - `save_namedtuple_list` = (optional, D=`False`) Boolean designating whether `dump_data_list` is saved to a dill file,
+                which will be compressed with LZMA (built-in with Python)
                 (for complicated reasons, objects containing namedtuples cannot be easily saved with pickle but can with dill).
+                This *.dill.xz file can then be opened (after importing `dill` and `lzma`) as:
+                `with lzma.open(path_to_dillxz_file, &#39;rb&#39;) as file: dump_data_list = dill.load(file)`
         - `save_Pandas_dataframe` = (optional, D=`False`) Boolean designating whether `dump_data_frame` is saved to a pickle
                 file (via Pandas .to_pickle()).
 
@@ -709,9 +713,10 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
     #print(record)
 
     if save_namedtuple_list:
+        import lzma
         path_to_dump_file = Path(path_to_dump_file)
-        pickle_path = Path(path_to_dump_file.parent, path_to_dump_file.stem + &#39;_namedtuple_list.dill&#39;)
-        with open(pickle_path, &#39;wb&#39;) as handle:
+        pickle_path = Path(path_to_dump_file.parent, path_to_dump_file.stem + &#39;_namedtuple_list.dill.xz&#39;)
+        with lzma.open(pickle_path, &#39;wb&#39;) as handle:
             dill.dump(records_list, handle, protocol=dill.HIGHEST_PROTOCOL)
             print(&#39;Pickle file written:&#39;, pickle_path, &#39;\n&#39;)
 
@@ -4620,6 +4625,7 @@ the yield results of production of carbon-14 (C-14), one would use the following
 <li><code>from scipy.io import FortranFile</code></li>
 <li><code>import pandas as pd</code> (if <code>return_Pandas_dataframe = True</code>)</li>
 <li><code>import dill</code> (if <code>save_namedtuple_list = True</code>)</li>
+<li><code>import lzma</code> (if <code>save_namedtuple_list = True</code>)</li>
 </ul>
 <h2 id="inputs">Inputs</h2>
 <p>(required)</p>
@@ -4651,8 +4657,11 @@ of the dump file to be read.
 By default, all records in the dump file are read.</li>
 <li><code>return_namedtuple_list</code> = (optional, D=<code>True</code>) Boolean designating whether <code>dump_data_list</code> is returned.</li>
 <li><code>return_Pandas_dataframe</code> = (optional, D=<code>True</code>) Boolean designating whether <code>dump_data_frame</code> is returned.</li>
-<li><code>save_namedtuple_list</code> = (optional, D=<code>False</code>) Boolean designating whether <code>dump_data_list</code> is saved to a dill file
-(for complicated reasons, objects containing namedtuples cannot be easily saved with pickle but can with dill).</li>
+<li><code>save_namedtuple_list</code> = (optional, D=<code>False</code>) Boolean designating whether <code>dump_data_list</code> is saved to a dill file,
+which will be compressed with LZMA (built-in with Python)
+(for complicated reasons, objects containing namedtuples cannot be easily saved with pickle but can with dill).
+This *.dill.xz file can then be opened (after importing <code>dill</code> and <code>lzma</code>) as:
+<code>with lzma.open(path_to_dillxz_file, 'rb') as file: dump_data_list = dill.load(file)</code></li>
 <li><code>save_Pandas_dataframe</code> = (optional, D=<code>False</code>) Boolean designating whether <code>dump_data_frame</code> is saved to a pickle
 file (via Pandas .to_pickle()).</li>
 </ul>
@@ -4683,6 +4692,7 @@ and rows for each record included in the dump file.</li>
         - `from scipy.io import FortranFile`
         - `import pandas as pd` (if `return_Pandas_dataframe = True`)
         - `import dill` (if `save_namedtuple_list = True`)
+        - `import lzma` (if `save_namedtuple_list = True`)
 
     Inputs:
        (required)
@@ -4712,8 +4722,11 @@ and rows for each record included in the dump file.</li>
                  of the dump file to be read.  By default, all records in the dump file are read.
         - `return_namedtuple_list` = (optional, D=`True`) Boolean designating whether `dump_data_list` is returned.
         - `return_Pandas_dataframe` = (optional, D=`True`) Boolean designating whether `dump_data_frame` is returned.
-        - `save_namedtuple_list` = (optional, D=`False`) Boolean designating whether `dump_data_list` is saved to a dill file
+        - `save_namedtuple_list` = (optional, D=`False`) Boolean designating whether `dump_data_list` is saved to a dill file,
+                which will be compressed with LZMA (built-in with Python)
                 (for complicated reasons, objects containing namedtuples cannot be easily saved with pickle but can with dill).
+                This *.dill.xz file can then be opened (after importing `dill` and `lzma`) as:
+                `with lzma.open(path_to_dillxz_file, &#39;rb&#39;) as file: dump_data_list = dill.load(file)`
         - `save_Pandas_dataframe` = (optional, D=`False`) Boolean designating whether `dump_data_frame` is saved to a pickle
                 file (via Pandas .to_pickle()).
 
@@ -4831,9 +4844,10 @@ and rows for each record included in the dump file.</li>
     #print(record)
 
     if save_namedtuple_list:
+        import lzma
         path_to_dump_file = Path(path_to_dump_file)
-        pickle_path = Path(path_to_dump_file.parent, path_to_dump_file.stem + &#39;_namedtuple_list.dill&#39;)
-        with open(pickle_path, &#39;wb&#39;) as handle:
+        pickle_path = Path(path_to_dump_file.parent, path_to_dump_file.stem + &#39;_namedtuple_list.dill.xz&#39;)
+        with lzma.open(pickle_path, &#39;wb&#39;) as handle:
             dill.dump(records_list, handle, protocol=dill.HIGHEST_PROTOCOL)
             print(&#39;Pickle file written:&#39;, pickle_path, &#39;\n&#39;)
 
