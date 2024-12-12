@@ -579,7 +579,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
                     dir_vector = [rawrecord.u, rawrecord.v, rawrecord.w]
                     theta = np.arccos(np.clip(np.dot(dir_vector, [0, 0, 1]), -1.0, 1.0)) * angle_units_mult
                     phi = np.arctan2(rawrecord.y, rawrecord.x) * angle_units_mult
-                    record = Record(*raw_values, r, theta, phi)
+                    record = Record(*raw_values, r, rho, theta, phi)
                     records_list.append(record)
         else: # just return data in dump file
             with open(path_to_dump_file, 'r') as f:
