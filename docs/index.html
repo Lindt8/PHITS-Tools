@@ -306,7 +306,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
         - `5` | `ia`, Angle mesh
         - `6` | `il`, LET mesh
         - `7` | `ip`, Particle type (`part = `)
-        - `8` | `ic`, Special: [T-Deposit2] `eng2`; [T-Yield] `mass`, `charge`, `chart`
+        - `8` | `ic`, Special: [T-Deposit2] `eng2`; [T-Yield] `mass`, `charge`, `chart`; [T-Interact] `act`
         - `9` | `ierr = 0/1/2`, Value / relative uncertainty / absolute uncertainty (expanded to `3/4/5`, or `2/3` if
         `calculate_absolute_errors = False`, for [T-Cross] `mesh=r-z` with `enclos=0` case; see notes further below)
 
@@ -698,7 +698,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
                     dir_vector = [rawrecord.u, rawrecord.v, rawrecord.w]
                     theta = np.arccos(np.clip(np.dot(dir_vector, [0, 0, 1]), -1.0, 1.0)) * angle_units_mult
                     phi = np.arctan2(rawrecord.y, rawrecord.x) * angle_units_mult
-                    record = Record(*raw_values, r, theta, phi)
+                    record = Record(*raw_values, r, rho, theta, phi)
                     records_list.append(record)
         else: # just return data in dump file
             with open(path_to_dump_file, &#39;r&#39;) as f:
@@ -1874,13 +1874,14 @@ def parse_group_string(text):
             curly_vals = []
             groups += curly_int_strs
         else:
-            if in_brackets_group:
-                if num_group_members&gt;0: groups[-1] += &#39; &#39;
-                groups[-1] += i
-                num_group_members += 1
-            elif in_curly_brace_group:
-                if i != &#39;-&#39;:
-                    curly_vals.append(i)
+            if in_brackets_group or in_curly_brace_group:
+                if in_brackets_group:
+                    if num_group_members&gt;0: groups[-1] += &#39; &#39;
+                    groups[-1] += i
+                    num_group_members += 1
+                if in_curly_brace_group:
+                    if i != &#39;-&#39;:
+                        curly_vals.append(i)
             else:
                 groups.append(i)
     #print(groups)
@@ -1905,7 +1906,7 @@ def parse_tally_header(tally_header,tally_content):
 
     &#39;&#39;&#39;
     nlines = len(tally_header)
-    tally_type = tally_header[0].replace(&#39; &#39;,&#39;&#39;)
+    tally_type = tally_header[0].replace(&#39; &#39;,&#39;&#39;).replace(&#39;off&#39;,&#39;&#39;)
     if &#39;[&#39; not in tally_type and &#39;]&#39; not in tally_type: # file is not PHITS tally output
         if &#39;htitle&#39; in tally_type:
             tally_type = &#39;[T-Dchain]&#39;
@@ -1969,12 +1970,13 @@ def parse_tally_header(tally_header,tally_content):
                     meta[&#39;npart&#39;] = len(part_groups)
                     meta[&#39;part_serial_groups&#39;] = [&#39;p&#39;+str(gi+1)+&#39;-group&#39; for gi in range(len(part_groups))]
                 else: # an additional occurance of part?
-                    for pi,pg in enumerate(part_groups):
-                        if pg not in meta[&#39;part_groups&#39;]:
-                            meta[&#39;part_groups&#39;] += [pg]
-                            meta[&#39;kf_groups&#39;] += kf_groups[pi]
-                            meta[&#39;npart&#39;] += 1
-                            meta[&#39;part_serial_groups&#39;] += [&#39;p&#39; + str(pi + 1) + &#39;-group&#39;]
+                    if &#39;multiplier&#39; not in tally_header[li - 1]: # the multiplier can also be followed by an erroneous &#34;part&#34; specification
+                        for pi,pg in enumerate(part_groups):
+                            if pg not in meta[&#39;part_groups&#39;]:
+                                meta[&#39;part_groups&#39;] += [pg]
+                                meta[&#39;kf_groups&#39;] += kf_groups[pi]
+                                meta[&#39;npart&#39;] += 1
+                                meta[&#39;part_serial_groups&#39;] += [&#39;p&#39; + str(pi + 1) + &#39;-group&#39;]
             if key==&#39;reg&#39;:
                 if meta[&#39;tally_type&#39;]==&#39;[T-Cross]&#39;:
                     num_regs = value
@@ -1988,7 +1990,12 @@ def parse_tally_header(tally_header,tally_content):
                         meta[&#39;reg_groups&#39;].append(rfrom+&#39; - &#39;+rto)
                 else:
                     reg_groups = parse_group_string(str(value))
-                    if &#39;all&#39; in reg_groups and &#39;volume&#39; in tally_header[li+1] and &#39;=&#39; not in tally_header[li+1]:
+                    eli = 0 # extra line index
+                    if &#39;=&#39; not in tally_header[eli+li+1] and &#39;volume&#39; not in tally_header[eli+li+1]: # reg specification continues to next line
+                        while &#39;=&#39; not in tally_header[eli+li+1] and &#39;volume&#39; not in tally_header[eli+li+1]:
+                            reg_groups += parse_group_string(tally_header[eli+li+1].strip())
+                            eli += 1
+                    if &#39;all&#39; in reg_groups and &#39;volume&#39; in tally_header[li+1] and &#39;=&#39; not in tally_header[eli+li+1]:
                         # parse table of regions...
                         found_reg_grps = []
                         meta[&#39;reg_groups_inputted&#39;] = reg_groups
@@ -2106,10 +2113,10 @@ def parse_tally_header(tally_header,tally_content):
                 meta[&#39;nreg&#39;] = meta[&#39;ring&#39;]
 
 
-    axes_1D = [&#39;eng&#39;,&#39;reg&#39;,&#39;x&#39;,&#39;y&#39;,&#39;z&#39;,&#39;r&#39;,&#39;t&#39;,&#39;cos&#39;,&#39;the&#39;,&#39;mass&#39;,&#39;charge&#39;,&#39;let&#39;,&#39;tet&#39;,&#39;eng1&#39;,&#39;eng2&#39;,&#39;sed&#39;,&#39;rad&#39;,&#39;deg&#39;]
+    axes_1D = [&#39;eng&#39;,&#39;reg&#39;,&#39;x&#39;,&#39;y&#39;,&#39;z&#39;,&#39;r&#39;,&#39;t&#39;,&#39;cos&#39;,&#39;the&#39;,&#39;mass&#39;,&#39;charge&#39;,&#39;let&#39;,&#39;tet&#39;,&#39;eng1&#39;,&#39;eng2&#39;,&#39;sed&#39;,&#39;rad&#39;,&#39;deg&#39;,&#39;act&#39;]
     axes_2D = [&#39;xy&#39;,&#39;yz&#39;,&#39;zx&#39;,&#39;rz&#39;,&#39;chart&#39;,&#39;dchain&#39;,&#39;t-eng&#39;,&#39;eng-t&#39;,&#39;t-e1&#39;,&#39;e1-t&#39;,&#39;t-e2&#39;,&#39;e2-t&#39;,&#39;e12&#39;,&#39;e21&#39;,&#39;xz&#39;,&#39;yx&#39;,&#39;zy&#39;,&#39;zr&#39;]
 
-    axes_ital_1D = [3,   0,  0,  1,  2,  0,  4,    5,    5,     8,       8,    6,    0,     3,     8,    3,    5,    5]
+    axes_ital_1D = [3,   0,  0,  1,  2,  0,  4,    5,    5,     8,       8,    6,    0,     3,     8,    3,    5,    5,   8]
     axes_ital_2D = [ [0,1],[1,2],[2,0],[0,2],[None,None],[None,None],[4,3],[3,4],[4,3],[3,4],[4,8],[8,4],[3,8],[8,3],[0,2],[1,0],[2,1],[2,0]]
 
 
@@ -2247,7 +2254,8 @@ def parse_tally_header(tally_header,tally_content):
                             elif m == &#39;l&#39;:
                                 meta[&#39;samepage&#39;] = &#39;let&#39;
                             elif m == &#39;a&#39;:
-                                meta[&#39;samepage&#39;] = &#39;the&#39; # or cos
+                                if first_data_col_header[:3] not in [&#39;all&#39;,&#39;alp&#39;]:
+                                    meta[&#39;samepage&#39;] = &#39;the&#39; # or cos
                             else:
                                 meta[&#39;samepage&#39;] = m
                     if meta[&#39;samepage&#39;] == &#39;part&#39;:  # still is default value
@@ -2388,6 +2396,11 @@ def initialize_tally_array(tally_metadata,include_abs_err=True):
                 ic_max = 10000
             else:
                 ic_max = int(tally_metadata.mxnuclei)
+
+    if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Interact]&#39; and tally_metadata[&#39;axis&#39;] == &#39;act&#39;:
+        ic_max = 100
+        if &#39;maxact&#39; in tally_metadata:
+            ic_max = tally_metadata.maxact
 
     if in_debug_mode:
         dims_str = &#39;tally dims: nr={:g}, ny={:g}, nz={:g}, ne={:g}, nt={:g}, na={:g}, nl={:g}, np={:g}, nc={:g}, nerr={:g}&#39;
@@ -2532,13 +2545,13 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
     ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max, ierr_max = np.shape(tdata)
 
     axes_1D = [&#39;eng&#39;, &#39;reg&#39;, &#39;x&#39;, &#39;y&#39;, &#39;z&#39;, &#39;r&#39;, &#39;t&#39;, &#39;cos&#39;, &#39;the&#39;, &#39;mass&#39;, &#39;charge&#39;, &#39;let&#39;, &#39;tet&#39;, &#39;eng1&#39;, &#39;eng2&#39;,
-               &#39;sed&#39;, &#39;rad&#39;, &#39;deg&#39;]
+               &#39;sed&#39;, &#39;rad&#39;, &#39;deg&#39;, &#39;act&#39;]
     axes_2D = [&#39;xy&#39;, &#39;yz&#39;, &#39;zx&#39;, &#39;rz&#39;, &#39;chart&#39;, &#39;dchain&#39;,
                &#39;t-eng&#39;, &#39;eng-t&#39;, &#39;t-e1&#39;, &#39;e1-t&#39;, &#39;t-e2&#39;, &#39;e2-t&#39;,
                &#39;e12&#39;, &#39;e21&#39;, &#39;xz&#39;, &#39;yx&#39;, &#39;zy&#39;, &#39;zr&#39;]
 
     axes_ital_1D = [3, 0, 0, 1, 2, 0, 4, 5, 5, 8, 8, 6, 0, 3, 8,
-                    3, 5, 5]
+                    3, 5, 5, 8]
     axes_ital_2D = [[0, 1], [1, 2], [2, 0], [0, 2], [None, None], [None, None],
                     [4, 3], [3, 4], [4, 3], [3, 4], [4, 8], [8, 4],
                     [3, 8], [8, 3], [0, 2], [1, 0], [2, 1], [2, 0]]
@@ -2572,6 +2585,7 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
             data_footer = block[fli:]
 
             if bi == len(tally_blocks) - 1:
+                ffli = len(data_footer)
                 for li, line in enumerate(data_footer):
                     if line[:37] == &#39;# Information for Restart Calculation&#39;:
                         ffli = li
@@ -4101,7 +4115,13 @@ elif test_explicit_files_dirs:
     #output_file_path = Path(base_path + r&#39;sample\icrp\mrcp\External\result\Dose_MRCP-AF_reg.out&#39;)
     #output_file_path = Path(base_path + r&#39;sample\misc\batch_source\track_yz_001.out&#39;)
     #output_file_path = Path(base_path + r&#39;sample\source\Cosmicray\GCR-ground\cross.out&#39;)
-    output_file_path = Path(base_path + r&#39;recommendation\Fusion\track.out&#39;)
+    #output_file_path = Path(base_path + r&#39;recommendation\Fusion\track.out&#39;)
+    #output_file_path = Path(base_path + r&#39;sample\benchmark\Iwamoto-JNST2022\case5-isis800\output\rr_air_model.out&#39;)
+    #output_file_path = Path(base_path + r&#39;recommendation\muon\product.out&#39;)
+    #output_file_path = Path(base_path + r&#39;recommendation\BNCT\dose.out&#39;)
+    #output_file_path = Path(base_path + r&#39;recommendation\SemiConductor\deposit.out&#39;)
+    #output_file_path = Path(base_path + r&#39;recommendation\Shielding\track-rz.out&#39;)
+    output_file_path = Path(base_path + r&#39;recommendation\TrackStructure\interact.out&#39;)
 
 
     test_parsing_of_dir = False #True
@@ -4227,7 +4247,7 @@ This is achieved with a 10-dimensional array accessible as</p>
 <li><code>5</code> | <code>ia</code>, Angle mesh</li>
 <li><code>6</code> | <code>il</code>, LET mesh</li>
 <li><code>7</code> | <code>ip</code>, Particle type (<code>part =</code>)</li>
-<li><code>8</code> | <code>ic</code>, Special: [T-Deposit2] <code>eng2</code>; [T-Yield] <code>mass</code>, <code>charge</code>, <code>chart</code></li>
+<li><code>8</code> | <code>ic</code>, Special: [T-Deposit2] <code>eng2</code>; [T-Yield] <code>mass</code>, <code>charge</code>, <code>chart</code>; [T-Interact] <code>act</code></li>
 <li><code>9</code> | <code>ierr = 0/1/2</code>, Value / relative uncertainty / absolute uncertainty (expanded to <code>3/4/5</code>, or <code>2/3</code> if
 <code>calculate_absolute_errors = False</code>, for [T-Cross] <code>mesh=r-z</code> with <code>enclos=0</code> case; see notes further below)</li>
 </ul>
@@ -4371,7 +4391,7 @@ the yield results of production of carbon-14 (C-14), one would use the following
         - `5` | `ia`, Angle mesh
         - `6` | `il`, LET mesh
         - `7` | `ip`, Particle type (`part = `)
-        - `8` | `ic`, Special: [T-Deposit2] `eng2`; [T-Yield] `mass`, `charge`, `chart`
+        - `8` | `ic`, Special: [T-Deposit2] `eng2`; [T-Yield] `mass`, `charge`, `chart`; [T-Interact] `act`
         - `9` | `ierr = 0/1/2`, Value / relative uncertainty / absolute uncertainty (expanded to `3/4/5`, or `2/3` if
         `calculate_absolute_errors = False`, for [T-Cross] `mesh=r-z` with `enclos=0` case; see notes further below)
 
@@ -4829,7 +4849,7 @@ and rows for each record included in the dump file.</li>
                     dir_vector = [rawrecord.u, rawrecord.v, rawrecord.w]
                     theta = np.arccos(np.clip(np.dot(dir_vector, [0, 0, 1]), -1.0, 1.0)) * angle_units_mult
                     phi = np.arctan2(rawrecord.y, rawrecord.x) * angle_units_mult
-                    record = Record(*raw_values, r, theta, phi)
+                    record = Record(*raw_values, r, rho, theta, phi)
                     records_list.append(record)
         else: # just return data in dump file
             with open(path_to_dump_file, &#39;r&#39;) as f:
@@ -6515,13 +6535,14 @@ broken into "blocks" ("newpage:"-separated) which are lists of lines belonging t
             curly_vals = []
             groups += curly_int_strs
         else:
-            if in_brackets_group:
-                if num_group_members&gt;0: groups[-1] += &#39; &#39;
-                groups[-1] += i
-                num_group_members += 1
-            elif in_curly_brace_group:
-                if i != &#39;-&#39;:
-                    curly_vals.append(i)
+            if in_brackets_group or in_curly_brace_group:
+                if in_brackets_group:
+                    if num_group_members&gt;0: groups[-1] += &#39; &#39;
+                    groups[-1] += i
+                    num_group_members += 1
+                if in_curly_brace_group:
+                    if i != &#39;-&#39;:
+                        curly_vals.append(i)
             else:
                 groups.append(i)
     #print(groups)
@@ -6572,7 +6593,7 @@ broken into "blocks" ("newpage:"-separated) which are lists of lines belonging t
 
     &#39;&#39;&#39;
     nlines = len(tally_header)
-    tally_type = tally_header[0].replace(&#39; &#39;,&#39;&#39;)
+    tally_type = tally_header[0].replace(&#39; &#39;,&#39;&#39;).replace(&#39;off&#39;,&#39;&#39;)
     if &#39;[&#39; not in tally_type and &#39;]&#39; not in tally_type: # file is not PHITS tally output
         if &#39;htitle&#39; in tally_type:
             tally_type = &#39;[T-Dchain]&#39;
@@ -6636,12 +6657,13 @@ broken into "blocks" ("newpage:"-separated) which are lists of lines belonging t
                     meta[&#39;npart&#39;] = len(part_groups)
                     meta[&#39;part_serial_groups&#39;] = [&#39;p&#39;+str(gi+1)+&#39;-group&#39; for gi in range(len(part_groups))]
                 else: # an additional occurance of part?
-                    for pi,pg in enumerate(part_groups):
-                        if pg not in meta[&#39;part_groups&#39;]:
-                            meta[&#39;part_groups&#39;] += [pg]
-                            meta[&#39;kf_groups&#39;] += kf_groups[pi]
-                            meta[&#39;npart&#39;] += 1
-                            meta[&#39;part_serial_groups&#39;] += [&#39;p&#39; + str(pi + 1) + &#39;-group&#39;]
+                    if &#39;multiplier&#39; not in tally_header[li - 1]: # the multiplier can also be followed by an erroneous &#34;part&#34; specification
+                        for pi,pg in enumerate(part_groups):
+                            if pg not in meta[&#39;part_groups&#39;]:
+                                meta[&#39;part_groups&#39;] += [pg]
+                                meta[&#39;kf_groups&#39;] += kf_groups[pi]
+                                meta[&#39;npart&#39;] += 1
+                                meta[&#39;part_serial_groups&#39;] += [&#39;p&#39; + str(pi + 1) + &#39;-group&#39;]
             if key==&#39;reg&#39;:
                 if meta[&#39;tally_type&#39;]==&#39;[T-Cross]&#39;:
                     num_regs = value
@@ -6655,7 +6677,12 @@ broken into "blocks" ("newpage:"-separated) which are lists of lines belonging t
                         meta[&#39;reg_groups&#39;].append(rfrom+&#39; - &#39;+rto)
                 else:
                     reg_groups = parse_group_string(str(value))
-                    if &#39;all&#39; in reg_groups and &#39;volume&#39; in tally_header[li+1] and &#39;=&#39; not in tally_header[li+1]:
+                    eli = 0 # extra line index
+                    if &#39;=&#39; not in tally_header[eli+li+1] and &#39;volume&#39; not in tally_header[eli+li+1]: # reg specification continues to next line
+                        while &#39;=&#39; not in tally_header[eli+li+1] and &#39;volume&#39; not in tally_header[eli+li+1]:
+                            reg_groups += parse_group_string(tally_header[eli+li+1].strip())
+                            eli += 1
+                    if &#39;all&#39; in reg_groups and &#39;volume&#39; in tally_header[li+1] and &#39;=&#39; not in tally_header[eli+li+1]:
                         # parse table of regions...
                         found_reg_grps = []
                         meta[&#39;reg_groups_inputted&#39;] = reg_groups
@@ -6773,10 +6800,10 @@ broken into "blocks" ("newpage:"-separated) which are lists of lines belonging t
                 meta[&#39;nreg&#39;] = meta[&#39;ring&#39;]
 
 
-    axes_1D = [&#39;eng&#39;,&#39;reg&#39;,&#39;x&#39;,&#39;y&#39;,&#39;z&#39;,&#39;r&#39;,&#39;t&#39;,&#39;cos&#39;,&#39;the&#39;,&#39;mass&#39;,&#39;charge&#39;,&#39;let&#39;,&#39;tet&#39;,&#39;eng1&#39;,&#39;eng2&#39;,&#39;sed&#39;,&#39;rad&#39;,&#39;deg&#39;]
+    axes_1D = [&#39;eng&#39;,&#39;reg&#39;,&#39;x&#39;,&#39;y&#39;,&#39;z&#39;,&#39;r&#39;,&#39;t&#39;,&#39;cos&#39;,&#39;the&#39;,&#39;mass&#39;,&#39;charge&#39;,&#39;let&#39;,&#39;tet&#39;,&#39;eng1&#39;,&#39;eng2&#39;,&#39;sed&#39;,&#39;rad&#39;,&#39;deg&#39;,&#39;act&#39;]
     axes_2D = [&#39;xy&#39;,&#39;yz&#39;,&#39;zx&#39;,&#39;rz&#39;,&#39;chart&#39;,&#39;dchain&#39;,&#39;t-eng&#39;,&#39;eng-t&#39;,&#39;t-e1&#39;,&#39;e1-t&#39;,&#39;t-e2&#39;,&#39;e2-t&#39;,&#39;e12&#39;,&#39;e21&#39;,&#39;xz&#39;,&#39;yx&#39;,&#39;zy&#39;,&#39;zr&#39;]
 
-    axes_ital_1D = [3,   0,  0,  1,  2,  0,  4,    5,    5,     8,       8,    6,    0,     3,     8,    3,    5,    5]
+    axes_ital_1D = [3,   0,  0,  1,  2,  0,  4,    5,    5,     8,       8,    6,    0,     3,     8,    3,    5,    5,   8]
     axes_ital_2D = [ [0,1],[1,2],[2,0],[0,2],[None,None],[None,None],[4,3],[3,4],[4,3],[3,4],[4,8],[8,4],[3,8],[8,3],[0,2],[1,0],[2,1],[2,0]]
 
 
@@ -6914,7 +6941,8 @@ broken into "blocks" ("newpage:"-separated) which are lists of lines belonging t
                             elif m == &#39;l&#39;:
                                 meta[&#39;samepage&#39;] = &#39;let&#39;
                             elif m == &#39;a&#39;:
-                                meta[&#39;samepage&#39;] = &#39;the&#39; # or cos
+                                if first_data_col_header[:3] not in [&#39;all&#39;,&#39;alp&#39;]:
+                                    meta[&#39;samepage&#39;] = &#39;the&#39; # or cos
                             else:
                                 meta[&#39;samepage&#39;] = m
                     if meta[&#39;samepage&#39;] == &#39;part&#39;:  # still is default value
@@ -7080,6 +7108,11 @@ broken into "blocks" ("newpage:"-separated) which are lists of lines belonging t
                 ic_max = 10000
             else:
                 ic_max = int(tally_metadata.mxnuclei)
+
+    if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Interact]&#39; and tally_metadata[&#39;axis&#39;] == &#39;act&#39;:
+        ic_max = 100
+        if &#39;maxact&#39; in tally_metadata:
+            ic_max = tally_metadata.maxact
 
     if in_debug_mode:
         dims_str = &#39;tally dims: nr={:g}, ny={:g}, nz={:g}, ne={:g}, nt={:g}, na={:g}, nl={:g}, np={:g}, nc={:g}, nerr={:g}&#39;
@@ -7295,13 +7328,13 @@ as is necessary when processing dedicated *_err files.</li>
     ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max, ierr_max = np.shape(tdata)
 
     axes_1D = [&#39;eng&#39;, &#39;reg&#39;, &#39;x&#39;, &#39;y&#39;, &#39;z&#39;, &#39;r&#39;, &#39;t&#39;, &#39;cos&#39;, &#39;the&#39;, &#39;mass&#39;, &#39;charge&#39;, &#39;let&#39;, &#39;tet&#39;, &#39;eng1&#39;, &#39;eng2&#39;,
-               &#39;sed&#39;, &#39;rad&#39;, &#39;deg&#39;]
+               &#39;sed&#39;, &#39;rad&#39;, &#39;deg&#39;, &#39;act&#39;]
     axes_2D = [&#39;xy&#39;, &#39;yz&#39;, &#39;zx&#39;, &#39;rz&#39;, &#39;chart&#39;, &#39;dchain&#39;,
                &#39;t-eng&#39;, &#39;eng-t&#39;, &#39;t-e1&#39;, &#39;e1-t&#39;, &#39;t-e2&#39;, &#39;e2-t&#39;,
                &#39;e12&#39;, &#39;e21&#39;, &#39;xz&#39;, &#39;yx&#39;, &#39;zy&#39;, &#39;zr&#39;]
 
     axes_ital_1D = [3, 0, 0, 1, 2, 0, 4, 5, 5, 8, 8, 6, 0, 3, 8,
-                    3, 5, 5]
+                    3, 5, 5, 8]
     axes_ital_2D = [[0, 1], [1, 2], [2, 0], [0, 2], [None, None], [None, None],
                     [4, 3], [3, 4], [4, 3], [3, 4], [4, 8], [8, 4],
                     [3, 8], [8, 3], [0, 2], [1, 0], [2, 1], [2, 0]]
@@ -7335,6 +7368,7 @@ as is necessary when processing dedicated *_err files.</li>
             data_footer = block[fli:]
 
             if bi == len(tally_blocks) - 1:
+                ffli = len(data_footer)
                 for li, line in enumerate(data_footer):
                     if line[:37] == &#39;# Information for Restart Calculation&#39;:
                         ffli = li

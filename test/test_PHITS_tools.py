@@ -1,6 +1,7 @@
 import PHITS_tools
 from pathlib import Path
 from traceback import format_exc
+import re
 
 path_to_phits_base_folder = Path('C:\phits')
 
@@ -33,16 +34,27 @@ i = 0
 num_passed = 0
 num_failed = 0
 num_warn = 0
-known_issue_files = []
+known_issue_files = [r'phits\sample\source\Cosmicray\GCR-ground\cross.out',
+                     r'phits\sample\source\Cosmicray\GCR-LEO\cross.out',
+                     r'phits\sample\source\Cosmicray\GCR-space\cross.out',
+                     r'phits\sample\source\Cosmicray\SEP-space\cross.out',
+                     r'phits\sample\source\Cosmicray\TP-LEO\cross.out']
 for f in files_to_parse:
     i += 1
     test_num_str = '{:3d}/{:3d}'.format(i,num_tests)
     try:
-        x = PHITS_tools.parse_tally_output_file(f,save_output_pickle=False)
+        if '_dmp.out' in str(f):
+            x = PHITS_tools.parse_tally_dump_file(f, save_namedtuple_list=False, save_Pandas_dataframe=False)
+        else:
+            x = PHITS_tools.parse_tally_output_file(f,save_output_pickle=False)
         log_str = test_num_str + '     pass  ' + str(f) + '\n'
         num_passed += 1
     except Exception as e:
-        log_str = test_num_str + '  x  FAIL  ' + str(f) + '\n'
+        if re.sub(r'^.*?phits', 'phits', str(f)) in known_issue_files:
+            log_str = test_num_str + '  !  WARN  ' + str(f) + '\n'
+            num_warn += 1
+        else:
+            log_str = test_num_str + '  x  FAIL  ' + str(f) + '\n'
         log_str += '\t\t' + repr(e) + '\n'
         log_str += '\t\t' + format_exc().replace('\n','\n\t\t')
         log_str = log_str[:-2]
@@ -51,8 +63,8 @@ for f in files_to_parse:
     log_file_str += log_str
 
 log_str =  '\n{:3d} of {:3d} tests passed\n'.format(num_passed,num_tests)
-log_str += '{:3d} of {:3d} tests failed\n'.format(num_failed,num_tests)
-log_str += '{:3d} of {:3d} the failed tests are from old distributed files and should succeed if the PHITS input is reran.\n'.format(num_warn,num_failed)
+log_str += '{:3d} of {:3d} tests failed (including "WARN")\n'.format(num_failed,num_tests)
+log_str += '{:3d} of {:3d} the failed tests are from old distributed files and should succeed if the corresponding PHITS input is reran (labeled with "WARN").\n'.format(num_warn,num_failed)
 print(log_str)
 log_file_str += log_str
 
