@@ -1,6 +1,6 @@
 import PHITS_tools
 from pathlib import Path
-
+from traceback import format_exc
 
 path_to_phits_base_folder = Path('C:\phits')
 
@@ -43,7 +43,9 @@ for f in files_to_parse:
         num_passed += 1
     except Exception as e:
         log_str = test_num_str + '  x  FAIL  ' + str(f) + '\n'
-        log_str += '\t\t' + str(e) + '\n'
+        log_str += '\t\t' + repr(e) + '\n'
+        log_str += '\t\t' + format_exc().replace('\n','\n\t\t')
+        log_str = log_str[:-2]
         num_failed += 1
     print(log_str)
     log_file_str += log_str
