@@ -25,7 +25,10 @@
 <p>This module contains a variety of tools used for parsing PHITS output files.</p>
 <p>Specifically, it seeks to be a (nearly) universal PHITS output parser, supporting output from
 all tallies, both normal "standard" output as well as dump file outputs (in ASCII and binary formats).
-It is also capable of automatically parsing all such PHITS output files in a directory.</p>
+It is also capable of automatically parsing all such PHITS output files in a directory.
+If a DCHAIN input file (output from the [T-Dchain] tally) or DCHAIN output <code>*.act</code> file is provided
+to the main tally output processing function, an attempt will be made to import the <a href="https://github.com/Lindt8/DCHAIN-Tools">DCHAIN Tools module</a>
+and process the found DCHAIN output files too.</p>
 <p>The functions contained in this module and brief descriptions of their functions are included below.
 However, provided first is a description of the three different ways one can use and interface with this module.</p>
 <h3 id="how-to-use-the-phits_toolspy-module"><strong>How to use the PHITS_tools.py module</strong></h3>
@@ -124,6 +127,9 @@ This module contains a variety of tools used for parsing PHITS output files.
 Specifically, it seeks to be a (nearly) universal PHITS output parser, supporting output from
 all tallies, both normal &#34;standard&#34; output as well as dump file outputs (in ASCII and binary formats).
 It is also capable of automatically parsing all such PHITS output files in a directory.
+If a DCHAIN input file (output from the [T-Dchain] tally) or DCHAIN output `*.act` file is provided
+to the main tally output processing function, an attempt will be made to import the [DCHAIN Tools module](https://github.com/Lindt8/DCHAIN-Tools)
+and process the found DCHAIN output files too.
 
 The functions contained in this module and brief descriptions of their functions are included below.
 However, provided first is a description of the three different ways one can use and interface with this module.
@@ -252,7 +258,9 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
     Description:
         Parse any PHITS tally output file, returning tally metadata and an array of its values (and optionally
         this data inside of a Pandas dataframe too).  Note the separate `parse_tally_dump_file` function for
-        parsing PHITS dump files.
+        parsing PHITS dump files.  If a DCHAIN input file (output from the [T-Dchain] tally) or DCHAIN output
+        `*.act` file is provided, an attempt will be made to import the [DCHAIN Tools module](https://github.com/Lindt8/DCHAIN-Tools) and process the found
+        DCHAIN output files, returning the output dictionary object and (optionally) saving it to a pickle file.
 
     Dependencies:
         - `import numpy as np`
@@ -474,10 +482,36 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
                                &#39;[T-3Dshow]&#39;, &#39;[T-4Dtrack]&#39;, &#39;[T-Dchain]&#39;, &#39;UNKNOWN&#39;]
     if tally_metadata[&#39;tally_type&#39;] in unsupported_tally_types:
         print(&#39;ERROR! tally type&#39;,tally_metadata[&#39;tally_type&#39;],&#39;is not supported by this function!&#39;)
-        if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Dchain]&#39;:
+        if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Dchain]&#39; or tally_output_filepath.suffix == &#39;.act&#39;:
+            print(&#39;Instead, the DCHAIN Tools module is used to process the DCHAIN output files with the same basename of the provided file.&#39;)
             dchain_tools_url = &#39;github.com/Lindt8/DCHAIN-Tools&#39;
-            print(&#39;However, the DCHAIN Tools module (&#39;,dchain_tools_url,&#39;) is capable of parsing all DCHAIN-related output.&#39;)
-        return None
+            dchain_tools_go_to_github_str = &#39;The DCHAIN Tools module ( &#39;+dchain_tools_url+&#39; ) is capable of parsing all DCHAIN-related output.&#39;
+            if tally_output_filepath.suffix != &#39;.act&#39;:
+                act_filepath = Path(tally_output_filepath.parent, tally_output_filepath.stem + &#39;.act&#39;)
+                if not act_filepath.is_file():
+                    # DCHAIN output is not present in directory
+                    print(&#39;Failed to find the main DCHAIN *.act output file:&#39;,act_filepath)
+                    print(&#39;Aborting this process...&#39;)
+                    return None
+            try:
+                from dchain_tools import process_dchain_simulation_output
+            except:
+                print(&#39;Failed to import the DCHAIN Tools module; to parse DCHAIN output via PHITS Tools, please install DCHAIN Tools and configure it in your Python environment&#39;)
+                return None
+            simulation_folder_path = str(Path(tally_output_filepath.parent)) + &#39;\\&#39;
+            simulation_basename = str(tally_output_filepath.stem)
+            dchain_output = process_dchain_simulation_output(simulation_folder_path,simulation_basename,process_DCS_file=True)
+            if save_output_pickle:
+                import pickle
+                path_to_pickle_file = Path(tally_output_filepath.parent, tally_output_filepath.stem + &#39;.pickle&#39;)
+                if in_debug_mode: print(&#34;\nWriting output to pickle file...   ({:0.2f} seconds elapsed)&#34;.format(time.time() - start))
+                with open(path_to_pickle_file, &#39;wb&#39;) as handle:
+                    pickle.dump(dchain_output, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                    print(&#39;Pickle file written:&#39;, path_to_pickle_file, &#39;\n&#39;)
+                if in_debug_mode: print(&#34;\tComplete!   ({:0.2f} seconds elapsed)&#34;.format(time.time() - start))
+            return dchain_output
+        else:
+            return None
     if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Yield]&#39; and tally_metadata[&#39;axis&#39;] == &#39;dchain&#39;:
         dchain_tools_url = &#39;github.com/Lindt8/DCHAIN-Tools&#39;
         print(&#39;This function does not support [T-Yield] with setting &#34;axis = dchain&#34;.&#39;)
@@ -4188,7 +4222,10 @@ elif test_explicit_files_dirs:
 <p>Parse any PHITS tally output file, returning tally metadata and an array of its values (and optionally
 this data inside of a Pandas dataframe too).
 Note the separate <code><a title="PHITS_tools.parse_tally_dump_file" href="#PHITS_tools.parse_tally_dump_file">parse_tally_dump_file()</a></code> function for
-parsing PHITS dump files.</p>
+parsing PHITS dump files.
+If a DCHAIN input file (output from the [T-Dchain] tally) or DCHAIN output
+<code>*.act</code> file is provided, an attempt will be made to import the <a href="https://github.com/Lindt8/DCHAIN-Tools">DCHAIN Tools module</a> and process the found
+DCHAIN output files, returning the output dictionary object and (optionally) saving it to a pickle file.</p>
 <h2 id="dependencies">Dependencies</h2>
 <ul>
 <li><code>import numpy as np</code></li>
@@ -4337,7 +4374,9 @@ the yield results of production of carbon-14 (C-14), one would use the following
     Description:
         Parse any PHITS tally output file, returning tally metadata and an array of its values (and optionally
         this data inside of a Pandas dataframe too).  Note the separate `parse_tally_dump_file` function for
-        parsing PHITS dump files.
+        parsing PHITS dump files.  If a DCHAIN input file (output from the [T-Dchain] tally) or DCHAIN output
+        `*.act` file is provided, an attempt will be made to import the [DCHAIN Tools module](https://github.com/Lindt8/DCHAIN-Tools) and process the found
+        DCHAIN output files, returning the output dictionary object and (optionally) saving it to a pickle file.
 
     Dependencies:
         - `import numpy as np`
@@ -4559,10 +4598,36 @@ the yield results of production of carbon-14 (C-14), one would use the following
                                &#39;[T-3Dshow]&#39;, &#39;[T-4Dtrack]&#39;, &#39;[T-Dchain]&#39;, &#39;UNKNOWN&#39;]
     if tally_metadata[&#39;tally_type&#39;] in unsupported_tally_types:
         print(&#39;ERROR! tally type&#39;,tally_metadata[&#39;tally_type&#39;],&#39;is not supported by this function!&#39;)
-        if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Dchain]&#39;:
+        if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Dchain]&#39; or tally_output_filepath.suffix == &#39;.act&#39;:
+            print(&#39;Instead, the DCHAIN Tools module is used to process the DCHAIN output files with the same basename of the provided file.&#39;)
             dchain_tools_url = &#39;github.com/Lindt8/DCHAIN-Tools&#39;
-            print(&#39;However, the DCHAIN Tools module (&#39;,dchain_tools_url,&#39;) is capable of parsing all DCHAIN-related output.&#39;)
-        return None
+            dchain_tools_go_to_github_str = &#39;The DCHAIN Tools module ( &#39;+dchain_tools_url+&#39; ) is capable of parsing all DCHAIN-related output.&#39;
+            if tally_output_filepath.suffix != &#39;.act&#39;:
+                act_filepath = Path(tally_output_filepath.parent, tally_output_filepath.stem + &#39;.act&#39;)
+                if not act_filepath.is_file():
+                    # DCHAIN output is not present in directory
+                    print(&#39;Failed to find the main DCHAIN *.act output file:&#39;,act_filepath)
+                    print(&#39;Aborting this process...&#39;)
+                    return None
+            try:
+                from dchain_tools import process_dchain_simulation_output
+            except:
+                print(&#39;Failed to import the DCHAIN Tools module; to parse DCHAIN output via PHITS Tools, please install DCHAIN Tools and configure it in your Python environment&#39;)
+                return None
+            simulation_folder_path = str(Path(tally_output_filepath.parent)) + &#39;\\&#39;
+            simulation_basename = str(tally_output_filepath.stem)
+            dchain_output = process_dchain_simulation_output(simulation_folder_path,simulation_basename,process_DCS_file=True)
+            if save_output_pickle:
+                import pickle
+                path_to_pickle_file = Path(tally_output_filepath.parent, tally_output_filepath.stem + &#39;.pickle&#39;)
+                if in_debug_mode: print(&#34;\nWriting output to pickle file...   ({:0.2f} seconds elapsed)&#34;.format(time.time() - start))
+                with open(path_to_pickle_file, &#39;wb&#39;) as handle:
+                    pickle.dump(dchain_output, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                    print(&#39;Pickle file written:&#39;, path_to_pickle_file, &#39;\n&#39;)
+                if in_debug_mode: print(&#34;\tComplete!   ({:0.2f} seconds elapsed)&#34;.format(time.time() - start))
+            return dchain_output
+        else:
+            return None
     if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Yield]&#39; and tally_metadata[&#39;axis&#39;] == &#39;dchain&#39;:
         dchain_tools_url = &#39;github.com/Lindt8/DCHAIN-Tools&#39;
         print(&#39;This function does not support [T-Yield] with setting &#34;axis = dchain&#34;.&#39;)
