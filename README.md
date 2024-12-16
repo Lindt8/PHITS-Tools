@@ -5,7 +5,9 @@
 
 This module is a collection of Python 3 functions that serve to automatically process output from the PHITS general purpose Monte Carlo particle transport code, which can be obtained at [https://phits.jaea.go.jp/](https://phits.jaea.go.jp/), and interfaces for utilizing these parsing/processing functions.
 
-Specifically, PHITS Tools seeks to be a (nearly) universal PHITS output parser, supporting output from all tallies, both normal "standard" output as well as dump file outputs (in ASCII and binary formats), reading in the numeric data and metadata and storing them in Python objects for further use and analysis in Python.  You can read more about how to use PHITS Tools and its output in its online documentation: [lindt8.github.io/PHITS-Tools/](https://lindt8.github.io/PHITS-Tools/)
+Specifically, PHITS Tools seeks to be a (nearly) universal PHITS output parser, supporting output from all tallies, both normal "standard" output as well as dump file outputs (in ASCII and binary formats), reading in the numeric data and metadata and storing them in Python objects for further use and analysis in Python.  PHITS Tools is also coupled to the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools/) module and can import it to process DCHAIN output when the main tally output parsing function is provided DCHAIN-related files.  You can read more about how to use PHITS Tools and its output in its online documentation: [lindt8.github.io/PHITS-Tools/](https://lindt8.github.io/PHITS-Tools/)
+
+
 
 There are three main ways one can use this Python module:
 
