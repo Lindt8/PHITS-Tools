@@ -93,7 +93,7 @@ a Pandas DataFrame containing the same numerical information, which
 may be more user-friendly to those accustomed to working in Pandas.
 
 +------+-----------+---------------------------------------------------------------------------------------+
-| axis | i_name    | description                                                                           |
+| axis | name      | description                                                                           |
 +:====:+:=========:+:======================================================================================+
 | 0    | `ir`      | Geometry mesh: `reg` / `x` / `r` / `tet` *                                            |
 +------+-----------+---------------------------------------------------------------------------------------+
