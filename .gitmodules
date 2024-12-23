@@ -1,0 +1,3 @@
+[submodule "DCHAIN-Tools"]
+	path = DCHAIN-Tools
+	url = https://github.com/Lindt8/DCHAIN-Tools
