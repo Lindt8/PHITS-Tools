@@ -25,7 +25,7 @@ bibliography: paper.bib
 
 ---
 
-# Summary
+# Summary 
 
 Various areas within the nuclear sciences&mdash;such as 
 nuclear facility design, medical physics, experimental nuclear physics, and radiation protection&mdash;rely 
