@@ -212,13 +212,16 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
 
        -----
 
-       **Unsupported tallies**
+       **Unsupported tallies and DCHAIN**
 
        At present, the following tallies are NOT supported by this function: [T-WWG], [T-WWBG], [T-Volume],
-       [T-Userdefined], [T-Gshow], [T-Rshow], [T-3Dshow], [T-4Dtrack], and [T-Dchain].
+       [T-Userdefined], [T-Gshow], [T-Rshow], [T-3Dshow], [T-4Dtrack], and [T-Dchain]&dagger;.
 
-       For [T-Dchain] or [T-Yield] with `axis = dchain`, please use the separate suite of parsing functions included in
-       the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools) module.
+       &dagger;If provided with the output file of [T-Dchain] (the input file for the DCHAIN code) or the `*.act` main
+       output file produced by the DCHAIN code, this function will attempt to import the [DCHAIN Tools module](https://github.com/Lindt8/DCHAIN-Tools)
+       and process the found DCHAIN output files, returning the output dictionary object and (optionally) saving it to a pickle file.
+       Otherwise, for [T-Dchain] or [T-Yield] with `axis = dchain`, you can manually use the separate suite of parsing
+       functions included in the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools) module.
 
        -----
 

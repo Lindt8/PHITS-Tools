@@ -334,13 +334,16 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
 
        -----
 
-       **Unsupported tallies**
+       **Unsupported tallies and DCHAIN**
 
        At present, the following tallies are NOT supported by this function: [T-WWG], [T-WWBG], [T-Volume],
-       [T-Userdefined], [T-Gshow], [T-Rshow], [T-3Dshow], [T-4Dtrack], and [T-Dchain].
+       [T-Userdefined], [T-Gshow], [T-Rshow], [T-3Dshow], [T-4Dtrack], and [T-Dchain]&amp;dagger;.
 
-       For [T-Dchain] or [T-Yield] with `axis = dchain`, please use the separate suite of parsing functions included in
-       the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools) module.
+       &amp;dagger;If provided with the output file of [T-Dchain] (the input file for the DCHAIN code) or the `*.act` main
+       output file produced by the DCHAIN code, this function will attempt to import the [DCHAIN Tools module](https://github.com/Lindt8/DCHAIN-Tools)
+       and process the found DCHAIN output files, returning the output dictionary object and (optionally) saving it to a pickle file.
+       Otherwise, for [T-Dchain] or [T-Yield] with `axis = dchain`, you can manually use the separate suite of parsing
+       functions included in the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools) module.
 
        -----
 
@@ -4302,11 +4305,14 @@ dimension: region numbers/groups, particle names/groups, bin edges and midpoints
 Note that a dictionary containing supplemental
 information that is common to all rows of the dataframe can be accessed with <code>tally_dataframe.attrs</code>.</p>
 <hr>
-<p><strong>Unsupported tallies</strong></p>
+<p><strong>Unsupported tallies and DCHAIN</strong></p>
 <p>At present, the following tallies are NOT supported by this function: [T-WWG], [T-WWBG], [T-Volume],
-[T-Userdefined], [T-Gshow], [T-Rshow], [T-3Dshow], [T-4Dtrack], and [T-Dchain].</p>
-<p>For [T-Dchain] or [T-Yield] with <code>axis = dchain</code>, please use the separate suite of parsing functions included in
-the <a href="https://github.com/Lindt8/DCHAIN-Tools">DCHAIN Tools</a> module.</p>
+[T-Userdefined], [T-Gshow], [T-Rshow], [T-3Dshow], [T-4Dtrack], and [T-Dchain]&dagger;.</p>
+<p>&dagger;If provided with the output file of [T-Dchain] (the input file for the DCHAIN code) or the <code>*.act</code> main
+output file produced by the DCHAIN code, this function will attempt to import the <a href="https://github.com/Lindt8/DCHAIN-Tools">DCHAIN Tools module</a>
+and process the found DCHAIN output files, returning the output dictionary object and (optionally) saving it to a pickle file.
+Otherwise, for [T-Dchain] or [T-Yield] with <code>axis = dchain</code>, you can manually use the separate suite of parsing
+functions included in the <a href="https://github.com/Lindt8/DCHAIN-Tools">DCHAIN Tools</a> module.</p>
 <hr>
 <p><strong>[T-Cross] special case</strong></p>
 <p>The [T-Cross] tally is unique (scoring across region boundaries rather than within regions), creating some
@@ -4450,13 +4456,16 @@ the yield results of production of carbon-14 (C-14), one would use the following
 
        -----
 
-       **Unsupported tallies**
+       **Unsupported tallies and DCHAIN**
 
        At present, the following tallies are NOT supported by this function: [T-WWG], [T-WWBG], [T-Volume],
-       [T-Userdefined], [T-Gshow], [T-Rshow], [T-3Dshow], [T-4Dtrack], and [T-Dchain].
+       [T-Userdefined], [T-Gshow], [T-Rshow], [T-3Dshow], [T-4Dtrack], and [T-Dchain]&amp;dagger;.
 
-       For [T-Dchain] or [T-Yield] with `axis = dchain`, please use the separate suite of parsing functions included in
-       the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools) module.
+       &amp;dagger;If provided with the output file of [T-Dchain] (the input file for the DCHAIN code) or the `*.act` main
+       output file produced by the DCHAIN code, this function will attempt to import the [DCHAIN Tools module](https://github.com/Lindt8/DCHAIN-Tools)
+       and process the found DCHAIN output files, returning the output dictionary object and (optionally) saving it to a pickle file.
+       Otherwise, for [T-Dchain] or [T-Yield] with `axis = dchain`, you can manually use the separate suite of parsing
+       functions included in the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools) module.
 
        -----
 
