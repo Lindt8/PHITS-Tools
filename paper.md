@@ -10,7 +10,6 @@ tags:
 authors:
   - name: Hunter N. Ratliff
     orcid: 0000-0003-3761-5415
-    equal-contrib: true
     affiliation: "1, 2" # (Multiple affiliations must be quoted)
 affiliations:
  - name: Western Norway University of Applied Sciences, Inndalsveien 28, 5063 Bergen, Norway
@@ -59,7 +58,7 @@ detailed raw history-by-history event data are recorded to an ASCII or binary fi
 satisfying the tally's criteria and being scored by it, allowing users to, in post, create 
 even more complex tallies and analyses than possible with the stock tallies in PHITS.
 
-The DCHAIN code coupled to PHITS specializes in calculating nuclide inventories and derived quantities  
+The DCHAIN code coupled to PHITS specializes in calculating nuclide inventories and derived quantities 
 (such as activity, decay heat, decay gamma-ray emission spectra, and more) as a function of time for 
 any arbitrary irradiation schedule from any radiation source.
 
