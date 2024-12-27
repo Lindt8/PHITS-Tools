@@ -151,7 +151,7 @@ schemes illustrating the production/destruction mechanisms for all nuclides&mdas
 a single unified dictionary object.  The `DCHAIN Tools` module includes some additional
 useful functions such as retreiving neutron activation cross sections from DCHAIN's built-in 
 nuclear data libraries, calculating flux-weighted single-group activation cross sections, 
-and visualizing and summarizing the most signiifcant nuclides (in terms of activity, 
+and visualizing and summarizing the most significant nuclides (in terms of activity, 
 decay heat, or gamma-ray dose) as a function of time. If `PHITS Tools` is provided DCHAIN-related 
 files, `DCHAIN Tools` will be automatically imported and its primary function executed
 on the DCHAIN output.
