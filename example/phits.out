@@ -1,0 +1,347 @@
+           _________________________________________________________
+          |                                                         |
+          |       _/_/_/_/                                          |
+          |      _/      _/                  _/_/_/_/_/_/           |
+          |     _/      _/  _/      _/   _/      _/      _/_/_/_/_/ |
+          |    _/_/_/_/    _/      _/   _/      _/      _/          |
+          |   _/          _/_/_/_/_/   _/      _/       _/_/_/_/    |
+          |  _/          _/      _/   _/      _/              _/    |
+          | _/          _/      _/   _/      _/      _/_/_/_/_/     |
+          |                                                         |
+          |                                                         |
+          |       Particle and Heavy Ion Transport code System      |
+          |                      Version =  3.341                   |
+          |                       developed by                      |
+          |                                                         |
+          |  Tatsuhiko SATO, Yosuke IWAMOTO, Shintaro HASHIMOTO,    |
+          |    Tatsuhiko OGAWA, Takuya FURUTA, Shinichiro ABE,      |
+          |    Takeshi KAI, Norihiro MATSUDA, Yusuke MATSUYA,       |
+          |      Yuho HIRATA, Takuya SEKIKAWA, Pi-En TSAI,          |
+          |                Hunter RATLIFF (JAEA),                   |
+          |                                                         |
+          |  Hiroshi IWASE, Yasuhito SAKAKI, Kenta SUGIHARA (KEK),  |
+          |                                                         |
+          |           Nobuhiro SHIGYO (Kyushu University),          |
+          |                                                         |
+          |      Lembit SIHVER (Technische Universitat Wien), and   |
+          |                                                         |
+          |                     Koji NIITA (RIST)                   |
+          |                                                         |
+          |                 Last Revised  2024-04-23                |
+          |_________________________________________________________|
+
+                    __________ [ Job Title ] _________ 
+                   |                                  |
+                   |  sample input file of t-product  |
+                   |__________________________________|
+
+                        Starting Date = 2024-12-27
+                        Starting Time = 14h 57m 21
+
+>>> Input Echo >>>=============================================================
+
+[ Title ]
+sample input file of t-product
+
+[ Parameters ]
+ icntl    =           0     # (D=0) 3:ECH 5:NOR 6:SRC 7,8:GSH 11:DSH 12:DUMP
+ maxcas   =        1000     # (D=10) number of particles per one batch
+ maxbch   =          10     # (D=10) number of batches
+ file(6)  = phits.out       # (D=phits.out) general output file name
+
+[ Source ]
+  totfact =   1.0000        # (D=1.0) global factor
+   s-type =   1             # cylindrical source
+     proj =  proton         # kind of incident particle         
+       e0 =   150.00        # energy of beam [MeV/n]
+       r0 =   0.0000        # radius [cm]
+       x0 =   0.0000        # (D=0.0) center position of x-axis [cm]
+       y0 =   0.0000        # (D=0.0) center position of y-axis [cm]
+       z0 =   0.0000        # minimum position of z-axis [cm]
+       z1 =   0.0000        # maximum position of z-axis [cm]
+      dir =   1.0000        # z-direction of beam [cosine]
+
+[ Material ]
+MAT[ 1 ] 
+           1H         2.0000000E+00
+          16O         1.0000000E+00
+
+[ Cell ]
+ 100         1 -1.0000000E+00  -10 
+ 101        -1                 10 
+
+[ Surface ]
+ 10            so    1.0000000E+01
+
+[ T-Product ]
+    title = Particle production in reg mesh
+     mesh =  reg            # mesh type is region-wise
+      reg = 100
+   volume                   # combined, lattice or level structure 
+   non     reg      vol     # reg definition
+    1      100   4.1888E+03 # 100
+   e-type =    3            # e-mesh is log given by emin, emax and ne
+     emin =   1.000000      # minimum value of e-mesh points
+     emax =   200.0000      # maximum value of e-mesh points
+#    edel =  0.1059663      # mesh width of e-mesh points
+       ne =     50          # number of e-mesh points
+#    data = ( e(i), i = 1, ne + 1 )
+#           1.00000E+00  1.11178E+00  1.23606E+00  1.37424E+00  1.52786E+00
+#           1.69865E+00  1.88853E+00  2.09964E+00  2.33434E+00  2.59529E+00
+#           2.88540E+00  3.20794E+00  3.56654E+00  3.96522E+00  4.40848E+00
+#           4.90127E+00  5.44916E+00  6.05829E+00  6.73551E+00  7.48844E+00
+#           8.32553E+00  9.25620E+00  1.02909E+01  1.14413E+01  1.27202E+01
+#           1.41421E+01  1.57230E+01  1.74806E+01  1.94347E+01  2.16071E+01
+#           2.40225E+01  2.67078E+01  2.96933E+01  3.30126E+01  3.67029E+01
+#           4.08057E+01  4.53672E+01  5.04385E+01  5.60767E+01  6.23453E+01
+#           6.93145E+01  7.70628E+01  8.56772E+01  9.52546E+01  1.05903E+02
+#           1.17741E+02  1.30902E+02  1.45535E+02  1.61804E+02  1.79891E+02
+#           2.00000E+02
+  eng2let =    0            # (D=0) Flag to convert energy to LET, 0: not convert, 1: convert
+ material =  all            # (D=all) number of specific material
+   mother =  all            # (D=all) number of specific mother
+     unit =    1            # unit is [1/source]
+     axis =  eng            # axis of output
+     file = product.out     # file name of dumped data summary
+#    file = product_dmp.out  # file name of dumped data
+   output = nuclear         # (D=nuclear) products from all reactions
+     part =  all        neutron    proton     -( neutron  proton   ) 
+# kf/name :  0          2112       2212       -( 2112     2212     ) 
+   epsout =    1            # (D=0) generate eps file by ANGEL
+     dump =  -11            # (D=0) number of dumped data, <0: ascii, >0: binary
+                1   2   3   4   8  10   9  17  18  19  20
+# dump data    kf   x   y   z   e  tm  wt  n0  nc  nb  no
+#    used :        main (  %)        temp (  %)       total (  %)
+#  memory :          59 (  0)           0 (  0)          59 (  0)
+
+[END] of Input Echo <<<========================================================
+
+<<< Report of real Geometry memory >>>
+*           GG/CG memory =        2
+*     total memory: mdas = 80000000
+*                percent =     0.00 %
+
+<<< Report of material memory for high energy>>>
+*   high energy material =        1
+*     total memory: mdas = 80000000
+*                percent =     0.00 %
+
+<<< Report of material memory for low energy>>>
+*    low energy material =      593
+*     total memory: mdas = 80000000
+*                percent =     0.00 %
+
+<<< Report of real tally memory >>>
+*      real tally memory =       59
+*     total memory: mdas = 80000000
+*                percent =     0.00 %
+
+<<< Report of temporary tally memory >>>
+* temporary tally memory =      600
+*     total memory: mdas = 80000000
+*                percent =     0.00 %
+
+<<< Report of total memory >>>
+*      used total memory =      601
+*     total memory: mdas = 80000000
+*                percent =     0.00 %
+*                ---------------------
+
+-------------------------------------------------------------------------------
+bat[       1] ncas =           1000.
+ bitrseed = 0100001010011000001011101100011110011000110110100110010000000000
+          cpu time =   0.336 s.
+
+-------------------------------------------------------------------------------
+bat[       2] ncas =           2000.
+ bitrseed = 0101000011000111010110101100111000100101101011010111101101011101
+          cpu time =   0.109 s.
+
+-------------------------------------------------------------------------------
+bat[       3] ncas =           3000.
+ bitrseed = 0101100011011011110001100101110111100110110100101110100101001100
+          cpu time =   0.074 s.
+
+-------------------------------------------------------------------------------
+bat[       4] ncas =           4000.
+ bitrseed = 0111101111011110101110001110111000001110000010010001000010100001
+          cpu time =   0.082 s.
+
+-------------------------------------------------------------------------------
+bat[       5] ncas =           5000.
+ bitrseed = 1000101001001101001010000000111010011100000001000110000001000000
+          cpu time =   0.062 s.
+
+-------------------------------------------------------------------------------
+bat[       6] ncas =           6000.
+ bitrseed = 1101111111001101100001000101010101010011110110101000101010011110
+          cpu time =   0.055 s.
+
+-------------------------------------------------------------------------------
+bat[       7] ncas =           7000.
+ bitrseed = 1001000011100101101101101011000010001010100000111001111101111011
+          cpu time =   0.059 s.
+
+-------------------------------------------------------------------------------
+bat[       8] ncas =           8000.
+ bitrseed = 1001011010111010111011011110110001001010000110111001011110011110
+          cpu time =   0.055 s.
+
+-------------------------------------------------------------------------------
+bat[       9] ncas =           9000.
+ bitrseed = 1101001111101111111101001001110111010001010011111101010010001001
+          cpu time =   0.047 s.
+
+-------------------------------------------------------------------------------
+bat[      10] ncas =          10000.
+ bitrseed = 1011100001101001100100111110100001000001010100101110010000011100
+          cpu time =   0.059 s.
+
+===============================================================================
+
+ Summary for the end of job
+
+-------------------------------------------------------------------------------
+ number of analyz call vs ncol
+-------------------------------------------------------------------------------
+     ncol          number
+        1              1.   : start of calculation            
+        2              1.   : end of calculation              
+        3             10.   : end of a batch                  
+        4          10000.   : source                          
+        5              0.   : detection of geometry error/warn
+        6              0.   : recovery from geometry warning  
+        7              0.   : termination by geometry error   
+        8              2.   : termination by weight cut-off   
+        9              0.   : termination by time cut-off     
+       10              0.   : geometry boundary crossing      
+       11           4172.   : termination by energy cut-off   
+       12          11007.   : termination by escape or leakage
+       13             57.   : reaction : (n,x) type           
+       14           9671.   : reaction : (n,n'x) type         
+       15           3143.   : sequential transport for tally  
+
+-------------------------------------------------------------------------------
+ List of transport particles (not including source)
+-------------------------------------------------------------------------------
+     Name      kf-code        mass       charge   baryon
+     proton       2212        938.3         1       1
+     neutron      2112        939.6         0       1
+     photon         22          0.0         0       0
+     deuteron  1000002       1875.6         1       2
+     triton    1000003       2808.9         1       3
+     3he       2000003       2808.4         2       3
+     alpha     2000004       3727.4         2       4
+
+-------------------------------------------------------------------------------
+ prod. particles       number        weight        weight per source
+-------------------------------------------------------------------------------
+     proton             2756.     2.7560000E+03     2.7560000E-01
+     photon             1055.     1.0398804E+03     1.0398804E-01
+     neutron             795.     7.9500000E+02     7.9500000E-02
+     alpha               675.     6.7500000E+02     6.7500000E-02
+     deuteron            253.     2.5300000E+02     2.5300000E-02
+     3he                  49.     4.9000000E+01     4.9000000E-03
+     triton               23.     2.3000000E+01     2.3000000E-03
+
+-------------------------------------------------------------------------------
+ stop. particles.    number        weight        weight per source
+-------------------------------------------------------------------------------
+     nucleus            1801.     1.8010000E+03     1.8010000E-01
+     proton             1442.     1.4420000E+03     1.4420000E-01
+     alpha               675.     6.7500000E+02     6.7500000E-02
+     deuteron            242.     2.4200000E+02     2.4200000E-02
+     3he                  49.     4.9000000E+01     4.9000000E-03
+     triton               23.     2.3000000E+01     2.3000000E-03
+     neutron               1.     1.4596956E-01     1.4596956E-05
+
+-------------------------------------------------------------------------------
+ leak. particles       number        weight        weight per source
+-------------------------------------------------------------------------------
+     proton             9288.     9.2880000E+03     9.2880000E-01
+     photon             1021.     1.0058804E+03     1.0058804E-01
+     neutron             693.     6.6200180E+02     6.6200180E-02
+     deuteron              5.     5.0000000E+00     5.0000000E-04
+
+-------------------------------------------------------------------------------
+ source: maxcas    maxbch      irskip   average weight          total source
+-------------------------------------------------------------------------------
+        1000          10           0    1.0000000E+00    1.0000000000000E+04
+
+-------------------------------------------------------------------------------
+ used ATIMA database
+-------------------------------------------------------------------------------
+     for dedx  =       25 / mdbatima =      500
+
+-------------------------------------------------------------------------------
+ Geometry error summary
+-------------------------------------------------------------------------------
+ Number of lost particles     =     0 / nlost =       10
+ Number of geometry recovering =     0
+ Number of unrecovered errors =     0
+
+-------------------------------------------------------------------------------
+ initial random seed:
+   bitrseed = 0100001010011000001011101100011110011000110110100110010000000000
+ next initial random seed:
+   bitrseed = 0111011010010100011001101100101001110100011011011011110011011010
+
+-------------------------------------------------------------------------------
+ job termination date : 2024/12/27
+                 time :   14:57:23
+
+-------------------------------------------------------------------------------
+    CPU time and number of event called in PHITS
+-------------------------------------------------------------------------------
+
+                             sec
+total cpu time =            1.20
+
+
+                           count
+      analysis =          38060.  : data processing
+         nevap =           2101.  : evaporation
+        dexgam =            756.  : de-excitation
+         nreac =           9728.  : atomic and nuclear reactions
+         dklos =              0.  : particle decay
+         hydro =              0.  : nucleon-nucleon scattering
+        n-data =           6712.  : neutron data library
+        h-data =              0.  : p, d, a data library
+        p-data =            885.  : photon data library
+        e-data =              0.  : electron data library
+        p-egs5 =              0.  : photon interaction with EGS5
+        e-egs5 =              0.  : electron interaction with EGS5
+      e-tsmode =              0.  : electron track structure mode
+    ion-tsmode =              0.  : ion track structure mode
+     photonucl =              0.  : photo-nuclear reaction
+ photonucl lib =              0.  : photo-nuclear reaction with library
+       mu-reac =              0.  : muon-induced nuclear reaction
+       mu-brem =              0.  : muon-induced bremsstrahlung
+       mu-pprd =              0.  : muon-induced pair production
+        mu-cap =              0.  : muon capture in nucleus
+         elast =           1180.  : elastic scattering
+         ncasc =           3326.  : nuclear reaction model
+
+       bertini =              0.  : Bertini model
+        isobar =              0.  : isobar model
+           JAM =              0.  : JAM model
+           QMD =              0.  : JQMD model
+        JAMQMD =              0.  : JAMQMD model
+          INCL =           3326.  : INCL model
+        INCELF =              0.  : INCELF model
+     frag data =              0.  : user defined cross section
+       SCINFUL =              0.  : SCINFUL mode
+
+>>> Citation Request >>>=======================================================
+
+ This execution uses model(s) that must be explicitly cited in addition to
+ the PHITS original document: T.Sato et al., J.Nucl.Sci.Technol.61, 127-135 (2024).
+ Please refer the following document(s) in your publication using this result
+
+ The INCL model:
+    A. Boudard et al., Phys. Rev C87, 014606 (2013).
+
+ The KUROTAMA model:
+    K. Iida, A. Kohama, and K. Oyamatsu, J. Phys. Soc. Japan 76, 044201 (2007).
+
+ END 

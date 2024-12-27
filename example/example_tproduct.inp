@@ -1,0 +1,53 @@
+[ T i t l e ]
+sample input file of t-product
+
+[ P a r a m e t e r s ]
+ icntl    =           0     # (D=0) 3:ECH 5:NOR 6:SRC 7,8:GSH 11:DSH 12:DUMP
+ maxcas   =          1000   # (D=10) number of particles per one batch
+ maxbch   =          10     # (D=10) number of batches
+ file(6)  = phits.out       # (D=phits.out) general output file name
+
+[ S o u r c e ]
+   s-type =   1             # mono-energetic axial source
+     proj =  proton         # kind of incident particle         
+      dir =   1.0           # z-direction of beam [cosine]
+       r0 =   0.            # radius [cm]
+       z0 =   0.            # minimum position of z-axis [cm]
+       z1 =   0.            # maximum position of z-axis [cm]
+       e0 =   150.          # energy of beam [MeV]
+
+[ M a t e r i a l ]
+mat[1]    1H 2  16O 1     $ 1.0 g/cm3
+
+[ S u r f a c e ]
+  10  so     10.
+
+[ C e l l ]
+ 100     1 -1.         -10 
+ 101    -1              10
+
+[ T - P r o d u c t ]
+    title = Particle production in reg mesh
+     mesh =  reg            # mesh type is region-wise
+      reg = 100
+   volume                   # combined, lattice or level structure 
+   non     reg      vol     # reg definition
+    1      100   4/3*pi*10**3
+   e-type =    3            # e-mesh is log given by emin, emax and ne
+     emin =   1.000000      # minimum value of e-mesh points
+     emax =   200.0000      # maximum value of e-mesh points
+       ne =   50            # number of e-mesh points
+ material =  all            # (D=all) number of specific material
+   mother =  all            # (D=all) number of specific mother
+     unit =    3            # unit is [1/MeV/source]
+     axis =   eng           # axis of output
+     file = product.out     # file name of output for the above axis
+   output = nuclear         # (D=nuclear) products from all reactions
+     part = all neutron proton -(neutron proton)
+   epsout =    1            # (D=0) generate eps file by ANGEL
+     dump = -11             # number of columns in dump file; ASCII if <0, binary if >0
+    1  2 3 4 8 10 9  17   18    19    20   # column ordering and quantities outputted
+#   kf x y z e t  wt name nocas nobch no
+
+[ E n d ]
+
