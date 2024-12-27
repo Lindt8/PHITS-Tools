@@ -1,0 +1,11 @@
+## Dependencies
+numpy>=2.2.1
+pandas>=2.2.3
+scipy>=1.14.1
+matplotlib>=3.10.0
+munch>=2.5.0
+dill>=0.3.8
+
+## Optional Dependencies (uncomment to use)
+## For visualization of tetrahedral output (used in DCHAIN-Tools/tet/vtk_from_DCHAIN_tet.py)
+# pyvista>=0.44.2
