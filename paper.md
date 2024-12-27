@@ -36,17 +36,20 @@ What is the expected dose an individual may receive in a particular exposure sce
 After how long will an irradiated radioactive sample decay enough to become safe to handle?
 How should an experiment be designed to make the most of limited time at an accelerator facility?
 
-While simplified "rule of thumb" calculations and lookup tables can provide crude answers in some very basic scenarios,
-often it is preferred or necessary (especially for higher-energy radiation) to fully model a radiation scenario 
-to obtain a much more precise answer.  PHITS [@PHITS333_ref] (Particle and Heavy Ion Transport code System) 
+While simplified "rule of thumb" calculations can provide crude answers in some very basic scenarios,
+often it is necessary to fully model a radiation scenario to obtain a much more precise answer. 
+PHITS [@PHITS333_ref] (Particle and Heavy Ion Transport code System) 
 is one such general purpose Monte Carlo particle transport simulation code, presently with over 6000 users worldwide.
 Though PHITS can simulate a large variety of complex nuclear physics, it can only do so on the extremely short
-time scales of nuclear reactions.  To calculate the activation, buildup, burnup, and decay of nuclides with time 
-on any scale (seconds to centuries), distributed with and coupled to PHITS is the DCHAIN [@DCHAIN_ref] (or DCHAIN-PHITS) code.
+time scales of nuclear reactions. To calculate the creation and destruction of nuclides
+with time (activation, buildup, burnup, and decay) on any scale (seconds to centuries), 
+distributed with and coupled to PHITS is the DCHAIN [@DCHAIN_ref] (or DCHAIN-PHITS) code[^1].
+
+[^1]: PHITS and DCHAIN are distributed by the Japan Atomic Energy Agency and the OECD/NEA Data Bank. For more information, see: [https://phits.jaea.go.jp/howtoget.html](https://phits.jaea.go.jp/howtoget.html)
 
 Within PHITS (and other similar codes) are "tallies" which score various physical quantities
 such as the number of particles passing through a region in space, the number of particles crossing a surface, 
-the frequency and products of nuclear interactions of various types, deposition of energy, 
+the frequency and products of nuclear interactions of various types, deposition of energy/dose, 
 timing of interactions, displacements per atom (DPA), and more.  Users provide the desired
 binning for the tally histograms to be created (such as specifying a range of energies of interest and 
 how many bins the tally should have within that energy range), and the code will simulate the 
@@ -67,10 +70,10 @@ any arbitrary irradiation schedule from any radiation source.
 # Statement of need
 
 `PHITS Tools` and `DCHAIN Tools` serve as an interface between the plaintext (and binary) outputs
-of the PHITS and DCHAIN codes and Python, greatly expediting further programatic analysis, 
+of the PHITS and DCHAIN codes and Python, greatly expediting further programatic analyses, 
 comparisons, and visualization in Python and providing some extra analysis tools. 
 The outputs of the PHITS code are, aside from the special binary "dump" files, plaintext files formatted 
-for processing by a custom closed-source visualization code (generating Encapsulated PostScript files) 
+for processing by a custom visualization code (generating Encapsulated PostScript files) 
 shipped with and automatically ran by PHITS, and those of the DCHAIN 
 code are formatted in a variety of tabular, human-readable structures.  Historically, programatic
 extraction and organization of numerical results (and metadata) from both codes often required 
@@ -79,7 +82,6 @@ possibly preceeded by manual data extraction/isolation too.
 `PHITS Tools` and `DCHAIN Tools` provide universal output parsers for the PHITS and DCHAIN codes, 
 capable of processing all of the relevant output files produced by each code and
 outputting the numerical results and metadata in a consistent, standardized output format.
-
 
 The substantial number of combinations within PHITS of geometry specification, 
 scoring axes (spatial, energy, time, angle, LET, etc.), tally types (scoring volumetric and surface crossing 
@@ -135,7 +137,7 @@ tally over the history-by-history output of the "dump" files, rebinning histogra
 results to a different desired binning structure, applying effective dose 
 conversion coefficients from ICRP 116 [@ICRP116_ref_withauthors] to tallied particle 
 fluences, or retrieving a PHITS-input-formatted [Material] section entry (including 
-its corresponding density) from a large database of over 300 materials (primarily
+its corresponding density) from a large database of over 350 materials (primarily
 consisting of the selection of matierials within the PNNL Compendium of Material 
 Composition Data for Radiation Transport Modeling [@PNNL_materials_compendium]),
 among other useful side functions.
@@ -150,7 +152,9 @@ a single unified dictionary object.  The `DCHAIN Tools` module includes some add
 useful functions such as retreiving neutron activation cross sections from DCHAIN's built-in 
 nuclear data libraries, calculating flux-weighted single-group activation cross sections, 
 and visualizing and summarizing the most signiifcant nuclides (in terms of activity, 
-decay heat, or gamma-ray dose) as a function of time.
+decay heat, or gamma-ray dose) as a function of time. If `PHITS Tools` is provided DCHAIN-related 
+files, `DCHAIN Tools` will be automatically imported and its primary function executed
+on the DCHAIN output.
 
 In all, the `PHITS Tools` and `DCHAIN Tools` modules make the results produced by the PHITS and DCHAIN codes 
 far more accessible for futher use, analyses, comparisons, and visualizations in 
