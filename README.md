@@ -12,7 +12,7 @@ Specifically, PHITS Tools seeks to be a (nearly) universal PHITS output parser, 
 There are three main ways one can use this Python module:
 
 1. As an **imported Python module**
-    - In your own Python scripts, you can import this module as `from PHITS_tools import *` and call its main functions or any of its other functions documented [here](https://lindt8.github.io/PHITS-Tools/).
+    - In your own Python scripts, you can import this module (`from PHITS_tools import *`) and call its main functions or any of its other functions documented [here](https://lindt8.github.io/PHITS-Tools/).
 2. As a **command line interface (CLI)**
     - This module can be ran on the command line with the individual PHITS output file to be parsed (or a directory containing multiple files to be parsed) as the required argument. Execute `python PHITS_tools.py --help` to see all of the different options that can be used with this module to parse standard or dump PHITS output files (individually and directories containing them) via the CLI.
 3. As a **graphical user interface (GUI)** 
@@ -24,7 +24,7 @@ The CLI and GUI options result in the parsed file's contents being saved to a [p
 
 One may use the functions by first placing the PHITS_tools.py Python script into a folder in their PYTHONPATH system variable or in the active directory and then just importing them normally (`from PHITS_tools import *`) or by executing the script `python PHITS_tools.py` with the PHITS output file to be parsed as the required argument (see `python PHITS_tools.py --help` for all CLI options) / without a file argument to be guided through with a GUI.
 
-Pictured below is the main PHITS Tools GUI window followed by the `[DIRECTORY mode]` GUI menu which shows all the options available not only for DIRECTORY mode but also for standard and dump tally output files.
+Pictured below is the main PHITS Tools GUI window followed by the `[DIRECTORY mode]` GUI menu which shows all the options available not only for DIRECTORY mode but also for standard and dump tally output files, with the default options selected/populated.
 
 ![](/docs/PHITS_tools_GUI_main.png?raw=true "PHITS Tools GUI main window")
 
@@ -34,15 +34,15 @@ Below is also a picture of all of the options available for use within the CLI:
 
 ![](/docs/PHITS_tools_CLI.png?raw=true "PHITS Tools CLI options")
 
-I have extensively tested this module with a rather large number of PHITS output files with all sorts of different geometry settings, combinations of meshes, output options, and other settings to try to capture as a wide array of output files as I could, but there still may be some usage/combinations of different settings I had not considered that may cause PHITS Tools to crash when attempting to parse a particular output file.  If you come across such an edge case&mdash;a standard PHITS tally output file that causes PHITS Tools to crash when attempting to parse it&mdash;please submit it as an issue and include the output file in question and I'll do my best to update the code to work with it!  Over time, hopefully all the possible edge cases can get stamped out this way. :)
+I have extensively tested this module with a rather large number of PHITS output files with all sorts of different geometry settings, combinations of meshes, output options, and other settings to try to capture as a wide array of output files as I could (including the ~300 output files within the `phits/sample/` and `phits/recommendation/` directories included in the distributed PHITS release, which can be tested in an automated way with `test/test_PHITS_tools.py` in this repository, along with a large number of supplemental variations to really test every option I could think of), but there still may be some usage/combinations of different settings I had not considered that may cause PHITS Tools to crash when attempting to parse a particular output file.  If you come across such an edge case&mdash;a standard PHITS tally output file that causes PHITS Tools to crash when attempting to parse it&mdash;please submit it as an issue and include the output file in question and I'll do my best to update the code to work with it!  Over time, hopefully all the possible edge cases can get stamped out this way. :)
 
 
 -----
 
-If using [T-Dchain] in PHITS and/or the DCHAIN-PHITS code, the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools/) repository contains a separate Python module for parsing and processing that related code output. All of these functions are documented online at [lindt8.github.io/DCHAIN-Tools/](https://lindt8.github.io/DCHAIN-Tools/)
+If using [T-Dchain] in PHITS and/or the DCHAIN-PHITS code, the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools/) repository contains a separate Python module for parsing and processing that related code output.  While PHITS Tools will import and use DCHAIN Tools if provided with DCHAIN-related files, direct usage of DCHAIN Tools may be desired if you want greater control of the various output parsing options within it or want to make use of some of its useful standalone functions. All of these functions are documented online at [lindt8.github.io/DCHAIN-Tools/](https://lindt8.github.io/DCHAIN-Tools/)
 
 -----
 
-These functions are just tools I have developed over time to speed up my usage of PHITS; they are not officially supported by the PHITS development team.  They were developed to serve my own needs, and I am just publicly sharing them because others may also find utility in them.  All of the professionally-relevant Python modules I have developed are summarized [here](https://lindt8.github.io/professional-code-projects/), and more general information about me and the work I do / have done can be found on [my personal webpage](https://lindt8.github.io/).
+These functions are tools I have developed over time to speed up my usage of PHITS; they are not officially supported by the PHITS development team.  All of the professionally-relevant Python modules I have developed are summarized [here](https://lindt8.github.io/professional-code-projects/), and more general information about me and the work I do / have done can be found on [my personal webpage](https://lindt8.github.io/).
 
 <!-- The dchain_tools_manual.pdf document primarily covers usage of this main function but provides brief descriptions of the other available functions. /--> 
