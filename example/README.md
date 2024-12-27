@@ -4,7 +4,7 @@ In this example, `example_tproduct.inp` is the PHITS input file, and it features
 the [T-Product] tally, which scores what particles and nuclides are produced from particle 
 interactions (in this case, nuclear interactions). [T-Product] is one of the 
 three special tallies that can be used with the `dump` parameter to output 
-an addition "dump" file of event-by-event data.
+an additional "dump" file of event-by-event data.
 
 The `product.out` file is the standard tally output file, and `product.eps` is the 
 visualized output file automatically produced by PHITS (which is made by a 
