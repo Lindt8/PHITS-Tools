@@ -85,6 +85,8 @@ functions return the data objects they produce for your own further analyses.</p
 : return an elemental symbol string given its proton number Z</li>
 <li><code><a title="PHITS_tools.Element_Sym_to_Z" href="#PHITS_tools.Element_Sym_to_Z">Element_Sym_to_Z()</a></code>
 : returns an atomic number Z provided the elemental symbol</li>
+<li><code><a title="PHITS_tools.kfcode_to_common_name" href="#PHITS_tools.kfcode_to_common_name">kfcode_to_common_name()</a></code>
+: converts a particle kf-code to a plaintext string</li>
 <li><code><a title="PHITS_tools.find" href="#PHITS_tools.find">find()</a></code>
 : return index of the first instance of a value in a list</li>
 <li><code><a title="PHITS_tools.ICRP116_effective_dose_coeff" href="#PHITS_tools.ICRP116_effective_dose_coeff">ICRP116_effective_dose_coeff()</a></code>
@@ -172,6 +174,7 @@ functions return the data objects they produce for your own further analyses.
 - `nuclide_plain_str_to_latex_str`  : convert a plaintext string for a nuclide to a LaTeX formatted raw string
 - `Element_Z_to_Sym`                : return an elemental symbol string given its proton number Z
 - `Element_Sym_to_Z`                : returns an atomic number Z provided the elemental symbol
+- `kfcode_to_common_name`           : converts a particle kf-code to a plaintext string
 - `find`                            : return index of the first instance of a value in a list
 - `ICRP116_effective_dose_coeff`    : returns effective dose of a mono-energetic particle of some species and some geometry
 
@@ -1312,6 +1315,35 @@ def is_number(n):
         return False
     return True
 
+def kfcode_to_common_name(kf_code):
+    &#39;&#39;&#39;
+        Description:
+            Converts an integer kf-code to plaintext string of a particle/nuclide
+
+        Input:
+           - `kf_code` = integer kf-code particle identification number (see PHITS manual Table 4.4)
+
+        Output:
+           - `par_nuc_str` = string either naming the particle or describing the input nuclide formatted as [Symbol]-[A]
+        &#39;&#39;&#39;
+    kf_code = int(kf_code)
+    named_kf_codes =     [2212    ,2112     ,22      ,11        ,-11       ,211    ,111    ,-211   ,-13    ,13     ,321    ,311    ,-321   ]
+    named_kf_code_strs = [&#39;proton&#39;,&#39;neutron&#39;,&#39;photon&#39;,&#39;electron&#39;,&#39;positron&#39;,&#39;pion+&#39;,&#39;pion0&#39;,&#39;pion-&#39;,&#39;muon+&#39;,&#39;muon-&#39;,&#39;kaon+&#39;,&#39;kaon0&#39;,&#39;kaon-&#39;]
+    if abs(kf_code) &lt; 1000000:
+        # specifically named particles
+        if kf_code in named_kf_codes:
+            i = find(kf_code,named_kf_codes)
+            par_nuc_str = named_kf_code_strs[i]
+        else:
+            par_nuc_str = str(kf_code)
+    else:
+        A = kf_code % 1000000
+        Z = (kf_code-A) / 1000000
+        ZZZAAA = 1000*Z + A
+        par_nuc_str = ZZZAAAM_to_nuclide_plain_str(ZZZAAA, ZZZAAA=True)
+
+    return par_nuc_str
+
 
 def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter=&#39;-&#39;):
     &#39;&#39;&#39;
@@ -1319,7 +1351,7 @@ def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter=
         Converts a plaintext string of a nuclide to an integer ZZZAAAM = 10000\*Z + 10\*A + M
 
     Dependencies:
-        `Element_Z_to_Sym` (function within the &#34;Hunter&#39;s tools&#34; package)
+        `Element_Z_to_Sym` (function within the &#34;PHITS Tools&#34; package)
 
     Input:
        - `ZZZAAAM` = integer equal to 10000*Z + 10*A + M, where M designates the metastable state (0=ground)
@@ -1357,7 +1389,7 @@ def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
         Note: if you already have the Z, A, and isomeric state information determined, the &#34;nuclide_to_Latex_form&#34; function can be used instead
 
     Dependencies:
-        - `Element_Z_to_Sym` (function within the &#34;Hunter&#39;s tools&#34; package) (only required if `include_Z = True`)
+        - `Element_Z_to_Sym` (function within the &#34;PHITS Tools&#34; package) (only required if `include_Z = True`)
 
     Input:
         (required)
@@ -1513,7 +1545,7 @@ def Element_Sym_to_Z(sym):
         Returns atomic number Z for a provided elemental symbol
 
     Dependencies:
-        `find` (function within the &#34;Hunter&#39;s tools&#34; package)
+        `find` (function within the &#34;PHITS Tools&#34; package)
 
     Inputs:
         - `sym` = string of elemental symbol for element of atomic number Z
@@ -5739,6 +5771,54 @@ The function seeks to be as generalized as possible, meaning bin sizes do not ne
     return True</code></pre>
 </details>
 </dd>
+<dt id="PHITS_tools.kfcode_to_common_name"><code class="name flex">
+<span>def <span class="ident">kfcode_to_common_name</span></span>(<span>kf_code)</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="description">Description</h2>
+<p>Converts an integer kf-code to plaintext string of a particle/nuclide</p>
+<h2 id="input">Input</h2>
+<ul>
+<li><code>kf_code</code> = integer kf-code particle identification number (see PHITS manual Table 4.4)</li>
+</ul>
+<h2 id="output">Output</h2>
+<ul>
+<li><code>par_nuc_str</code> = string either naming the particle or describing the input nuclide formatted as [Symbol]-[A]</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def kfcode_to_common_name(kf_code):
+    &#39;&#39;&#39;
+        Description:
+            Converts an integer kf-code to plaintext string of a particle/nuclide
+
+        Input:
+           - `kf_code` = integer kf-code particle identification number (see PHITS manual Table 4.4)
+
+        Output:
+           - `par_nuc_str` = string either naming the particle or describing the input nuclide formatted as [Symbol]-[A]
+        &#39;&#39;&#39;
+    kf_code = int(kf_code)
+    named_kf_codes =     [2212    ,2112     ,22      ,11        ,-11       ,211    ,111    ,-211   ,-13    ,13     ,321    ,311    ,-321   ]
+    named_kf_code_strs = [&#39;proton&#39;,&#39;neutron&#39;,&#39;photon&#39;,&#39;electron&#39;,&#39;positron&#39;,&#39;pion+&#39;,&#39;pion0&#39;,&#39;pion-&#39;,&#39;muon+&#39;,&#39;muon-&#39;,&#39;kaon+&#39;,&#39;kaon0&#39;,&#39;kaon-&#39;]
+    if abs(kf_code) &lt; 1000000:
+        # specifically named particles
+        if kf_code in named_kf_codes:
+            i = find(kf_code,named_kf_codes)
+            par_nuc_str = named_kf_code_strs[i]
+        else:
+            par_nuc_str = str(kf_code)
+    else:
+        A = kf_code % 1000000
+        Z = (kf_code-A) / 1000000
+        ZZZAAA = 1000*Z + A
+        par_nuc_str = ZZZAAAM_to_nuclide_plain_str(ZZZAAA, ZZZAAA=True)
+
+    return par_nuc_str</code></pre>
+</details>
+</dd>
 <dt id="PHITS_tools.ZZZAAAM_to_nuclide_plain_str"><code class="name flex">
 <span>def <span class="ident">ZZZAAAM_to_nuclide_plain_str</span></span>(<span>ZZZAAAM, include_Z=False, ZZZAAA=False, delimiter='-')</span>
 </code></dt>
@@ -5746,7 +5826,7 @@ The function seeks to be as generalized as possible, meaning bin sizes do not ne
 <div class="desc"><h2 id="description">Description</h2>
 <p>Converts a plaintext string of a nuclide to an integer ZZZAAAM = 10000*Z + 10*A + M</p>
 <h2 id="dependencies">Dependencies</h2>
-<p><code><a title="PHITS_tools.Element_Z_to_Sym" href="#PHITS_tools.Element_Z_to_Sym">Element_Z_to_Sym()</a></code> (function within the "Hunter's tools" package)</p>
+<p><code><a title="PHITS_tools.Element_Z_to_Sym" href="#PHITS_tools.Element_Z_to_Sym">Element_Z_to_Sym()</a></code> (function within the "PHITS Tools" package)</p>
 <h2 id="input">Input</h2>
 <ul>
 <li><code>ZZZAAAM</code> = integer equal to 10000<em>Z + 10</em>A + M, where M designates the metastable state (0=ground)</li>
@@ -5768,7 +5848,7 @@ The function seeks to be as generalized as possible, meaning bin sizes do not ne
         Converts a plaintext string of a nuclide to an integer ZZZAAAM = 10000\*Z + 10\*A + M
 
     Dependencies:
-        `Element_Z_to_Sym` (function within the &#34;Hunter&#39;s tools&#34; package)
+        `Element_Z_to_Sym` (function within the &#34;PHITS Tools&#34; package)
 
     Input:
        - `ZZZAAAM` = integer equal to 10000*Z + 10*A + M, where M designates the metastable state (0=ground)
@@ -5808,7 +5888,7 @@ The function seeks to be as generalized as possible, meaning bin sizes do not ne
 Note: if you already have the Z, A, and isomeric state information determined, the "nuclide_to_Latex_form" function can be used instead</p>
 <h2 id="dependencies">Dependencies</h2>
 <ul>
-<li><code><a title="PHITS_tools.Element_Z_to_Sym" href="#PHITS_tools.Element_Z_to_Sym">Element_Z_to_Sym()</a></code> (function within the "Hunter's tools" package) (only required if <code>include_Z = True</code>)</li>
+<li><code><a title="PHITS_tools.Element_Z_to_Sym" href="#PHITS_tools.Element_Z_to_Sym">Element_Z_to_Sym()</a></code> (function within the "PHITS Tools" package) (only required if <code>include_Z = True</code>)</li>
 </ul>
 <h2 id="input">Input</h2>
 <p>(required)</p>
@@ -5845,7 +5925,7 @@ Isomeric state labels MUST either:<ul>
         Note: if you already have the Z, A, and isomeric state information determined, the &#34;nuclide_to_Latex_form&#34; function can be used instead
 
     Dependencies:
-        - `Element_Z_to_Sym` (function within the &#34;Hunter&#39;s tools&#34; package) (only required if `include_Z = True`)
+        - `Element_Z_to_Sym` (function within the &#34;PHITS Tools&#34; package) (only required if `include_Z = True`)
 
     Input:
         (required)
@@ -6021,7 +6101,7 @@ Isomeric state labels MUST either:<ul>
 <div class="desc"><h2 id="description">Description</h2>
 <p>Returns atomic number Z for a provided elemental symbol</p>
 <h2 id="dependencies">Dependencies</h2>
-<p><code><a title="PHITS_tools.find" href="#PHITS_tools.find">find()</a></code> (function within the "Hunter's tools" package)</p>
+<p><code><a title="PHITS_tools.find" href="#PHITS_tools.find">find()</a></code> (function within the "PHITS Tools" package)</p>
 <h2 id="inputs">Inputs</h2>
 <ul>
 <li><code>sym</code> = string of elemental symbol for element of atomic number Z</li>
@@ -6040,7 +6120,7 @@ Isomeric state labels MUST either:<ul>
         Returns atomic number Z for a provided elemental symbol
 
     Dependencies:
-        `find` (function within the &#34;Hunter&#39;s tools&#34; package)
+        `find` (function within the &#34;PHITS Tools&#34; package)
 
     Inputs:
         - `sym` = string of elemental symbol for element of atomic number Z
@@ -8505,6 +8585,7 @@ By default, all are set to <code>False</code> except for
 <li><code><a title="PHITS_tools.tally" href="#PHITS_tools.tally">tally</a></code></li>
 <li><code><a title="PHITS_tools.rebinner" href="#PHITS_tools.rebinner">rebinner</a></code></li>
 <li><code><a title="PHITS_tools.is_number" href="#PHITS_tools.is_number">is_number</a></code></li>
+<li><code><a title="PHITS_tools.kfcode_to_common_name" href="#PHITS_tools.kfcode_to_common_name">kfcode_to_common_name</a></code></li>
 <li><code><a title="PHITS_tools.ZZZAAAM_to_nuclide_plain_str" href="#PHITS_tools.ZZZAAAM_to_nuclide_plain_str">ZZZAAAM_to_nuclide_plain_str</a></code></li>
 <li><code><a title="PHITS_tools.nuclide_plain_str_to_latex_str" href="#PHITS_tools.nuclide_plain_str_to_latex_str">nuclide_plain_str_to_latex_str</a></code></li>
 <li><code><a title="PHITS_tools.Element_Z_to_Sym" href="#PHITS_tools.Element_Z_to_Sym">Element_Z_to_Sym</a></code></li>

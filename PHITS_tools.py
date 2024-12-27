@@ -50,6 +50,7 @@ functions return the data objects they produce for your own further analyses.
 - `nuclide_plain_str_to_latex_str`  : convert a plaintext string for a nuclide to a LaTeX formatted raw string
 - `Element_Z_to_Sym`                : return an elemental symbol string given its proton number Z
 - `Element_Sym_to_Z`                : returns an atomic number Z provided the elemental symbol
+- `kfcode_to_common_name`           : converts a particle kf-code to a plaintext string
 - `find`                            : return index of the first instance of a value in a list
 - `ICRP116_effective_dose_coeff`    : returns effective dose of a mono-energetic particle of some species and some geometry
 
@@ -1190,6 +1191,35 @@ def is_number(n):
         return False
     return True
 
+def kfcode_to_common_name(kf_code):
+    '''
+        Description:
+            Converts an integer kf-code to plaintext string of a particle/nuclide
+
+        Input:
+           - `kf_code` = integer kf-code particle identification number (see PHITS manual Table 4.4)
+
+        Output:
+           - `par_nuc_str` = string either naming the particle or describing the input nuclide formatted as [Symbol]-[A]
+        '''
+    kf_code = int(kf_code)
+    named_kf_codes =     [2212    ,2112     ,22      ,11        ,-11       ,211    ,111    ,-211   ,-13    ,13     ,321    ,311    ,-321   ]
+    named_kf_code_strs = ['proton','neutron','photon','electron','positron','pion+','pion0','pion-','muon+','muon-','kaon+','kaon0','kaon-']
+    if abs(kf_code) < 1000000:
+        # specifically named particles
+        if kf_code in named_kf_codes:
+            i = find(kf_code,named_kf_codes)
+            par_nuc_str = named_kf_code_strs[i]
+        else:
+            par_nuc_str = str(kf_code)
+    else:
+        A = kf_code % 1000000
+        Z = (kf_code-A) / 1000000
+        ZZZAAA = 1000*Z + A
+        par_nuc_str = ZZZAAAM_to_nuclide_plain_str(ZZZAAA, ZZZAAA=True)
+
+    return par_nuc_str
+
 
 def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter='-'):
     '''
@@ -1197,7 +1227,7 @@ def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter=
         Converts a plaintext string of a nuclide to an integer ZZZAAAM = 10000\*Z + 10\*A + M
 
     Dependencies:
-        `Element_Z_to_Sym` (function within the "Hunter's tools" package)
+        `Element_Z_to_Sym` (function within the "PHITS Tools" package)
 
     Input:
        - `ZZZAAAM` = integer equal to 10000*Z + 10*A + M, where M designates the metastable state (0=ground)
@@ -1235,7 +1265,7 @@ def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
         Note: if you already have the Z, A, and isomeric state information determined, the "nuclide_to_Latex_form" function can be used instead
 
     Dependencies:
-        - `Element_Z_to_Sym` (function within the "Hunter's tools" package) (only required if `include_Z = True`)
+        - `Element_Z_to_Sym` (function within the "PHITS Tools" package) (only required if `include_Z = True`)
 
     Input:
         (required)
@@ -1391,7 +1421,7 @@ def Element_Sym_to_Z(sym):
         Returns atomic number Z for a provided elemental symbol
 
     Dependencies:
-        `find` (function within the "Hunter's tools" package)
+        `find` (function within the "PHITS Tools" package)
 
     Inputs:
         - `sym` = string of elemental symbol for element of atomic number Z
