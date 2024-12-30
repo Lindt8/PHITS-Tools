@@ -129,7 +129,8 @@ may be more user-friendly to those accustomed to working in Pandas.
 `PHITS Tools` is also capable of parsing the "dump" output files (both binary and ASCII formats) 
 that are available for some tallies, and it can also automatically detect, parse, and process all PHITS 
 output files within a provided directory, very convenient for PHITS simulations employing 
-multiple tallies (each with its own output file) whose output are to be studied in Python. 
+multiple tallies, each with its own output file, whose output are to be further studied 
+(e.g., compared to experimental data or other simulations) in Python. 
 The `PHITS Tools` module can be used either by 
 (1) importing it as a Python module in a script and calling its functions, 
 (2) running it in the command line via its CLI with a provided PHITS output
