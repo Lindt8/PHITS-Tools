@@ -12,6 +12,8 @@ Specifically, PHITS Tools seeks to be a (nearly) universal PHITS output parser, 
 ## Installation
 One may use the functions by first placing the PHITS_tools.py Python script into a folder in their PYTHONPATH system variable or in the active directory and then just importing them normally (`from PHITS_tools import *`) or by executing the script `python PHITS_tools.py` with the PHITS output file to be parsed as the required argument (see `python PHITS_tools.py --help` for all CLI options) / without a file argument to be guided through with a GUI.
 
+The short list of required package/library dependencies for PHITS Tools (and DCHAIN Tools) can be found in `requirements.txt` and installed by executing `pip install -r requirements.txt`.
+
 ## Primary usage/interfaces
 There are three main ways one can use this Python module:
 
