@@ -140,7 +140,7 @@ fluences, or retrieving a PHITS-input-formatted [Material] section entry (includ
 its corresponding density) from a large database of over 350 materials (primarily
 consisting of the selection of matierials within the PNNL Compendium of Material 
 Composition Data for Radiation Transport Modeling [@PNNL_materials_compendium]),
-among other useful side functions.
+among other useful functions.
 
 `DCHAIN Tools` is a separate Python module for handling the outputs of the DCHAIN code and 
 is included as a submodule within the `PHITS Tools` repository.  Its primary function 
