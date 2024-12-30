@@ -48,7 +48,7 @@ distributed with and coupled to PHITS is the DCHAIN [@DCHAIN_ref] (or DCHAIN-PHI
 [^1]: PHITS and DCHAIN are distributed by the Japan Atomic Energy Agency and the OECD/NEA Data Bank. For more information, see: [https://phits.jaea.go.jp/howtoget.html](https://phits.jaea.go.jp/howtoget.html)
 
 Within PHITS are "tallies" which score various physical quantities
-such as the number of particles passing through a region in space, the number of particles crossing a surface, 
+such as the number of particles passing through a region in space or crossing a surface, 
 the frequency and products of nuclear interactions of various types, deposition of energy/dose, 
 timing of interactions, displacements per atom (DPA), and more.  Users provide the desired
 binning for the tally histograms to be created (such as specifying a range of energies of interest and 
@@ -66,10 +66,10 @@ The DCHAIN code coupled to PHITS specializes in calculating nuclide inventories 
 any arbitrary irradiation schedule from any radiation source.
 
 The modules presented here automate the time-consuming task of extracting the 
-numerical results (and metadata) from PHITS/DCHAIN simulations and organizes them into 
+numerical results and metadata from PHITS/DCHAIN simulations and organizes them into 
 a standardized format, easing and expediting further practical real-world analyses. 
-The modules also provide a variety of functions for some of the most common analyses one 
-may wish to perform on PHITS/DCHAIN simulation outputs.
+They also provide functions for some of the most common analyses one 
+may wish to perform on simulation outputs.
 
 
 
@@ -77,7 +77,7 @@ may wish to perform on PHITS/DCHAIN simulation outputs.
 
 `PHITS Tools` and `DCHAIN Tools` serve as an interface between the plaintext (and binary) outputs
 of the PHITS and DCHAIN codes and Python&mdash;greatly expediting further programmatic analyses, 
-comparisons, and visualization in Python&mdash;and provide some extra analysis tools. 
+comparisons, and visualization&mdash;and provide some extra analysis tools. 
 The outputs of the PHITS code are, aside from the special binary "dump" files, plaintext files formatted 
 for processing by a custom visualization code (generating Encapsulated PostScript files) 
 shipped with and automatically ran by PHITS, and those of the DCHAIN 
