@@ -42,9 +42,10 @@ functions return the data objects they produce for your own further analyses.
 
 ### General Purpose Functions
 
-- `fetch_MC_material`               : returns a string of a formatted material for PHITS or MCNP
-- `tally`                           : tally/histogram values (and their indices) falling within a desired binning structure
-- `rebinner`                        : rebin a set of y-data to a new x-binning structure (edges not necessarily preserved)
+- `fetch_MC_material`               : returns a string of a formatted material for PHITS or MCNP (mostly those in [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125))
+- `tally`                           : tally/histogram values (and their indices) falling within a desired binning structure (useful with "dump" files)
+- `rebinner`                        : rebin a set of y-data to a new x-binning structure (edges need not necessarily be preserved)
+- `ICRP116_effective_dose_coeff`    : returns effective dose conversion coefficient of a mono-energetic particle of some species and some geometry; does coefficients are those in [ICRP 116](https://doi.org/10.1016/j.icrp.2011.10.001)
 - `is_number`                       : returns Boolean denoting whether provided string is that of a number
 - `ZZZAAAM_to_nuclide_plain_str`    : returns a nuclide plaintext string for a given "ZZZAAAM" number (1000Z+10A+M)
 - `nuclide_plain_str_to_latex_str`  : convert a plaintext string for a nuclide to a LaTeX formatted raw string
@@ -52,7 +53,6 @@ functions return the data objects they produce for your own further analyses.
 - `Element_Sym_to_Z`                : returns an atomic number Z provided the elemental symbol
 - `kfcode_to_common_name`           : converts a particle kf-code to a plaintext string
 - `find`                            : return index of the first instance of a value in a list
-- `ICRP116_effective_dose_coeff`    : returns effective dose of a mono-energetic particle of some species and some geometry
 
 ### Subfunctions for PHITS output parsing
 (These are meant as dependencies more so than for standalone usage.)
@@ -151,7 +151,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
     Inputs:
        (required)
 
-        - `tally_output_filepath` = file or filepath to the tally output file to be parsed
+        - `tally_output_filepath` = string or Path object denoting the path to the tally output file to be parsed
 
     Inputs:
        (optional)
@@ -208,15 +208,23 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        dimension: region numbers/groups, particle names/groups, bin edges and midpoints for all mesh types
        (x, y, z, r, energy, angle, time, and LET) used in the tally.
 
-       The `tally_dataframe` Pandas dataframe output functions as normal.  Note that a dictionary containing supplemental
-       information that is common to all rows of the dataframe can be accessed with `tally_dataframe.attrs`.
+       The `tally_dataframe` Pandas dataframe output functions as normal. The dataframe contains a number of rows equal
+       to the number of Values in the NumPy array (i.e., the product of the lengths of the first nine dimensions of the
+       ten-dimensional array) and extra columns for each array dimension of length greater than one (e.g., if the tally
+       includes an energy and/or angle mesh, columns will be present stating the energy/angle bin of each row).
+       A dictionary containing supplemental information that is common to all rows of the dataframe is included and
+       can be accessed with `tally_dataframe.attrs`.
 
        -----
 
        **Unsupported tallies and DCHAIN**
 
-       At present, the following tallies are NOT supported by this function: [T-WWG], [T-WWBG], [T-Volume],
-       [T-Userdefined], [T-Gshow], [T-Rshow], [T-3Dshow], [T-4Dtrack], and [T-Dchain]&dagger;.
+       The following tallies are NOT supported by this function:
+
+        - [T-WWG], [T-WWBG], and [T-Volume] (due to being "helper" tallies for generating text sections meant for reinsertion into a PHITS input file)
+        - [T-Gshow], [T-Rshow], [T-3Dshow], and [T-4Dtrack] (due to being visualization tallies meant for ANGEL/PHIG-3D)
+        - [T-Userdefined] (due to having no standard format)
+        - [T-Dchain]&dagger;
 
        &dagger;If provided with the output file of [T-Dchain] (the input file for the DCHAIN code) or the `*.act` main
        output file produced by the DCHAIN code, this function will attempt to import the [DCHAIN Tools module](https://github.com/Lindt8/DCHAIN-Tools)
@@ -301,6 +309,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
         when one pair is being written, the other will be `[-1,-1]`, thus the lengths of these dimensions for the array
         are increased by an extra 1 to prevent an overlap in the data written.
     '''
+    tally_output_filepath = Path(tally_output_filepath)
     pickle_filepath = Path(tally_output_filepath.parent, tally_output_filepath.stem + '.pickle')
     if prefer_reading_existing_pickle and os.path.isfile(pickle_filepath):
         import pickle
@@ -485,12 +494,12 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
         - `path_to_dump_file` = string or Path object denoting the path to the dump tally output file to be parsed
         - `dump_data_number` = integer number of data per row in dump file, binary if >0 and ASCII if <0.
                  This should match the value following `dump=` in the tally creating the dump file. (D=`None`)
-                 If not specified, the search_for_dump_parameters() function will attempt to find it automatically.
+                 If not specified, the `search_for_dump_parameters()` function will attempt to find it automatically.
         - `dump_data_sequence` = string or list of integers with the same number of entries as `dump_data_number`,
                  mapping each column in the dump file to their physical quantities.  (D=`None`)
                  This should match the line following the `dump=` line in the tally creating the dump file.
                  See PHITS manual section "6.7.22 dump parameter" for further explanations of these values.
-                 If not specified, the search_for_dump_parameters() function will attempt to find it automatically.
+                 If not specified, the `search_for_dump_parameters()` function will attempt to find it automatically.
 
     Inputs:
        (optional)
@@ -848,7 +857,8 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
 def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=None,particle=None):
     '''
     Description:
-        Returns a materials definition string formatted for use in PHITS or MCNP
+        Returns a materials definition string formatted for use in PHITS or MCNP (including a density estimate);
+        most available materials are those found in [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125).
 
     Dependencies:
         - `import os`
@@ -1484,7 +1494,7 @@ def ICRP116_effective_dose_coeff(E=1.0,particle='photon',geometry='AP',interp_sc
     '''
     Description:
         For a given particle at a given energy in a given geometry, returns its
-        effective dose conversion coefficient from ICRP 116
+        effective dose conversion coefficient from [ICRP 116](https://doi.org/10.1016/j.icrp.2011.10.001)
 
     Dependencies:
         - `import numpy as np`
@@ -3606,8 +3616,6 @@ if run_with_CLI_inputs:
                                     save_output_pickle=True, prefer_reading_existing_pickle=False)
 
 elif launch_GUI:
-    # tkinter GUI below written with the assistance of ChatGPT
-
     import tkinter as tk
     from tkinter import filedialog
     from tkinter import messagebox
