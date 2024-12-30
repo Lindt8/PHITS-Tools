@@ -1,5 +1,5 @@
 ---
-title: 'PHITS & DCHAIN Tools: Python modules for parsing, organizing, and analyzing output of the PHITS radiation transport and DCHAIN activation codes'
+title: 'PHITS & DCHAIN Tools: Python modules for parsing, organizing, and analyzing results from the PHITS radiation transport and DCHAIN activation codes'
 tags:
   - Python
   - PHITS
