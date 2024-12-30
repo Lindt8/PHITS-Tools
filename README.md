@@ -18,7 +18,7 @@ The short list of required package/library dependencies for PHITS Tools (and DCH
 There are three main ways one can use this Python module:
 
 1. As an **imported Python module**
-    - In your own Python scripts, you can import this module (`from PHITS_tools import *`) and call its main functions or any of its other functions documented [here](https://lindt8.github.io/PHITS-Tools/).
+    - In your own Python scripts, you can import this module (`import PHITS_tools` / `from PHITS_tools import *`) and call its main functions or any of its other functions documented [here](https://lindt8.github.io/PHITS-Tools/).
 2. As a **command line interface (CLI)**
     - This module can be ran on the command line with the individual PHITS output file to be parsed (or a directory containing multiple files to be parsed) as the required argument. Execute `python PHITS_tools.py --help` to see all of the different options that can be used with this module to parse standard or dump PHITS output files (individually and directories containing them) via the CLI.
 3. As a **graphical user interface (GUI)** 
