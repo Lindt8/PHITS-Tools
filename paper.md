@@ -32,7 +32,7 @@ on complex codes employing nuclear data and a large variety of physics models to
 transport (and interactions) of radiation through matter to answer important questions, 
 in both research and applied contexts. 
 For example: How should a shielding wall be designed to comply with radiation safety regulations? 
-What is the expected dose an individual may receive in a particular exposure scenario?
+What dose will an individual receive in a particular exposure scenario?
 After how long will an irradiated radioactive sample decay enough to become safe to handle?
 How should an experiment be designed to make the most of limited time at an accelerator facility?
 
@@ -47,7 +47,7 @@ distributed with and coupled to PHITS is the DCHAIN [@DCHAIN_ref] (or DCHAIN-PHI
 
 [^1]: PHITS and DCHAIN are distributed by the Japan Atomic Energy Agency and the OECD/NEA Data Bank. For more information, see: [https://phits.jaea.go.jp/howtoget.html](https://phits.jaea.go.jp/howtoget.html)
 
-Within PHITS (and other similar codes) are "tallies" which score various physical quantities
+Within PHITS are "tallies" which score various physical quantities
 such as the number of particles passing through a region in space, the number of particles crossing a surface, 
 the frequency and products of nuclear interactions of various types, deposition of energy/dose, 
 timing of interactions, displacements per atom (DPA), and more.  Users provide the desired
@@ -65,18 +65,24 @@ The DCHAIN code coupled to PHITS specializes in calculating nuclide inventories 
 (such as activity, decay heat, decay gamma-ray emission spectra, and more) as a function of time for 
 any arbitrary irradiation schedule from any radiation source.
 
+The modules presented here automate the time-consuming task of extracting the 
+numerical results (and metadata) from PHITS/DCHAIN simulations and organizes them into 
+a standardized format, easing and expediting further practical real-world analyses. 
+The modules also provide a variety of functions for some of the most common analyses one 
+may wish to perform on PHITS/DCHAIN simulation outputs.
+
 
 
 # Statement of need
 
 `PHITS Tools` and `DCHAIN Tools` serve as an interface between the plaintext (and binary) outputs
-of the PHITS and DCHAIN codes and Python, greatly expediting further programmatic analyses, 
-comparisons, and visualization in Python and providing some extra analysis tools. 
+of the PHITS and DCHAIN codes and Python&mdash;greatly expediting further programmatic analyses, 
+comparisons, and visualization in Python&mdash;and provide some extra analysis tools. 
 The outputs of the PHITS code are, aside from the special binary "dump" files, plaintext files formatted 
 for processing by a custom visualization code (generating Encapsulated PostScript files) 
 shipped with and automatically ran by PHITS, and those of the DCHAIN 
 code are formatted in a variety of tabular, human-readable structures.  Historically, programmatic
-extraction and organization of numerical results (and metadata) from both codes often required 
+extraction and organization of numerical results and metadata from both codes often required 
 writing a bespoke processing script for most individual simulations, 
 possibly preceded by manual data extraction/isolation too. 
 `PHITS Tools` and `DCHAIN Tools` provide universal output parsers for the PHITS and DCHAIN codes, 
