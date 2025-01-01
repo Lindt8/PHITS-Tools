@@ -15,7 +15,7 @@ in ASCII format (since the tally has set the parameter `dump = -11`).
 In `example_PHITS_tools.py`, PHITS Tools is used to parse both the standard 
 tally output file and the dump file.  See the comments in the code to be 
 stepped through instructions for what is being done.  The `*.pickle` and 
-`*.dill.xz` files are produced by PHITS Tools, containing the numerical results
+`*.pickle.xz` files are produced by PHITS Tools, containing the numerical results
 and metadata extracted from the PHITS output files.  The PNG file is a plot 
 made using the PHITS Tools extracted output recreating the EPS file automatically 
 produced by PHITS.

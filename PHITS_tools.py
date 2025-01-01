@@ -29,7 +29,7 @@ There are three main ways one can use this Python module:
           a GUI will be launched to step you through selecting what "mode" you would like to run PHITS Tools in (`STANDARD`, `DUMP`, or `DIRECTORY`),
           selecting a file to be parsed (or a directory containing multiple files to be parsed), and the various options for each mode.
 
-The CLI and GUI options result in the parsed file's contents being saved to a pickle (or dill) file, which can be reopened
+The CLI and GUI options result in the parsed file's contents being saved to a pickle file, which can be reopened
 and used later in a Python script.  When using the main functions below within a Python script which has imported the PHITS_tools
 module, you can optionally choose not to save the pickle files (if desired) and only have the tally output/dump parsing
 functions return the data objects they produce for your own further analyses.
@@ -485,7 +485,6 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
         - `from collections import namedtuple`
         - `from scipy.io import FortranFile`
         - `import pandas as pd` (if `return_Pandas_dataframe = True`)
-        - `import dill` (if `save_namedtuple_list = True`)
         - `import lzma` (if `save_namedtuple_list = True`)
 
     Inputs:
@@ -516,11 +515,22 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
                  of the dump file to be read.  By default, all records in the dump file are read.
         - `return_namedtuple_list` = (optional, D=`True`) Boolean designating whether `dump_data_list` is returned.
         - `return_Pandas_dataframe` = (optional, D=`True`) Boolean designating whether `dump_data_frame` is returned.
-        - `save_namedtuple_list` = (optional, D=`False`) Boolean designating whether `dump_data_list` is saved to a dill file,
-                which will be compressed with LZMA (built-in with Python)
-                (for complicated reasons, objects containing namedtuples cannot be easily saved with pickle but can with dill).
-                This *.dill.xz file can then be opened (after importing `dill` and `lzma`) as:
-                `with lzma.open(path_to_dillxz_file, 'rb') as file: dump_data_list = dill.load(file)`
+        - `save_namedtuple_list` = (optional, D=`False`) Boolean designating whether `dump_data_list` is saved to a pickle file,
+                which will be compressed with LZMA (built-in with Python).
+                For complicated reasons&dagger;, the namedtuple list is converted to a [NumPy recarray](https://numpy.org/doc/stable/reference/generated/numpy.recarray.html) before being saved,
+                which is nearly functionally identical to the list of namedtuples.  When viewing individual entries,
+                the field names are not printed (but can be accessed with `dump_data_list.dtype.names`), but you can access
+                the fields in exactly the same atribute access way as namedtuples (e.g., `dump_data_list[0].time` to
+                view the time column value for the first entry in the list of events) as well as in a dictionary-like
+                way (e.g., `dump_data_list[0]['time']` for that same time value).
+                This *.pickle.xz file can then be opened (after importing `pickle` and `lzma`) as:
+                `with lzma.open(path_to_picklexz_file, 'rb') as file: dump_data_list = pickle.load(file)`   
+                &dagger;_Pickle could not save the list of namedtuples without error; the dill library could but
+                adding the extra external dependency was undesirable. Furthermore, the time performance of saving the
+                NumPy recarray was substantially superior, approximately a factor of 2, relative to just using dill to
+                save the list of namedtuples. Note that with LZMA compression that the compressed pickle file should
+                be notably smaller than the corresponding pickled Pandas DataFrame; however, without LZMA compression
+                this pickled recarray tends to be sizably bigger than the dataframe._
         - `save_Pandas_dataframe` = (optional, D=`False`) Boolean designating whether `dump_data_frame` is saved to a pickle
                 file (via Pandas .to_pickle()).
 
@@ -541,8 +551,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
     if return_Pandas_dataframe or save_Pandas_dataframe:
         import pandas as pd
     if save_Pandas_dataframe or save_namedtuple_list:
-        #import pickle
-        import dill
+        import pickle
 
     if not return_namedtuple_list and not return_Pandas_dataframe and not save_namedtuple_list and not save_Pandas_dataframe:
         raise ValueError('ERROR: All "return_namedtuple_list", "return_Pandas_dataframe", "save_namedtuple_list", and "save_Pandas_dataframe" are False. Enable at least one to use this function.')
@@ -565,6 +574,8 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
     # See PHITS manual section "6.7.22 dump parameter" for descriptions of these values
     dump_quantities = ['kf', 'x', 'y', 'z', 'u', 'v', 'w', 'e', 'wt', 'time', 'c1', 'c2', 'c3', 'sx', 'sy', 'sz',
                        'name', 'nocas', 'nobch', 'no']
+    dump_col_dtypes = [int, float, float, float, float, float, float, float, float, float, int, int, int, float, float, float,
+                       int, int, int, int]
     ordered_record_entries_list = [dump_quantities[i - 1] for i in dump_data_sequence]
     rawRecord = namedtuple('rawRecord', ordered_record_entries_list)
     if return_directional_info:
@@ -640,9 +651,13 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
     if save_namedtuple_list:
         import lzma
         path_to_dump_file = Path(path_to_dump_file)
-        pickle_path = Path(path_to_dump_file.parent, path_to_dump_file.stem + '_namedtuple_list.dill.xz')
+        pickle_path = Path(path_to_dump_file.parent, path_to_dump_file.stem + '_namedtuple_list.pickle.xz')
+        num_records = len(records_list)
+        record_type = [(ordered_record_entries_list[i], dump_col_dtypes[i]) for i in range(len(ordered_record_entries_list))]
+        records_np_array = np.array(records_list, dtype=record_type)
+        records_np_array = records_np_array.view(np.recarray)
         with lzma.open(pickle_path, 'wb') as handle:
-            dill.dump(records_list, handle, protocol=dill.HIGHEST_PROTOCOL)
+            pickle.dump(records_np_array, handle, protocol=pickle.HIGHEST_PROTOCOL)
             print('Pickle file written:', pickle_path, '\n')
 
     if return_Pandas_dataframe or save_Pandas_dataframe:
@@ -690,7 +705,7 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
         It will also skip over "_err" uncertainty files as these are automatically found by the `parse_tally_output_file()`
         function after it processes that tally's main output file.
         This function will mainly process standard tally output files, but it can optionally process tally "dump" files too,
-        though it can only save the dump outputs to its dill/pickle files and not return the (quite large) dump data objects.
+        though it can only save the dump outputs to its pickle files and not return the (quite large) dump data objects.
         The filenames of saved dump data will not be included in the returned list.
 
     Dependencies:
@@ -765,8 +780,11 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
                 in units of degrees. Default setting is to return angles in radians.
        - `dump_max_entries_read` = (optional, D=`None`) integer number specifying the maximum number of entries/records
                 of the dump file to be read.  By default, all records in the dump file are read.
-       - `dump_save_namedtuple_list` = (optional, D=`True`) Boolean designating whether `dump_data_list` is saved to a dill file
-               (for complicated reasons, objects containing namedtuples cannot be easily saved with pickle but can with dill).
+       - `dump_save_namedtuple_list` = (optional, D=`True`) Boolean designating whether `dump_data_list` is saved to a pickle file
+               (for complicated reasons, the namedtuple list is converted to a [NumPy recarray](https://numpy.org/doc/stable/reference/generated/numpy.recarray.html) before being saved,
+               which is nearly functionally identical to the list of namedtuples.
+               For more info and the full explanation, see the documentation for the `parse_tally_dump_file()` function's
+               `save_namedtuple_list` argument, which is what this argument is passed to anyways).
        - `dump_save_Pandas_dataframe` = (optional, D=`True`) Boolean designating whether `dump_data_frame` is saved to a pickle
                file (via Pandas .to_pickle()).
 
@@ -3532,7 +3550,7 @@ if run_with_CLI_inputs:
     parser.add_argument("-dnmax", "--dump_max_entries_read", type=int, help="[dump output] specify maximum integer number of entries to read (read all by default)")
     parser.add_argument("-ddir", "--dump_return_directional_info", action="store_true", help="[dump output] return extra directional information: radial distance r from the origin in cm, radial distance rho from the z-axis in cm, polar angle theta between the direction vector and z-axis in radians [0,pi] (or degrees), and azimuthal angle phi of the direction vector in radians [-pi,pi] (or degrees). Note: This option requires all position and direction values [x,y,z,u,v,w] to be included in the dump file.")
     parser.add_argument("-ddeg", "--dump_use_degrees", action="store_true", help="[dump output] anular quantities will be in degrees instead of radians")
-    parser.add_argument("-dnsl", "--dump_no_save_namedtuple_list", action="store_true", help="[dump output] do NOT save parsed dump file info to list of namedtuples to dill file (-dnsl and -dnsp cannot both be enabled if parsing a dump file)")
+    parser.add_argument("-dnsl", "--dump_no_save_namedtuple_list", action="store_true", help="[dump output] do NOT save parsed dump file info to list of namedtuples to pickle file (-dnsl and -dnsp cannot both be enabled if parsing a dump file)")
     parser.add_argument("-dnsp", "--dump_no_save_Pandas_dataframe", action="store_true", help="[dump output] do NOT save parsed dump file info to Pandas DataFrame to pickle file (-dnsl and -dnsp cannot both be enabled if parsing a dump file)")
     # Flags for processing files in a directory
     parser.add_argument("-r", "--recursive_search", action="store_true", help="[directory parsing] If the provided 'file' is a directory, also recursively search subdirectories for files to process.")
@@ -3754,9 +3772,9 @@ elif launch_GUI:
             options_frame = tk.LabelFrame(secondary_gui, text="Data output format options")
             options_frame.pack(padx=10, pady=10, anchor=tk.W)
 
-            tk.Radiobutton(options_frame, text="Save only a dill file of a list of named tuples with dump event information", variable=radio_var, value=1, anchor=tk.W).pack(anchor=tk.W)
+            tk.Radiobutton(options_frame, text="Save only a pickle file of a list of namedtuples with dump event information", variable=radio_var, value=1, anchor=tk.W).pack(anchor=tk.W)
             tk.Radiobutton(options_frame, text="Save only a pickle file of a Pandas DataFrame of dump event information", variable=radio_var, value=2, anchor=tk.W).pack(anchor=tk.W)
-            tk.Radiobutton(options_frame, text="Save both the named tuples list dill file and the Pandas DataFrame pickle file", variable=radio_var, value=3, anchor=tk.W).pack(anchor=tk.W)
+            tk.Radiobutton(options_frame, text="Save both the namedtuples list pickle file and the Pandas DataFrame pickle file", variable=radio_var, value=3, anchor=tk.W).pack(anchor=tk.W)
 
             dump_instrcutions = 'If in the same directory as your dump file exists the corresponding standard tally output file,\n' + \
                                 'and the only difference in their file names is the "_dmp" at the end of the dump file, the \n' + \
@@ -3837,9 +3855,9 @@ elif launch_GUI:
             cb4obj.pack(anchor=tk.W, padx=10, pady=2)
 
             options_frame = tk.LabelFrame(secondary_gui, text="Data output format options for dump files")
-            tk.Radiobutton(options_frame, text="Save only a dill file of a list of named tuples with dump event information", variable=radio_var, value=1, anchor=tk.W).pack(anchor=tk.W)
+            tk.Radiobutton(options_frame, text="Save only a pickle file of a list of namedtuples with dump event information", variable=radio_var, value=1, anchor=tk.W).pack(anchor=tk.W)
             tk.Radiobutton(options_frame, text="Save only a pickle file of a Pandas DataFrame of dump event information", variable=radio_var, value=2, anchor=tk.W).pack(anchor=tk.W)
-            tk.Radiobutton(options_frame, text="Save both the named tuples list dill file and the Pandas DataFrame pickle file", variable=radio_var, value=3, anchor=tk.W).pack(anchor=tk.W)
+            tk.Radiobutton(options_frame, text="Save both the namedtuples list pickle file and the Pandas DataFrame pickle file", variable=radio_var, value=3, anchor=tk.W).pack(anchor=tk.W)
 
 
 
@@ -4085,21 +4103,34 @@ elif test_explicit_files_dirs:
         sys.exit()
 
 
-    test_dump_file = False
+    test_dump_file = True #False
     if test_dump_file:
-        dump_file_path = Path(base_path + 't-cross\complex\\neutron_yield_dmp.out')
-        dump_control_str = '2   3   4   5   6   7   8  10'
+        #dump_file_path = Path(base_path + 't-cross\complex\\neutron_yield_dmp.out')
+        #dump_control_str = '2   3   4   5   6   7   8  10'
+        dump_file_path = Path(base_path + 'tally\\t-product\\dump\\product_dmp.out')
+        dump_control_str = '1  2 3 4 8 10 9  17   18    19    20'
         #nt_list, df = parse_tally_dump_file(dump_file_path,8,dump_control_str, save_namedtuple_list=True, save_Pandas_dataframe=True)
         # test automatic finding of dump parameters
-        nt_list, df = parse_tally_dump_file(dump_file_path, save_namedtuple_list=True, save_Pandas_dataframe=True)
+        print('Elapsed time before reading dump file: {:0.2f}'.format(time.time() - start))
+        nt_list, df = parse_tally_dump_file(dump_file_path, save_namedtuple_list=True, save_Pandas_dataframe=False)
+        print('Elapsed time after saving dump file output containers: {:0.2f}'.format(time.time() - start))
 
         # test dill of namedtuple list
-        import dill
-        path_to_pickle_file = Path(base_path + 't-cross\complex\\neutron_yield_dmp_namedtuple_list.dill')
-        with open(path_to_pickle_file, 'rb') as handle:
-            nt_list_dill = dill.load(handle)
+        #import dill
+        import pickle
+        import lzma
+        #path_to_pickle_file = Path(base_path + 't-cross\complex\\neutron_yield_dmp_namedtuple_list.dill.xz')
+        path_to_pickle_file = Path(base_path + 'tally\\t-product\\dump\\product_dmp_namedtuple_list.pickle.xz')
+        with lzma.open(path_to_pickle_file, 'rb') as handle:
+            nt_list_dill = pickle.load(handle)
 
-        if nt_list==nt_list_dill: print('It works!')
+        print(nt_list[0])
+        print(nt_list_dill[0])
+        print(nt_list_dill[0].kf)
+        print(nt_list_dill[0]['kf'])
+        print(nt_list_dill.dtype.names)
+
+        if [tuple(t) for t in nt_list]==[tuple(t) for t in nt_list_dill]: print('It works!')
 
         sys.exit()
 
