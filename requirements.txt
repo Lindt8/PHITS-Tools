@@ -3,7 +3,11 @@ numpy>=2.2.1
 pandas>=2.2.3
 scipy>=1.14.1
 matplotlib>=3.10.0
-munch>=2.5.0
+
+## Optional Dependencies (uncomment to use)
+# Munch is used to make the metadata dictionary into a Munch object
+# without munch, it will be just a standard dictionary object
+# munch>=2.5.0
 
 ## Optional Dependencies (uncomment to use)
 ## For visualization of tetrahedral output (used in DCHAIN-Tools/tet/vtk_from_DCHAIN_tet.py)
