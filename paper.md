@@ -1,24 +1,30 @@
 ---
 title: 'PHITS & DCHAIN Tools: Python modules for parsing, organizing, and analyzing results from the PHITS radiation transport and DCHAIN activation codes'
+
 tags:
-  - Python
   - PHITS
   - DCHAIN
   - Monte Carlo
+  - radiation transport
   - nuclear physics
   - nuclear activation
+  - Python
+
 authors:
   - name: Hunter N. Ratliff
     orcid: 0000-0003-3761-5415
     affiliation: "1, 2" # (Multiple affiliations must be quoted)
+
 affiliations:
- - name: Western Norway University of Applied Sciences, Inndalsveien 28, 5063 Bergen, Norway
-   index: 1
-   ror: 05phns765
- - name: Japan Atomic Energy Agency, 2-4 Shirakata, Tokai, Naka, Ibaraki 319-1195, Japan
-   index: 2
-   ror: 05nf86y53
+  - name: Western Norway University of Applied Sciences, Inndalsveien 28, 5063 Bergen, Norway
+    index: 1
+    ror: 05phns765
+  - name: Japan Atomic Energy Agency, 2-4 Shirakata, Tokai, Naka, Ibaraki 319-1195, Japan
+    index: 2
+    ror: 05nf86y53
+
 date: 2 January 2025
+
 bibliography: paper.bib
 
 
