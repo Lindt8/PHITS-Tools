@@ -555,7 +555,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
     '''
 
     from collections import namedtuple
-    from typing import NamedTuple
+    #from typing import NamedTuple
     from scipy.io import FortranFile
     if return_Pandas_dataframe or save_Pandas_dataframe:
         import pandas as pd
