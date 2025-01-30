@@ -3755,7 +3755,10 @@ if run_with_CLI_inputs:
         if (file := Path(arg)).is_file():
             return file
         else:
-            raise FileNotFoundError(arg)
+            if (file := Path(arg)).is_dir():
+                return file
+            else:
+                raise FileNotFoundError(arg)
     parser = argparse.ArgumentParser()
     parser.add_argument("file", type=validate_file, help="path to PHITS output file to parse or directory containing files to parse (relative or absolute path)")
     # Flags for standard output files
