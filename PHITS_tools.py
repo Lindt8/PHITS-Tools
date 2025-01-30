@@ -493,7 +493,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
         if in_debug_mode: print("\nWriting output to pickle file...   ({:0.2f} seconds elapsed)".format(time.time() - start))
         if compress_pickle_with_lzma:
             with lzma.open(path_to_pickle_file, 'wb') as handle:
-                pickle.dump(tally_output, handle, protocol=pickle.HIGHEST_PROTOCOL)
+                pickle.dump(tally_output, handle, protocol=4)  # protocol=4 needed to pickle an object w/ a Pandas DF
         else:
             with open(path_to_pickle_file, 'wb') as handle:
                 pickle.dump(tally_output, handle, protocol=pickle.HIGHEST_PROTOCOL)
