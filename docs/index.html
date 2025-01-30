@@ -77,6 +77,8 @@ functions return the data objects they produce for your own further analyses.</p
 : returns a string of a formatted material for PHITS or MCNP (mostly those in <a href="https://www.osti.gov/biblio/1023125">PNNL-15870 Rev. 1</a>)</li>
 <li><code><a title="PHITS_tools.ICRP116_effective_dose_coeff" href="#PHITS_tools.ICRP116_effective_dose_coeff">ICRP116_effective_dose_coeff()</a></code>
 : returns effective dose conversion coefficient of a mono-energetic particle of some species and some geometry; does coefficients are those in <a href="https://doi.org/10.1016/j.icrp.2011.10.001">ICRP 116</a></li>
+<li><code><a title="PHITS_tools.merge_dump_file_pickles" href="#PHITS_tools.merge_dump_file_pickles">merge_dump_file_pickles()</a></code>
+: merge multiple dump file outputs into a single file (useful for dumps in MPI runs)</li>
 <li><code><a title="PHITS_tools.ZZZAAAM_to_nuclide_plain_str" href="#PHITS_tools.ZZZAAAM_to_nuclide_plain_str">ZZZAAAM_to_nuclide_plain_str()</a></code>
 : returns a nuclide plaintext string for a given "ZZZAAAM" number (1000Z+10A+M)</li>
 <li><code><a title="PHITS_tools.nuclide_plain_str_to_latex_str" href="#PHITS_tools.nuclide_plain_str_to_latex_str">nuclide_plain_str_to_latex_str()</a></code>
@@ -170,6 +172,7 @@ functions return the data objects they produce for your own further analyses.
 - `rebinner`                        : rebin a set of y-data to a new x-binning structure (edges need not necessarily be preserved)
 - `fetch_MC_material`               : returns a string of a formatted material for PHITS or MCNP (mostly those in [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125))
 - `ICRP116_effective_dose_coeff`    : returns effective dose conversion coefficient of a mono-energetic particle of some species and some geometry; does coefficients are those in [ICRP 116](https://doi.org/10.1016/j.icrp.2011.10.001)
+- `merge_dump_file_pickles`         : merge multiple dump file outputs into a single file (useful for dumps in MPI runs)
 - `ZZZAAAM_to_nuclide_plain_str`    : returns a nuclide plaintext string for a given &#34;ZZZAAAM&#34; number (1000Z+10A+M)
 - `nuclide_plain_str_to_latex_str`  : convert a plaintext string for a nuclide to a LaTeX formatted raw string
 - `Element_Z_to_Sym`                : return an elemental symbol string given its proton number Z
@@ -786,10 +789,16 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
     else:
         compression_file_extension = &#39;&#39;
 
+    path_to_dump_file = Path(path_to_dump_file)
+    dump_file_suffixes = path_to_dump_file.suffixes
+    MPI_subdump_num_str = &#39;&#39;
+    if len(dump_file_suffixes) &gt; 1 and is_number(dump_file_suffixes[-1][1:]) and &#39;_dmp&#39; in path_to_dump_file.stem:  # MPI dump found
+        MPI_subdump_num_str = dump_file_suffixes[-1]  #[1:]
+
     if save_namedtuple_list:
         import lzma
         path_to_dump_file = Path(path_to_dump_file)
-        pickle_path = Path(path_to_dump_file.parent, path_to_dump_file.stem + &#39;_namedtuple_list.pickle&#39; + compression_file_extension)
+        pickle_path = Path(path_to_dump_file.parent, path_to_dump_file.stem + MPI_subdump_num_str + &#39;_namedtuple_list.pickle&#39; + compression_file_extension)
         num_records = len(records_list)
         record_type = [(ordered_record_entries_list[i], dump_col_dtypes[i]) for i in range(len(ordered_record_entries_list))]
         records_np_array = np.array(records_list, dtype=record_type)
@@ -807,7 +816,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
         records_df = pd.DataFrame(records_list, columns=Record._fields)
         if save_Pandas_dataframe:
             path_to_dump_file= Path(path_to_dump_file)
-            pickle_path = Path(path_to_dump_file.parent, path_to_dump_file.stem + &#39;_Pandas_df.pickle&#39; + compression_file_extension)
+            pickle_path = Path(path_to_dump_file.parent, path_to_dump_file.stem + MPI_subdump_num_str + &#39;_Pandas_df.pickle&#39; + compression_file_extension)
             records_df.to_pickle(pickle_path)
             #with open(pickle_path, &#39;wb&#39;) as handle:
             #    pickle.dump(records_df, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -833,7 +842,8 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = &#3
                                   dump_data_number=None , dump_data_sequence=None,
                                   dump_return_directional_info=False, dump_use_degrees=False,
                                   dump_max_entries_read=None,
-                                  dump_save_namedtuple_list=True, dump_save_Pandas_dataframe=True
+                                  dump_save_namedtuple_list=True, dump_save_Pandas_dataframe=True,
+                                  dump_merge_MPI_subdumps=True, dump_delete_MPI_subdumps_post_merge=True
                                   ):
     &#39;&#39;&#39;
     Description:
@@ -865,6 +875,11 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = &#3
 
        - `output_file_suffix` = A string specifying what characters processed filenames (including the file extension)
                       must end in to be included.  This condition is not enforced if set to an empty string `&#39;&#39;`. (D=`&#39;.out&#39;`)
+                      Note that if the filename contains &#34;_dmp&#34; and has a final extension of the form &#34;.###&#34; (where &#34;###&#34; 
+                      is an arbitrarily long numeric string of digits 0-9), as is the case for dump files from PHITS 
+                      ran in MPI parallelization, this &#34;.###&#34; final extension is pretended not to exist when enforcing 
+                      this `output_file_suffix` parameter, allowing these dump files to be found and processed the same 
+                      regardless of whether MPI was used or not when running PHITS.
        - `output_file_prefix` = A string specifying what characters processed filenames (including the file extension)
                       must begin with to be included.  This condition is not enforced if set to an empty string `&#39;&#39;`. (D=`&#39;&#39;`)
        - `output_file_required_string` = A string which must be present anywhere within processed filenames (including the
@@ -881,7 +896,7 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = &#3
                       `return_namedtuple_list` and `return_Pandas_dataframe` will always be `False` when dump files are
                       processed in a directory with this function; instead, `save_namedtuple_list` and `save_Pandas_dataframe`
                       are by default set to `True` when parsing dump files in a directory with this function.  (Be warned,
-                      if the dump file is large, the produced files from parsing them will be too.)
+                      if the dump file is large, the produced files from parsing them will be too.)  
 
     Inputs:
        (optional, the same as in and directly passed to the `parse_tally_output_file()` function)
@@ -926,6 +941,15 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = &#3
                `save_namedtuple_list` argument, which is what this argument is passed to anyways).
        - `dump_save_Pandas_dataframe` = (optional, D=`True`) Boolean designating whether `dump_data_frame` is saved to a pickle
                file (via Pandas .to_pickle()).
+       - `dump_merge_MPI_subdumps` = (optional, D=`True`) Boolean designating whether the pickled namedtuple lists and/or
+               Pandas DataFrames for all &#34;sub-dumps&#34; from an MPI run of PHITS should be merged into single namedtuple 
+               list and/or Pandas DataFrame pickle file(s). When a dump file is written in an MPI execution of PHITS, 
+               it is split into N &#34;sub dump&#34; files, one per MPI process, and given an extra final extension of the 
+               form &#34;.###&#34; (where &#34;###&#34; is an arbitrarily long numeric string of digits 0-9 designating the MPI process).
+               This option is only active when such files are encountered.
+       - `dump_delete_MPI_subdumps_post_merge` = (optional, D=`True`) Requires `dump_merge_MPI_subdumps=True`, Boolean 
+               designating whether the numerous &#34;sub dump&#34; pickle files merged when `dump_merge_MPI_subdumps=True` 
+               (and MPI dump files are found) are deleted after the merged version combining all of them is saved.
 
     Output:
         - `tally_output_list` = a list of `tally_output` dictionary objects with the below keys and values / a list of
@@ -963,8 +987,15 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = &#3
     len_suffix = len(output_file_suffix)
     len_prefix = len(output_file_prefix)
     len_reqstr = len(output_file_required_string)
+    MPI_subdump_files_found = []
+    MPI_subdump_filestems_found = []
     for f in files_in_dir:
         head, tail = os.path.split(f)
+        file_suffixes = tail.split(&#39;.&#39;)[1:]
+        if len(file_suffixes) &gt;= 1 and is_number(file_suffixes[-1][1:]) and &#39;_dmp&#39; in tail:  # MPI dump found
+            MPI_subdump_files_found.append(f)
+            tail = tail[:-1 * (1+len(file_suffixes[-1]))]
+            if Path(head,tail) not in MPI_subdump_filestems_found: MPI_subdump_filestems_found.append(Path(head,tail))
         if len_suffix &gt; 0 and tail[-len_suffix:] != output_file_suffix: continue
         if len_prefix &gt; 0 and tail[:len_prefix] != output_file_prefix: continue
         if len_reqstr &gt; 0 and output_file_required_string not in tail: continue
@@ -982,7 +1013,6 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = &#3
                     dump_filepaths_to_process.append(f)
                 continue
         filepaths_to_process.append(f)
-
     tally_output_pickle_path_list = []
     tally_output_list = []
     for f in filepaths_to_process:
@@ -1004,12 +1034,23 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = &#3
                                   return_namedtuple_list=False, return_Pandas_dataframe=False,
                                   save_namedtuple_list=dump_save_namedtuple_list,
                                   save_Pandas_dataframe=dump_save_Pandas_dataframe)
+        if dump_merge_MPI_subdumps:
+            for id in MPI_subdump_filestems_found: # identified independent tallies with dumps
+                dumps_to_merge = [] 
+                id_head, id_tail = os.path.split(id)
+                for f in MPI_subdump_files_found:
+                    head, tail = os.path.split(f)
+                    tail = tail[:-1 * (1 + len(tail.split(&#39;.&#39;)[-1]))]
+                    if tail == id_tail:
+                        dumps_to_merge.append(f)
+                merged_fp = Path(Path(id_head),id_tail)
+                merge_succeeded = merge_dump_file_pickles(dumps_to_merge, merged_dump_base_filepath=merged_fp, 
+                                                          delete_pre_merge_pickles=dump_delete_MPI_subdumps_post_merge)
 
     if return_tally_output:
         return tally_output_list
     else:
         return tally_output_pickle_path_list
-
 
 
 
@@ -1549,6 +1590,153 @@ def ICRP116_effective_dose_coeff(E=1.0,particle=&#39;photon&#39;,geometry=&#39;A
     return f
 
 
+def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath=&#39;merged_dump&#39;, 
+                            delete_pre_merge_pickles=False, compress_pickles_with_lzma=True):
+    &#39;&#39;&#39;
+    Description:
+        Merge the pickle files (namedtuple lists and/or PandasDataFrames) belonging to numerous PHITS dump output files.
+
+    Inputs:
+        - `dump_filepath_list` = list of Path objects or strings denoting filepaths to the PHITS dump files 
+                 (e.g., &#34;*_dmp.out&#34;) to be merged.  Note that all dump files must be structured in the same way in 
+                 terms of number of columns and their meanings.
+        - `merged_dump_base_filepath` = (D=`os.cwd()+&#39;merged_dump&#39;`) Path object or string designating the base file 
+                 path name to be used for the merged pickle files, 
+                 which will take the form `merged_dump_base_filepath` + &#34;_namedtuple_list.pickle[.xz]&#34; and/or 
+                 &#34;_Pandas_df.pickle[.xz]&#34; (the &#34;.xz&#34; being contingent on LZMA usage via `compress_pickles_with_lzma`).
+        - `delete_pre_merge_pickles` = (optional, D=`False`) Boolean designating whether the numerous pickle files to be 
+                 merged into one should be deleted after the merge is successful. (Note: File deletion will only succeed 
+                 if you have permissions to delete these files on your system.)
+        - `compress_pickles_with_lzma` = (optional, D=`True`) Boolean designating whether the pickle files to be saved of
+                 the merged namedtuple lists and/or the Pandas DataFrames 
+                 will be compressed with [LZMA compression](https://docs.python.org/3/library/lzma.html) (included within
+                 the baseline [Python standard library](https://docs.python.org/3/library/index.html)); if so, the file
+                 extension of the saved pickle file(s) will be `&#39;.pickle.xz&#39;` instead of just `&#39;.pickle&#39;`.
+                 A *.pickle.xz file can then be opened (after importing `pickle` and `lzma`) as:
+                 `with lzma.open(path_to_picklexz_file, &#39;rb&#39;) as file: dump_data_list = pickle.load(file)`.
+                 While compression will notably slow down the file-saving process, owing to the often large size of
+                 PHITS dump files the additional reduction in file size (often around a factor of 5) is generally preferred.
+
+    Notes:
+        For each dump file provided, this function will check for the existence of the same filename/path but with
+        &#34;_namedtuple_list.pickle[.xz]&#34; and &#34;_Pandas_df.pickle[.xz]&#34; at the end.  If neither file for a provided 
+        dump file is found but the dump file itself is found to exist, `parse_tally_dump_file()` will be called on it
+        with default settings except `save_namedtuple_list=True` and  `save_Pandas_dataframe=True`.
+
+    Outputs:
+        - `merge_success` = Boolean designating whether merging succeeded or not.
+    &#39;&#39;&#39;
+    import lzma
+    import pickle
+    merge_success = False
+    if compress_pickles_with_lzma:
+        compression_file_extension = &#39;.xz&#39;
+    else:
+        compression_file_extension = &#39;&#39;
+    # Scan to see what files are available
+    namedtuple_list_paths = [] 
+    pandads_DF_paths = []
+    for f in dump_filepath_list:
+        fp = Path(f)
+        nt_found, pd_found = False, False
+        nt_path = Path(fp.parent, fp.name + &#39;_namedtuple_list.pickle.xz&#39;)
+        if nt_path.is_file(): 
+            nt_found = True 
+        else:
+            nt_path = Path(fp.parent, fp.name + &#39;_namedtuple_list.pickle&#39;)
+            if nt_path.is_file(): 
+                nt_found = True
+        pd_path = Path(fp.parent, fp.name + &#39;_Pandas_df.pickle.xz&#39;)
+        if pd_path.is_file():
+            pd_found = True
+        else:
+            pd_path = Path(fp.parent, fp.name + &#39;_Pandas_df.pickle&#39;)
+            if pd_path.is_file():
+                pd_found = True
+        if not nt_found and not pd_found and fp.is_file():
+            parse_tally_dump_file(fp,return_namedtuple_list=False, return_Pandas_dataframe=False, save_namedtuple_list=True, save_Pandas_dataframe=True)
+            nt_path = Path(fp.parent, fp.name + &#39;_namedtuple_list.pickle.xz&#39;)
+            pd_path = Path(fp.parent, fp.name + &#39;_Pandas_df.pickle.xz&#39;)
+            nt_found, pd_found = True, True
+        if nt_found: namedtuple_list_paths.append(nt_path)
+        if pd_found: pandads_DF_paths.append(pd_path)
+
+    # Merge namedtuple lists
+    if len(namedtuple_list_paths) &gt; 1:
+        from numpy.lib.recfunctions import stack_arrays
+        if len(namedtuple_list_paths) != len(dump_filepath_list):
+            print(&#39;WARNING: While multiple &#34;_namedtuple_list.pickle[.xz]&#34; files were found, some were missing from provided dump file list.&#39;)
+        for i, f in enumerate(namedtuple_list_paths):
+            if f.suffixes[-1] == &#39;.xz&#39;:
+                with lzma.open(f, &#39;rb&#39;) as file: 
+                    dump_data_list = pickle.load(file)
+            else:
+                with open(f, &#39;rb&#39;) as file:
+                    dump_data_list = pickle.load(file)
+            if i==0:
+                a = dump_data_list 
+                continue
+            b = dump_data_list
+            records_np_array = stack_arrays((a, b), asrecarray=True, usemask=False)
+            a = records_np_array
+        path_to_dump_file = Path(merged_dump_base_filepath)
+        pickle_path = Path(path_to_dump_file.parent,
+                           path_to_dump_file.stem + &#39;_namedtuple_list.pickle&#39; + compression_file_extension)
+        if compress_pickles_with_lzma:
+            with lzma.open(pickle_path, &#39;wb&#39;) as handle:
+                pickle.dump(records_np_array, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        else:
+            with open(pickle_path, &#39;wb&#39;) as handle:
+                pickle.dump(records_np_array, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        print(&#39;Pickle file written:&#39;, pickle_path, &#39;\n&#39;)
+        merge_success = True
+        if delete_pre_merge_pickles:
+            for f in namedtuple_list_paths:
+                try:
+                    f.unlink()
+                    print(&#39;\tPickle file deleted:&#39;, f)
+                except:
+                    pass
+            print()
+
+    # Merge Pandas DataFrames
+    if len(pandads_DF_paths) &gt; 1:
+        import pandas as pd
+        if len(pandads_DF_paths) != len(dump_filepath_list):
+            print(&#39;WARNING: While multiple &#34;_Pandas_df.pickle[.xz]&#34; files were found, some were missing from provided dump file list.&#39;)
+        dfs_to_concat = []
+        for i, f in enumerate(pandads_DF_paths):
+            if f.suffixes[-1] == &#39;.xz&#39;:
+                with lzma.open(f, &#39;rb&#39;) as file: 
+                    dump_dataframe = pickle.load(file)
+            else:
+                with open(f, &#39;rb&#39;) as file:
+                    dump_dataframe = pickle.load(file)
+            dfs_to_concat.append(dump_dataframe)
+        combined_df = pd.concat(dfs_to_concat, ignore_index=True)
+        path_to_dump_file = Path(merged_dump_base_filepath)
+        pickle_path = Path(path_to_dump_file.parent,
+                           path_to_dump_file.stem + &#39;_Pandas_df.pickle&#39; + compression_file_extension)
+        if compress_pickles_with_lzma:
+            with lzma.open(pickle_path, &#39;wb&#39;) as handle:
+                pickle.dump(combined_df, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        else:
+            with open(pickle_path, &#39;wb&#39;) as handle:
+                pickle.dump(combined_df, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        print(&#39;Pickle file written:&#39;, pickle_path, &#39;\n&#39;)
+        merge_success = True
+        if delete_pre_merge_pickles:
+            for f in pandads_DF_paths:
+                try:
+                    f.unlink()
+                    print(&#39;\tPickle file deleted:&#39;, f)
+                except:
+                    pass
+            print()
+
+    return merge_success
+
+
 
 def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter=&#39;-&#39;):
     &#39;&#39;&#39;
@@ -1917,7 +2105,11 @@ def search_for_dump_parameters(output_file):
     &#39;&#39;&#39;
     dump_data_number, dump_data_sequence = None, None
     output_file = Path(output_file)
-    origin_tally_file = Path(output_file.parent, output_file.stem.replace(&#39;_dmp&#39;,&#39;&#39;) + output_file.suffix)
+    output_file_suffixes = output_file.suffixes
+    if len(output_file_suffixes) &gt; 1 and is_number(output_file_suffixes[-1][1:]) and &#39;_dmp&#39; in output_file.stem: # MPI dump found
+        origin_tally_file = Path(output_file.parent, output_file.stem.replace(&#39;_dmp&#39;, &#39;&#39;))
+    else:
+        origin_tally_file = Path(output_file.parent, output_file.stem.replace(&#39;_dmp&#39;,&#39;&#39;) + output_file.suffix)
     PHITS_file_type = determine_PHITS_output_file_type(origin_tally_file)
     if PHITS_file_type[&#39;file_does_not_exist&#39;]:
         print(&#34;Could not find this dump file&#39;s companion original standard tally output file&#34;,origin_tally_file)
@@ -3707,6 +3899,8 @@ if run_with_CLI_inputs:
     parser.add_argument(&#34;-ddeg&#34;, &#34;--dump_use_degrees&#34;, action=&#34;store_true&#34;, help=&#34;[dump output] anular quantities will be in degrees instead of radians&#34;)
     parser.add_argument(&#34;-dnsl&#34;, &#34;--dump_no_save_namedtuple_list&#34;, action=&#34;store_true&#34;, help=&#34;[dump output] do NOT save parsed dump file info to list of namedtuples to pickle file (-dnsl and -dnsp cannot both be enabled if parsing a dump file)&#34;)
     parser.add_argument(&#34;-dnsp&#34;, &#34;--dump_no_save_Pandas_dataframe&#34;, action=&#34;store_true&#34;, help=&#34;[dump output] do NOT save parsed dump file info to Pandas DataFrame to pickle file (-dnsl and -dnsp cannot both be enabled if parsing a dump file)&#34;)
+    parser.add_argument(&#34;-dnmmpi&#34;, &#34;--dump_no_merge_MPI_dumps&#34;, action=&#34;store_true&#34;, help=&#34;[dump output] do NOT merge the dump namedtuple list / Pandas DataFrame pickle files for dump files from the same tally split up by MPI&#34;)
+    parser.add_argument(&#34;-dndmpi&#34;, &#34;--dump_no_delete_MPI_subpickles&#34;, action=&#34;store_true&#34;, help=&#34;[dump output] do NOT delete the individual dump namedtuple list / Pandas DataFrame pickle files for dump files from the same tally split up by MPI after they have been merged (ignored if -dnmmpi is used)&#34;)
     # Flags for processing files in a directory
     parser.add_argument(&#34;-r&#34;, &#34;--recursive_search&#34;, action=&#34;store_true&#34;, help=&#34;[directory parsing] If the provided &#39;file&#39; is a directory, also recursively search subdirectories for files to process.&#34;)
     parser.add_argument(&#34;-fpre&#34;, &#34;--file_prefix&#34;, default=&#39;&#39;, help=&#34;[directory parsing] A string specifying what characters processed filenames (including the file extension) must begin with to be included. This condition is not enforced if set to an empty string (default).&#34;)
@@ -3749,8 +3943,12 @@ if run_with_CLI_inputs:
     use_degrees = args.dump_use_degrees
     no_save_namedtuple_list = args.dump_no_save_namedtuple_list
     no_save_Pandas_dataframe = args.dump_no_save_Pandas_dataframe
+    dump_no_merge_MPI_dumps = args.dump_no_merge_MPI_dumps
+    dump_no_delete_MPI_subpickles = args.dump_no_delete_MPI_subpickles
     save_namedtuple_list = not no_save_namedtuple_list
     save_Pandas_dataframe = not no_save_Pandas_dataframe
+    dump_merge_MPI_subdumps = not dump_no_merge_MPI_dumps
+    dump_delete_MPI_subdumps_post_merge = not dump_no_delete_MPI_subpickles
 
     if is_path_a_dir:
         parse_all_tally_output_in_dir(output_file_path, output_file_suffix=file_suffix, output_file_prefix=file_prefix,
@@ -3763,7 +3961,9 @@ if run_with_CLI_inputs:
                                       dump_return_directional_info=return_directional_info, dump_use_degrees=use_degrees,
                                       dump_max_entries_read=max_entries_read,
                                       dump_save_namedtuple_list=save_namedtuple_list,
-                                      dump_save_Pandas_dataframe=save_Pandas_dataframe
+                                      dump_save_Pandas_dataframe=save_Pandas_dataframe,
+                                      dump_merge_MPI_subdumps=dump_merge_MPI_subdumps,
+                                      dump_delete_MPI_subdumps_post_merge=dump_delete_MPI_subdumps_post_merge
                                       )
     else: # if is_path_a_file
         if is_dump_file:
@@ -4257,6 +4457,16 @@ elif test_explicit_files_dirs:
         print(dir_output_list)
         sys.exit()
 
+    test_parsing_of_MPI_dump_dir = True
+    if test_parsing_of_MPI_dump_dir:
+        base_path = r&#39;G:\Cloud\OneDrive\work\PHITS\test_tallies\\&#39;
+        dir_path = output_file_path = Path(base_path + r&#39;MPI_dumps\\CT_1D_phantom\\&#39;)
+        #dump_file_path = Path(dir_path, &#39;gamma_yield_dmp.out.004&#39;)
+        #print(dump_file_path.is_file(),dump_file_path)
+        #nt_list, df = parse_tally_dump_file(dump_file_path, save_namedtuple_list=True, save_Pandas_dataframe=True)
+        dir_output_list = parse_all_tally_output_in_dir(dir_path, include_dump_files=True)
+        print(dir_output_list)
+        sys.exit()
 
     test_dump_file = True #False
     if test_dump_file:
@@ -5104,10 +5314,16 @@ and rows for each record included in the dump file.</li>
     else:
         compression_file_extension = &#39;&#39;
 
+    path_to_dump_file = Path(path_to_dump_file)
+    dump_file_suffixes = path_to_dump_file.suffixes
+    MPI_subdump_num_str = &#39;&#39;
+    if len(dump_file_suffixes) &gt; 1 and is_number(dump_file_suffixes[-1][1:]) and &#39;_dmp&#39; in path_to_dump_file.stem:  # MPI dump found
+        MPI_subdump_num_str = dump_file_suffixes[-1]  #[1:]
+
     if save_namedtuple_list:
         import lzma
         path_to_dump_file = Path(path_to_dump_file)
-        pickle_path = Path(path_to_dump_file.parent, path_to_dump_file.stem + &#39;_namedtuple_list.pickle&#39; + compression_file_extension)
+        pickle_path = Path(path_to_dump_file.parent, path_to_dump_file.stem + MPI_subdump_num_str + &#39;_namedtuple_list.pickle&#39; + compression_file_extension)
         num_records = len(records_list)
         record_type = [(ordered_record_entries_list[i], dump_col_dtypes[i]) for i in range(len(ordered_record_entries_list))]
         records_np_array = np.array(records_list, dtype=record_type)
@@ -5125,7 +5341,7 @@ and rows for each record included in the dump file.</li>
         records_df = pd.DataFrame(records_list, columns=Record._fields)
         if save_Pandas_dataframe:
             path_to_dump_file= Path(path_to_dump_file)
-            pickle_path = Path(path_to_dump_file.parent, path_to_dump_file.stem + &#39;_Pandas_df.pickle&#39; + compression_file_extension)
+            pickle_path = Path(path_to_dump_file.parent, path_to_dump_file.stem + MPI_subdump_num_str + &#39;_Pandas_df.pickle&#39; + compression_file_extension)
             records_df.to_pickle(pickle_path)
             #with open(pickle_path, &#39;wb&#39;) as handle:
             #    pickle.dump(records_df, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -5142,7 +5358,7 @@ and rows for each record included in the dump file.</li>
 </details>
 </dd>
 <dt id="PHITS_tools.parse_all_tally_output_in_dir"><code class="name flex">
-<span>def <span class="ident">parse_all_tally_output_in_dir</span></span>(<span>tally_output_dirpath, output_file_suffix='.out', output_file_prefix='', output_file_required_string='', include_subdirectories=False, return_tally_output=False, make_PandasDF=True, calculate_absolute_errors=True, save_output_pickle=True, prefer_reading_existing_pickle=False, include_dump_files=False, dump_data_number=None, dump_data_sequence=None, dump_return_directional_info=False, dump_use_degrees=False, dump_max_entries_read=None, dump_save_namedtuple_list=True, dump_save_Pandas_dataframe=True)</span>
+<span>def <span class="ident">parse_all_tally_output_in_dir</span></span>(<span>tally_output_dirpath, output_file_suffix='.out', output_file_prefix='', output_file_required_string='', include_subdirectories=False, return_tally_output=False, make_PandasDF=True, calculate_absolute_errors=True, save_output_pickle=True, prefer_reading_existing_pickle=False, include_dump_files=False, dump_data_number=None, dump_data_sequence=None, dump_return_directional_info=False, dump_use_degrees=False, dump_max_entries_read=None, dump_save_namedtuple_list=True, dump_save_Pandas_dataframe=True, dump_merge_MPI_subdumps=True, dump_delete_MPI_subdumps_post_merge=True)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="description">Description</h2>
@@ -5174,7 +5390,12 @@ The filenames of saved dump data will not be included in the returned list.</p>
 <ul>
 <li><code>output_file_suffix</code> = A string specifying what characters processed filenames (including the file extension)
 must end in to be included.
-This condition is not enforced if set to an empty string <code>''</code>. (D=<code>'.out'</code>)</li>
+This condition is not enforced if set to an empty string <code>''</code>. (D=<code>'.out'</code>)
+Note that if the filename contains "_dmp" and has a final extension of the form ".###" (where "###"
+is an arbitrarily long numeric string of digits 0-9), as is the case for dump files from PHITS
+ran in MPI parallelization, this ".###" final extension is pretended not to exist when enforcing
+this <code>output_file_suffix</code> parameter, allowing these dump files to be found and processed the same
+regardless of whether MPI was used or not when running PHITS.</li>
 <li><code>output_file_prefix</code> = A string specifying what characters processed filenames (including the file extension)
 must begin with to be included.
 This condition is not enforced if set to an empty string <code>''</code>. (D=<code>''</code>)</li>
@@ -5195,7 +5416,8 @@ Note that parameters
 processed in a directory with this function; instead, <code>save_namedtuple_list</code> and <code>save_Pandas_dataframe</code>
 are by default set to <code>True</code> when parsing dump files in a directory with this function.
 (Be warned,
-if the dump file is large, the produced files from parsing them will be too.)</li>
+if the dump file is large, the produced files from parsing them will be too.)
+</li>
 </ul>
 <h2 id="inputs_2">Inputs</h2>
 <p>(optional, the same as in and directly passed to the <code><a title="PHITS_tools.parse_tally_output_file" href="#PHITS_tools.parse_tally_output_file">parse_tally_output_file()</a></code> function)</p>
@@ -5244,6 +5466,15 @@ For more info and the full explanation, see the documentation for the <code><a t
 <code>save_namedtuple_list</code> argument, which is what this argument is passed to anyways).</li>
 <li><code>dump_save_Pandas_dataframe</code> = (optional, D=<code>True</code>) Boolean designating whether <code>dump_data_frame</code> is saved to a pickle
 file (via Pandas .to_pickle()).</li>
+<li><code>dump_merge_MPI_subdumps</code> = (optional, D=<code>True</code>) Boolean designating whether the pickled namedtuple lists and/or
+Pandas DataFrames for all "sub-dumps" from an MPI run of PHITS should be merged into single namedtuple
+list and/or Pandas DataFrame pickle file(s). When a dump file is written in an MPI execution of PHITS,
+it is split into N "sub dump" files, one per MPI process, and given an extra final extension of the
+form ".###" (where "###" is an arbitrarily long numeric string of digits 0-9 designating the MPI process).
+This option is only active when such files are encountered.</li>
+<li><code>dump_delete_MPI_subdumps_post_merge</code> = (optional, D=<code>True</code>) Requires <code>dump_merge_MPI_subdumps=True</code>, Boolean
+designating whether the numerous "sub dump" pickle files merged when <code>dump_merge_MPI_subdumps=True</code>
+(and MPI dump files are found) are deleted after the merged version combining all of them is saved.</li>
 </ul>
 <h2 id="output">Output</h2>
 <ul>
@@ -5267,7 +5498,8 @@ file paths to pickle files containing <code>tally_output</code> dictionary objec
                                   dump_data_number=None , dump_data_sequence=None,
                                   dump_return_directional_info=False, dump_use_degrees=False,
                                   dump_max_entries_read=None,
-                                  dump_save_namedtuple_list=True, dump_save_Pandas_dataframe=True
+                                  dump_save_namedtuple_list=True, dump_save_Pandas_dataframe=True,
+                                  dump_merge_MPI_subdumps=True, dump_delete_MPI_subdumps_post_merge=True
                                   ):
     &#39;&#39;&#39;
     Description:
@@ -5299,6 +5531,11 @@ file paths to pickle files containing <code>tally_output</code> dictionary objec
 
        - `output_file_suffix` = A string specifying what characters processed filenames (including the file extension)
                       must end in to be included.  This condition is not enforced if set to an empty string `&#39;&#39;`. (D=`&#39;.out&#39;`)
+                      Note that if the filename contains &#34;_dmp&#34; and has a final extension of the form &#34;.###&#34; (where &#34;###&#34; 
+                      is an arbitrarily long numeric string of digits 0-9), as is the case for dump files from PHITS 
+                      ran in MPI parallelization, this &#34;.###&#34; final extension is pretended not to exist when enforcing 
+                      this `output_file_suffix` parameter, allowing these dump files to be found and processed the same 
+                      regardless of whether MPI was used or not when running PHITS.
        - `output_file_prefix` = A string specifying what characters processed filenames (including the file extension)
                       must begin with to be included.  This condition is not enforced if set to an empty string `&#39;&#39;`. (D=`&#39;&#39;`)
        - `output_file_required_string` = A string which must be present anywhere within processed filenames (including the
@@ -5315,7 +5552,7 @@ file paths to pickle files containing <code>tally_output</code> dictionary objec
                       `return_namedtuple_list` and `return_Pandas_dataframe` will always be `False` when dump files are
                       processed in a directory with this function; instead, `save_namedtuple_list` and `save_Pandas_dataframe`
                       are by default set to `True` when parsing dump files in a directory with this function.  (Be warned,
-                      if the dump file is large, the produced files from parsing them will be too.)
+                      if the dump file is large, the produced files from parsing them will be too.)  
 
     Inputs:
        (optional, the same as in and directly passed to the `parse_tally_output_file()` function)
@@ -5360,6 +5597,15 @@ file paths to pickle files containing <code>tally_output</code> dictionary objec
                `save_namedtuple_list` argument, which is what this argument is passed to anyways).
        - `dump_save_Pandas_dataframe` = (optional, D=`True`) Boolean designating whether `dump_data_frame` is saved to a pickle
                file (via Pandas .to_pickle()).
+       - `dump_merge_MPI_subdumps` = (optional, D=`True`) Boolean designating whether the pickled namedtuple lists and/or
+               Pandas DataFrames for all &#34;sub-dumps&#34; from an MPI run of PHITS should be merged into single namedtuple 
+               list and/or Pandas DataFrame pickle file(s). When a dump file is written in an MPI execution of PHITS, 
+               it is split into N &#34;sub dump&#34; files, one per MPI process, and given an extra final extension of the 
+               form &#34;.###&#34; (where &#34;###&#34; is an arbitrarily long numeric string of digits 0-9 designating the MPI process).
+               This option is only active when such files are encountered.
+       - `dump_delete_MPI_subdumps_post_merge` = (optional, D=`True`) Requires `dump_merge_MPI_subdumps=True`, Boolean 
+               designating whether the numerous &#34;sub dump&#34; pickle files merged when `dump_merge_MPI_subdumps=True` 
+               (and MPI dump files are found) are deleted after the merged version combining all of them is saved.
 
     Output:
         - `tally_output_list` = a list of `tally_output` dictionary objects with the below keys and values / a list of
@@ -5397,8 +5643,15 @@ file paths to pickle files containing <code>tally_output</code> dictionary objec
     len_suffix = len(output_file_suffix)
     len_prefix = len(output_file_prefix)
     len_reqstr = len(output_file_required_string)
+    MPI_subdump_files_found = []
+    MPI_subdump_filestems_found = []
     for f in files_in_dir:
         head, tail = os.path.split(f)
+        file_suffixes = tail.split(&#39;.&#39;)[1:]
+        if len(file_suffixes) &gt;= 1 and is_number(file_suffixes[-1][1:]) and &#39;_dmp&#39; in tail:  # MPI dump found
+            MPI_subdump_files_found.append(f)
+            tail = tail[:-1 * (1+len(file_suffixes[-1]))]
+            if Path(head,tail) not in MPI_subdump_filestems_found: MPI_subdump_filestems_found.append(Path(head,tail))
         if len_suffix &gt; 0 and tail[-len_suffix:] != output_file_suffix: continue
         if len_prefix &gt; 0 and tail[:len_prefix] != output_file_prefix: continue
         if len_reqstr &gt; 0 and output_file_required_string not in tail: continue
@@ -5416,7 +5669,6 @@ file paths to pickle files containing <code>tally_output</code> dictionary objec
                     dump_filepaths_to_process.append(f)
                 continue
         filepaths_to_process.append(f)
-
     tally_output_pickle_path_list = []
     tally_output_list = []
     for f in filepaths_to_process:
@@ -5438,6 +5690,18 @@ file paths to pickle files containing <code>tally_output</code> dictionary objec
                                   return_namedtuple_list=False, return_Pandas_dataframe=False,
                                   save_namedtuple_list=dump_save_namedtuple_list,
                                   save_Pandas_dataframe=dump_save_Pandas_dataframe)
+        if dump_merge_MPI_subdumps:
+            for id in MPI_subdump_filestems_found: # identified independent tallies with dumps
+                dumps_to_merge = [] 
+                id_head, id_tail = os.path.split(id)
+                for f in MPI_subdump_files_found:
+                    head, tail = os.path.split(f)
+                    tail = tail[:-1 * (1 + len(tail.split(&#39;.&#39;)[-1]))]
+                    if tail == id_tail:
+                        dumps_to_merge.append(f)
+                merged_fp = Path(Path(id_head),id_tail)
+                merge_succeeded = merge_dump_file_pickles(dumps_to_merge, merged_dump_base_filepath=merged_fp, 
+                                                          delete_pre_merge_pickles=dump_delete_MPI_subdumps_post_merge)
 
     if return_tally_output:
         return tally_output_list
@@ -6151,6 +6415,197 @@ technically, any options available for scipy.interpolate.interp1d() can be used:
     return f</code></pre>
 </details>
 </dd>
+<dt id="PHITS_tools.merge_dump_file_pickles"><code class="name flex">
+<span>def <span class="ident">merge_dump_file_pickles</span></span>(<span>dump_filepath_list, merged_dump_base_filepath='merged_dump', delete_pre_merge_pickles=False, compress_pickles_with_lzma=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="description">Description</h2>
+<p>Merge the pickle files (namedtuple lists and/or PandasDataFrames) belonging to numerous PHITS dump output files.</p>
+<h2 id="inputs">Inputs</h2>
+<ul>
+<li><code>dump_filepath_list</code> = list of Path objects or strings denoting filepaths to the PHITS dump files
+(e.g., "*_dmp.out") to be merged.
+Note that all dump files must be structured in the same way in
+terms of number of columns and their meanings.</li>
+<li><code>merged_dump_base_filepath</code> = (D=<code>os.cwd()+'merged_dump'</code>) Path object or string designating the base file
+path name to be used for the merged pickle files,
+which will take the form <code>merged_dump_base_filepath</code> + "_namedtuple_list.pickle[.xz]" and/or
+"_Pandas_df.pickle[.xz]" (the ".xz" being contingent on LZMA usage via <code>compress_pickles_with_lzma</code>).</li>
+<li><code>delete_pre_merge_pickles</code> = (optional, D=<code>False</code>) Boolean designating whether the numerous pickle files to be
+merged into one should be deleted after the merge is successful. (Note: File deletion will only succeed
+if you have permissions to delete these files on your system.)</li>
+<li><code>compress_pickles_with_lzma</code> = (optional, D=<code>True</code>) Boolean designating whether the pickle files to be saved of
+the merged namedtuple lists and/or the Pandas DataFrames
+will be compressed with <a href="https://docs.python.org/3/library/lzma.html">LZMA compression</a> (included within
+the baseline <a href="https://docs.python.org/3/library/index.html">Python standard library</a>); if so, the file
+extension of the saved pickle file(s) will be <code>'.pickle.xz'</code> instead of just <code>'.pickle'</code>.
+A *.pickle.xz file can then be opened (after importing <code>pickle</code> and <code>lzma</code>) as:
+<code>with lzma.open(path_to_picklexz_file, 'rb') as file: dump_data_list = pickle.load(file)</code>.
+While compression will notably slow down the file-saving process, owing to the often large size of
+PHITS dump files the additional reduction in file size (often around a factor of 5) is generally preferred.</li>
+</ul>
+<h2 id="notes">Notes</h2>
+<p>For each dump file provided, this function will check for the existence of the same filename/path but with
+"_namedtuple_list.pickle[.xz]" and "_Pandas_df.pickle[.xz]" at the end.
+If neither file for a provided
+dump file is found but the dump file itself is found to exist, <code><a title="PHITS_tools.parse_tally_dump_file" href="#PHITS_tools.parse_tally_dump_file">parse_tally_dump_file()</a></code> will be called on it
+with default settings except <code>save_namedtuple_list=True</code> and
+<code>save_Pandas_dataframe=True</code>.</p>
+<h2 id="outputs">Outputs</h2>
+<ul>
+<li><code>merge_success</code> = Boolean designating whether merging succeeded or not.</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath=&#39;merged_dump&#39;, 
+                            delete_pre_merge_pickles=False, compress_pickles_with_lzma=True):
+    &#39;&#39;&#39;
+    Description:
+        Merge the pickle files (namedtuple lists and/or PandasDataFrames) belonging to numerous PHITS dump output files.
+
+    Inputs:
+        - `dump_filepath_list` = list of Path objects or strings denoting filepaths to the PHITS dump files 
+                 (e.g., &#34;*_dmp.out&#34;) to be merged.  Note that all dump files must be structured in the same way in 
+                 terms of number of columns and their meanings.
+        - `merged_dump_base_filepath` = (D=`os.cwd()+&#39;merged_dump&#39;`) Path object or string designating the base file 
+                 path name to be used for the merged pickle files, 
+                 which will take the form `merged_dump_base_filepath` + &#34;_namedtuple_list.pickle[.xz]&#34; and/or 
+                 &#34;_Pandas_df.pickle[.xz]&#34; (the &#34;.xz&#34; being contingent on LZMA usage via `compress_pickles_with_lzma`).
+        - `delete_pre_merge_pickles` = (optional, D=`False`) Boolean designating whether the numerous pickle files to be 
+                 merged into one should be deleted after the merge is successful. (Note: File deletion will only succeed 
+                 if you have permissions to delete these files on your system.)
+        - `compress_pickles_with_lzma` = (optional, D=`True`) Boolean designating whether the pickle files to be saved of
+                 the merged namedtuple lists and/or the Pandas DataFrames 
+                 will be compressed with [LZMA compression](https://docs.python.org/3/library/lzma.html) (included within
+                 the baseline [Python standard library](https://docs.python.org/3/library/index.html)); if so, the file
+                 extension of the saved pickle file(s) will be `&#39;.pickle.xz&#39;` instead of just `&#39;.pickle&#39;`.
+                 A *.pickle.xz file can then be opened (after importing `pickle` and `lzma`) as:
+                 `with lzma.open(path_to_picklexz_file, &#39;rb&#39;) as file: dump_data_list = pickle.load(file)`.
+                 While compression will notably slow down the file-saving process, owing to the often large size of
+                 PHITS dump files the additional reduction in file size (often around a factor of 5) is generally preferred.
+
+    Notes:
+        For each dump file provided, this function will check for the existence of the same filename/path but with
+        &#34;_namedtuple_list.pickle[.xz]&#34; and &#34;_Pandas_df.pickle[.xz]&#34; at the end.  If neither file for a provided 
+        dump file is found but the dump file itself is found to exist, `parse_tally_dump_file()` will be called on it
+        with default settings except `save_namedtuple_list=True` and  `save_Pandas_dataframe=True`.
+
+    Outputs:
+        - `merge_success` = Boolean designating whether merging succeeded or not.
+    &#39;&#39;&#39;
+    import lzma
+    import pickle
+    merge_success = False
+    if compress_pickles_with_lzma:
+        compression_file_extension = &#39;.xz&#39;
+    else:
+        compression_file_extension = &#39;&#39;
+    # Scan to see what files are available
+    namedtuple_list_paths = [] 
+    pandads_DF_paths = []
+    for f in dump_filepath_list:
+        fp = Path(f)
+        nt_found, pd_found = False, False
+        nt_path = Path(fp.parent, fp.name + &#39;_namedtuple_list.pickle.xz&#39;)
+        if nt_path.is_file(): 
+            nt_found = True 
+        else:
+            nt_path = Path(fp.parent, fp.name + &#39;_namedtuple_list.pickle&#39;)
+            if nt_path.is_file(): 
+                nt_found = True
+        pd_path = Path(fp.parent, fp.name + &#39;_Pandas_df.pickle.xz&#39;)
+        if pd_path.is_file():
+            pd_found = True
+        else:
+            pd_path = Path(fp.parent, fp.name + &#39;_Pandas_df.pickle&#39;)
+            if pd_path.is_file():
+                pd_found = True
+        if not nt_found and not pd_found and fp.is_file():
+            parse_tally_dump_file(fp,return_namedtuple_list=False, return_Pandas_dataframe=False, save_namedtuple_list=True, save_Pandas_dataframe=True)
+            nt_path = Path(fp.parent, fp.name + &#39;_namedtuple_list.pickle.xz&#39;)
+            pd_path = Path(fp.parent, fp.name + &#39;_Pandas_df.pickle.xz&#39;)
+            nt_found, pd_found = True, True
+        if nt_found: namedtuple_list_paths.append(nt_path)
+        if pd_found: pandads_DF_paths.append(pd_path)
+
+    # Merge namedtuple lists
+    if len(namedtuple_list_paths) &gt; 1:
+        from numpy.lib.recfunctions import stack_arrays
+        if len(namedtuple_list_paths) != len(dump_filepath_list):
+            print(&#39;WARNING: While multiple &#34;_namedtuple_list.pickle[.xz]&#34; files were found, some were missing from provided dump file list.&#39;)
+        for i, f in enumerate(namedtuple_list_paths):
+            if f.suffixes[-1] == &#39;.xz&#39;:
+                with lzma.open(f, &#39;rb&#39;) as file: 
+                    dump_data_list = pickle.load(file)
+            else:
+                with open(f, &#39;rb&#39;) as file:
+                    dump_data_list = pickle.load(file)
+            if i==0:
+                a = dump_data_list 
+                continue
+            b = dump_data_list
+            records_np_array = stack_arrays((a, b), asrecarray=True, usemask=False)
+            a = records_np_array
+        path_to_dump_file = Path(merged_dump_base_filepath)
+        pickle_path = Path(path_to_dump_file.parent,
+                           path_to_dump_file.stem + &#39;_namedtuple_list.pickle&#39; + compression_file_extension)
+        if compress_pickles_with_lzma:
+            with lzma.open(pickle_path, &#39;wb&#39;) as handle:
+                pickle.dump(records_np_array, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        else:
+            with open(pickle_path, &#39;wb&#39;) as handle:
+                pickle.dump(records_np_array, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        print(&#39;Pickle file written:&#39;, pickle_path, &#39;\n&#39;)
+        merge_success = True
+        if delete_pre_merge_pickles:
+            for f in namedtuple_list_paths:
+                try:
+                    f.unlink()
+                    print(&#39;\tPickle file deleted:&#39;, f)
+                except:
+                    pass
+            print()
+
+    # Merge Pandas DataFrames
+    if len(pandads_DF_paths) &gt; 1:
+        import pandas as pd
+        if len(pandads_DF_paths) != len(dump_filepath_list):
+            print(&#39;WARNING: While multiple &#34;_Pandas_df.pickle[.xz]&#34; files were found, some were missing from provided dump file list.&#39;)
+        dfs_to_concat = []
+        for i, f in enumerate(pandads_DF_paths):
+            if f.suffixes[-1] == &#39;.xz&#39;:
+                with lzma.open(f, &#39;rb&#39;) as file: 
+                    dump_dataframe = pickle.load(file)
+            else:
+                with open(f, &#39;rb&#39;) as file:
+                    dump_dataframe = pickle.load(file)
+            dfs_to_concat.append(dump_dataframe)
+        combined_df = pd.concat(dfs_to_concat, ignore_index=True)
+        path_to_dump_file = Path(merged_dump_base_filepath)
+        pickle_path = Path(path_to_dump_file.parent,
+                           path_to_dump_file.stem + &#39;_Pandas_df.pickle&#39; + compression_file_extension)
+        if compress_pickles_with_lzma:
+            with lzma.open(pickle_path, &#39;wb&#39;) as handle:
+                pickle.dump(combined_df, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        else:
+            with open(pickle_path, &#39;wb&#39;) as handle:
+                pickle.dump(combined_df, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        print(&#39;Pickle file written:&#39;, pickle_path, &#39;\n&#39;)
+        merge_success = True
+        if delete_pre_merge_pickles:
+            for f in pandads_DF_paths:
+                try:
+                    f.unlink()
+                    print(&#39;\tPickle file deleted:&#39;, f)
+                except:
+                    pass
+            print()
+
+    return merge_success</code></pre>
+</details>
+</dd>
 <dt id="PHITS_tools.ZZZAAAM_to_nuclide_plain_str"><code class="name flex">
 <span>def <span class="ident">ZZZAAAM_to_nuclide_plain_str</span></span>(<span>ZZZAAAM, include_Z=False, ZZZAAA=False, delimiter='-')</span>
 </code></dt>
@@ -6720,7 +7175,11 @@ its header for the "dump = " line and subsequent line specifying the column orde
     &#39;&#39;&#39;
     dump_data_number, dump_data_sequence = None, None
     output_file = Path(output_file)
-    origin_tally_file = Path(output_file.parent, output_file.stem.replace(&#39;_dmp&#39;,&#39;&#39;) + output_file.suffix)
+    output_file_suffixes = output_file.suffixes
+    if len(output_file_suffixes) &gt; 1 and is_number(output_file_suffixes[-1][1:]) and &#39;_dmp&#39; in output_file.stem: # MPI dump found
+        origin_tally_file = Path(output_file.parent, output_file.stem.replace(&#39;_dmp&#39;, &#39;&#39;))
+    else:
+        origin_tally_file = Path(output_file.parent, output_file.stem.replace(&#39;_dmp&#39;,&#39;&#39;) + output_file.suffix)
     PHITS_file_type = determine_PHITS_output_file_type(origin_tally_file)
     if PHITS_file_type[&#39;file_does_not_exist&#39;]:
         print(&#34;Could not find this dump file&#39;s companion original standard tally output file&#34;,origin_tally_file)
@@ -8728,6 +9187,7 @@ note that tally_df.attrs returns values which are the same for all rows</li>
 <li><code><a title="PHITS_tools.rebinner" href="#PHITS_tools.rebinner">rebinner</a></code></li>
 <li><code><a title="PHITS_tools.fetch_MC_material" href="#PHITS_tools.fetch_MC_material">fetch_MC_material</a></code></li>
 <li><code><a title="PHITS_tools.ICRP116_effective_dose_coeff" href="#PHITS_tools.ICRP116_effective_dose_coeff">ICRP116_effective_dose_coeff</a></code></li>
+<li><code><a title="PHITS_tools.merge_dump_file_pickles" href="#PHITS_tools.merge_dump_file_pickles">merge_dump_file_pickles</a></code></li>
 <li><code><a title="PHITS_tools.ZZZAAAM_to_nuclide_plain_str" href="#PHITS_tools.ZZZAAAM_to_nuclide_plain_str">ZZZAAAM_to_nuclide_plain_str</a></code></li>
 <li><code><a title="PHITS_tools.nuclide_plain_str_to_latex_str" href="#PHITS_tools.nuclide_plain_str_to_latex_str">nuclide_plain_str_to_latex_str</a></code></li>
 <li><code><a title="PHITS_tools.Element_Z_to_Sym" href="#PHITS_tools.Element_Z_to_Sym">Element_Z_to_Sym</a></code></li>
