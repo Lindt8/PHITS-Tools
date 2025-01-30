@@ -2029,7 +2029,11 @@ def split_into_header_and_content(output_file_path):
         for line in f:
             if b'\x00' in line:
                 line = line.replace(b"\x00", b"")
-            line = line.decode()
+            #line = line.decode()
+            try: # skip lines with invalid characters in them...
+                line = line.decode()
+            except:
+                continue
             #if "\x00" in line: line = line.replace("\x00", "")
             if '#newpage:' in line:
                 in_content = True
