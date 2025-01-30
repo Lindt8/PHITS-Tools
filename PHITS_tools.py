@@ -132,7 +132,7 @@ if in_debug_mode:
 
 
 def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calculate_absolute_errors = True,
-                            save_output_pickle = True, prefer_reading_existing_pickle = False):
+                            save_output_pickle=True, prefer_reading_existing_pickle=False, compress_pickle_with_lzma=False):
     '''
     Description:
         Parse any PHITS tally output file, returning tally metadata and an array of its values (and optionally
@@ -165,6 +165,16 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
                       seeks to generate already exists.  If `False` (default behavior), this function will parse the PHITS
                       output files as usual and overwrite the existing pickle file.  If `True`, this function will instead
                       simply just read the existing found pickle file and return its stored `tally_output` contents. (D=`False`)
+       - `compress_pickle_with_lzma` = (optional, D=`False`; requires `save_output_pickle=True`) Boolean designating 
+                      whether the pickle file to be saved will be compressed with 
+                      [LZMA compression](https://docs.python.org/3/library/lzma.html) (included in
+                      the baseline [Python standard library](https://docs.python.org/3/library/index.html)); if so, the 
+                      pickle file's extension will be `'.pickle.xz'` instead of just `'.pickle'`.
+                      A *.pickle.xz file can then be opened (after importing `pickle` and `lzma`) as:  
+                      `with lzma.open(path_to_picklexz_file, 'rb') as file: tally_output = pickle.load(file)`.  
+                      For most "normal" tallies, the pickle file sizes are likely to be small enough to not warrant 
+                      compression, but LZMA compression can reduce the file size by several orders of magnitude, 
+                      great for output from massive tallies.
 
     Output:
         - `tally_output` = a dictionary object with the below keys and values:
@@ -315,11 +325,18 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
     '''
     tally_output_filepath = Path(tally_output_filepath)
     pickle_filepath = Path(tally_output_filepath.parent, tally_output_filepath.stem + '.pickle')
-    if prefer_reading_existing_pickle and os.path.isfile(pickle_filepath):
+    picklexz_filepath = Path(tally_output_filepath.parent, tally_output_filepath.stem + '.pickle.xz')
+    if prefer_reading_existing_pickle and (os.path.isfile(pickle_filepath) or os.path.isfile(picklexz_filepath)):
         import pickle
-        print('Reading found pickle file: ', pickle_filepath)
-        with open(pickle_filepath, 'rb') as handle:
-            tally_output = pickle.load(handle)
+        if os.path.isfile(pickle_filepath):
+            print('Reading found pickle file: ', pickle_filepath)
+            with open(pickle_filepath, 'rb') as handle:
+                tally_output = pickle.load(handle)
+        else:
+            print('Reading found pickle file: ', picklexz_filepath)
+            import lzma
+            with lzma.open(picklexz_filepath, 'rb') as handle:
+                tally_output = pickle.load(handle)
         return tally_output
 
     # main toggled settings
@@ -467,11 +484,20 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
 
     if save_output_pickle:
         import pickle
-        path_to_pickle_file = Path(tally_output_filepath.parent, tally_output_filepath.stem + '.pickle')
+        if compress_pickle_with_lzma:
+            import lzma
+            compression_file_extension = '.xz'
+        else:
+            compression_file_extension = ''
+        path_to_pickle_file = Path(tally_output_filepath.parent, tally_output_filepath.stem + '.pickle' + compression_file_extension)
         if in_debug_mode: print("\nWriting output to pickle file...   ({:0.2f} seconds elapsed)".format(time.time() - start))
-        with open(path_to_pickle_file, 'wb') as handle:
-            pickle.dump(tally_output, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            print('Pickle file written:', path_to_pickle_file, '\n')
+        if compress_pickle_with_lzma:
+            with lzma.open(path_to_pickle_file, 'wb') as handle:
+                pickle.dump(tally_output, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        else:
+            with open(path_to_pickle_file, 'wb') as handle:
+                pickle.dump(tally_output, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        print('Pickle file written:', path_to_pickle_file, '\n')
         if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
 
     return tally_output
@@ -711,7 +737,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
 def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.out', output_file_prefix = '',
                                   output_file_required_string='', include_subdirectories=False,  return_tally_output=False,
                                   make_PandasDF=True, calculate_absolute_errors=True,
-                                  save_output_pickle=True, prefer_reading_existing_pickle=False,
+                                  save_output_pickle=True, prefer_reading_existing_pickle=False, compress_pickle_with_lzma=False,
                                   include_dump_files=False,
                                   dump_data_number=None , dump_data_sequence=None,
                                   dump_return_directional_info=False, dump_use_degrees=False,
@@ -786,6 +812,16 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
                       seeks to generate already exists.  If `False` (default behavior), this function will parse the PHITS
                       output files as usual and overwrite the existing pickle file.  If `True`, this function will instead
                       simply just read the existing found pickle file and return its stored `tally_output` contents. (D=`False`)
+       - `compress_pickle_with_lzma` = (optional, D=`False`; requires `save_output_pickle=True`) Boolean designating 
+                      whether the pickle file to be saved will be compressed with 
+                      [LZMA compression](https://docs.python.org/3/library/lzma.html) (included in
+                      the baseline [Python standard library](https://docs.python.org/3/library/index.html)); if so, the 
+                      pickle file's extension will be `'.pickle.xz'` instead of just `'.pickle'`.
+                      A *.pickle.xz file can then be opened (after importing `pickle` and `lzma`) as:  
+                      `with lzma.open(path_to_picklexz_file, 'rb') as file: tally_output = pickle.load(file)`.  
+                      For most "normal" tallies, the pickle file sizes are likely to be small enough to not warrant 
+                      compression, but LZMA compression can reduce the file size by several orders of magnitude, 
+                      great for output from massive tallies.
 
     Inputs:
        (optional, the same as in and directly passed to the `parse_tally_dump_file()` function)
@@ -896,7 +932,8 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
         tally_output = parse_tally_output_file(f, make_PandasDF=make_PandasDF,
                                                calculate_absolute_errors=calculate_absolute_errors,
                                                save_output_pickle=save_output_pickle,
-                                               prefer_reading_existing_pickle=prefer_reading_existing_pickle)
+                                               prefer_reading_existing_pickle=prefer_reading_existing_pickle,
+                                               compress_pickle_with_lzma=compress_pickle_with_lzma)
         if return_tally_output: tally_output_list.append(tally_output)
 
     if include_dump_files:
@@ -1553,6 +1590,7 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
             b = dump_data_list
             records_np_array = stack_arrays((a, b), asrecarray=True, usemask=False)
             a = records_np_array
+        del a, b  # release memory for this, as it can be very, very big
         path_to_dump_file = Path(merged_dump_base_filepath)
         pickle_path = Path(path_to_dump_file.parent,
                            path_to_dump_file.stem + '_namedtuple_list.pickle' + compression_file_extension)
@@ -1564,6 +1602,7 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
                 pickle.dump(records_np_array, handle, protocol=pickle.HIGHEST_PROTOCOL)
         print('Pickle file written:', pickle_path, '\n')
         merge_success = True
+        del records_np_array  # release memory for this, as it can be very, very big
         if delete_pre_merge_pickles:
             for f in namedtuple_list_paths:
                 try:
@@ -1588,17 +1627,14 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
                     dump_dataframe = pickle.load(file)
             dfs_to_concat.append(dump_dataframe)
         combined_df = pd.concat(dfs_to_concat, ignore_index=True)
+        del dfs_to_concat  # release memory for this, as it can be very, very big
         path_to_dump_file = Path(merged_dump_base_filepath)
         pickle_path = Path(path_to_dump_file.parent,
                            path_to_dump_file.stem + '_Pandas_df.pickle' + compression_file_extension)
-        if compress_pickles_with_lzma:
-            with lzma.open(pickle_path, 'wb') as handle:
-                pickle.dump(combined_df, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        else:
-            with open(pickle_path, 'wb') as handle:
-                pickle.dump(combined_df, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        combined_df.to_pickle(pickle_path)
         print('Pickle file written:', pickle_path, '\n')
         merge_success = True
+        del combined_df  # release memory for this, as it can be very, very big
         if delete_pre_merge_pickles:
             for f in pandads_DF_paths:
                 try:
@@ -3769,6 +3805,7 @@ if run_with_CLI_inputs:
     parser.add_argument("-g", "--GUI", help="Launch the PHITS Tools GUI and ignore all other command line inputs", action="store_true")
     parser.add_argument("-np", "--disable_PandasDF", help="[standard output] disable automatic creation of Pandas DataFrame of PHITS output", action="store_true")
     parser.add_argument("-na", "--disable_abs_err_calc", help="[standard output] disable automatic calculation of absolute errors", action="store_true")
+    parser.add_argument("-lzma", "--use_lzma_compression", help="[standard output] compress pickle output with LZMA", action="store_true")
     # Not going to add below option. Why would you ever run this in CLI if not trying to generate the pickle file?
     # parser.add_argument("-ns", "--disable_saving_pickle", help="disable saving of pickle of of PHITS output", action="store_true")
     # Flags for dump files
@@ -3826,10 +3863,12 @@ if run_with_CLI_inputs:
     no_save_Pandas_dataframe = args.dump_no_save_Pandas_dataframe
     dump_no_merge_MPI_dumps = args.dump_no_merge_MPI_dumps
     dump_no_delete_MPI_subpickles = args.dump_no_delete_MPI_subpickles
+    use_lzma_compression = args.use_lzma_compression
     save_namedtuple_list = not no_save_namedtuple_list
     save_Pandas_dataframe = not no_save_Pandas_dataframe
     dump_merge_MPI_subdumps = not dump_no_merge_MPI_dumps
     dump_delete_MPI_subdumps_post_merge = not dump_no_delete_MPI_subpickles
+    compress_pickle_with_lzma = use_lzma_compression
 
     if is_path_a_dir:
         parse_all_tally_output_in_dir(output_file_path, output_file_suffix=file_suffix, output_file_prefix=file_prefix,
@@ -3837,6 +3876,7 @@ if run_with_CLI_inputs:
                                       return_tally_output=False,
                                       make_PandasDF=make_PandasDF, calculate_absolute_errors=calculate_absolute_errors,
                                       save_output_pickle=True, prefer_reading_existing_pickle=False,
+                                      compress_pickle_with_lzma=compress_pickle_with_lzma,
                                       include_dump_files=is_dump_file,
                                       dump_data_number=dump_data_number, dump_data_sequence=dump_data_sequence,
                                       dump_return_directional_info=return_directional_info, dump_use_degrees=use_degrees,
@@ -3867,7 +3907,8 @@ if run_with_CLI_inputs:
         else:
             parse_tally_output_file(output_file_path, make_PandasDF=make_PandasDF,
                                     calculate_absolute_errors=calculate_absolute_errors,
-                                    save_output_pickle=True, prefer_reading_existing_pickle=False)
+                                    save_output_pickle=True, prefer_reading_existing_pickle=False,
+                                    compress_pickle_with_lzma=compress_pickle_with_lzma)
 
 elif launch_GUI:
     import tkinter as tk
