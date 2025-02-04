@@ -710,7 +710,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
         - **`merge_split_dump_handling`** = (optional, D=`0`) For instances where binary dump files are to be split, 
                 described above for `split_binary_dumps_over_X_GB` and the the note below&amp;Dagger;, input one of the following 
                 numbers to determine what will happen to the intermediate pickle files created from each split chunk:  
-                         - `0` = Merge the intermediate pickle files (with merge_dump_file_pickles()), and once successful delete them.  
+                         - `0` = Merge the intermediate pickle files (with `merge_dump_file_pickles()`), and once successful delete them.  
                          - `1` = Do not merge the intermediate pickle files.  
                          - `2` = Merge the intermediate pickle files but do not delete them afterward.
     
@@ -1173,12 +1173,12 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = &#3
        - **`merge_split_dump_handling`** = (optional, D=`0`) For instances where binary dump files are to be split, 
                as determined by the `split_binary_dumps_over_X_GB` setting, input one of the following 
                numbers to determine what will happen to the intermediate pickle files created from each split chunk:  
-                       - `0` = Merge the intermediate pickle files (with merge_dump_file_pickles()), and once successful delete them.  
+                       - `0` = Merge the intermediate pickle files (with `merge_dump_file_pickles()`), and once successful delete them.  
                        - `1` = Do not merge the intermediate pickle files.  
                        - `2` = Merge the intermediate pickle files but do not delete them afterward.
        - **`dump_merge_MPI_subdumps`** = (optional, D=`True`) Boolean designating whether the pickled namedtuple lists and/or
                Pandas DataFrames for all &#34;sub-dumps&#34; from an MPI run of PHITS should be merged into single namedtuple 
-               list and/or Pandas DataFrame pickle file(s) (with merge_dump_file_pickles()). When a dump file is written in an MPI execution of PHITS, 
+               list and/or Pandas DataFrame pickle file(s) (with `merge_dump_file_pickles()`). When a dump file is written in an MPI execution of PHITS, 
                it is split into N &#34;sub dump&#34; files, one per MPI process, and given an extra final extension of the 
                form &#34;.###&#34; (where &#34;###&#34; is an arbitrarily long numeric string of digits 0-9 designating the MPI process).
                This option is only active when such files are encountered.
@@ -5444,7 +5444,7 @@ which a <em>binary</em> dump file will be split into chunks of this size for pro
 <li><strong><code>merge_split_dump_handling</code></strong> = (optional, D=<code>0</code>) For instances where binary dump files are to be split,
 described above for <code>split_binary_dumps_over_X_GB</code> and the the note below&Dagger;, input one of the following
 numbers to determine what will happen to the intermediate pickle files created from each split chunk:<br>
-- <code>0</code> = Merge the intermediate pickle files (with merge_dump_file_pickles()), and once successful delete them.<br>
+- <code>0</code> = Merge the intermediate pickle files (with <code><a title="PHITS_tools.merge_dump_file_pickles" href="#PHITS_tools.merge_dump_file_pickles">merge_dump_file_pickles()</a></code>), and once successful delete them.<br>
 - <code>1</code> = Do not merge the intermediate pickle files.<br>
 - <code>2</code> = Merge the intermediate pickle files but do not delete them afterward.</li>
 </ul>
@@ -5554,7 +5554,7 @@ see the documentation within the following directory of your PHITS installation:
         - **`merge_split_dump_handling`** = (optional, D=`0`) For instances where binary dump files are to be split, 
                 described above for `split_binary_dumps_over_X_GB` and the the note below&amp;Dagger;, input one of the following 
                 numbers to determine what will happen to the intermediate pickle files created from each split chunk:  
-                         - `0` = Merge the intermediate pickle files (with merge_dump_file_pickles()), and once successful delete them.  
+                         - `0` = Merge the intermediate pickle files (with `merge_dump_file_pickles()`), and once successful delete them.  
                          - `1` = Do not merge the intermediate pickle files.  
                          - `2` = Merge the intermediate pickle files but do not delete them afterward.
     
@@ -6016,12 +6016,12 @@ which a <em>binary</em> dump file will be split into chunks of this size for pro
 <li><strong><code>merge_split_dump_handling</code></strong> = (optional, D=<code>0</code>) For instances where binary dump files are to be split,
 as determined by the <code>split_binary_dumps_over_X_GB</code> setting, input one of the following
 numbers to determine what will happen to the intermediate pickle files created from each split chunk:<br>
-- <code>0</code> = Merge the intermediate pickle files (with merge_dump_file_pickles()), and once successful delete them.<br>
+- <code>0</code> = Merge the intermediate pickle files (with <code><a title="PHITS_tools.merge_dump_file_pickles" href="#PHITS_tools.merge_dump_file_pickles">merge_dump_file_pickles()</a></code>), and once successful delete them.<br>
 - <code>1</code> = Do not merge the intermediate pickle files.<br>
 - <code>2</code> = Merge the intermediate pickle files but do not delete them afterward.</li>
 <li><strong><code>dump_merge_MPI_subdumps</code></strong> = (optional, D=<code>True</code>) Boolean designating whether the pickled namedtuple lists and/or
 Pandas DataFrames for all "sub-dumps" from an MPI run of PHITS should be merged into single namedtuple
-list and/or Pandas DataFrame pickle file(s) (with merge_dump_file_pickles()). When a dump file is written in an MPI execution of PHITS,
+list and/or Pandas DataFrame pickle file(s) (with <code><a title="PHITS_tools.merge_dump_file_pickles" href="#PHITS_tools.merge_dump_file_pickles">merge_dump_file_pickles()</a></code>). When a dump file is written in an MPI execution of PHITS,
 it is split into N "sub dump" files, one per MPI process, and given an extra final extension of the
 form ".###" (where "###" is an arbitrarily long numeric string of digits 0-9 designating the MPI process).
 This option is only active when such files are encountered.</li>
@@ -6169,12 +6169,12 @@ file paths to pickle files containing <code>tally_output</code> dictionary objec
        - **`merge_split_dump_handling`** = (optional, D=`0`) For instances where binary dump files are to be split, 
                as determined by the `split_binary_dumps_over_X_GB` setting, input one of the following 
                numbers to determine what will happen to the intermediate pickle files created from each split chunk:  
-                       - `0` = Merge the intermediate pickle files (with merge_dump_file_pickles()), and once successful delete them.  
+                       - `0` = Merge the intermediate pickle files (with `merge_dump_file_pickles()`), and once successful delete them.  
                        - `1` = Do not merge the intermediate pickle files.  
                        - `2` = Merge the intermediate pickle files but do not delete them afterward.
        - **`dump_merge_MPI_subdumps`** = (optional, D=`True`) Boolean designating whether the pickled namedtuple lists and/or
                Pandas DataFrames for all &#34;sub-dumps&#34; from an MPI run of PHITS should be merged into single namedtuple 
-               list and/or Pandas DataFrame pickle file(s) (with merge_dump_file_pickles()). When a dump file is written in an MPI execution of PHITS, 
+               list and/or Pandas DataFrame pickle file(s) (with `merge_dump_file_pickles()`). When a dump file is written in an MPI execution of PHITS, 
                it is split into N &#34;sub dump&#34; files, one per MPI process, and given an extra final extension of the 
                form &#34;.###&#34; (where &#34;###&#34; is an arbitrarily long numeric string of digits 0-9 designating the MPI process).
                This option is only active when such files are encountered.
