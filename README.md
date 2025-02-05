@@ -40,13 +40,16 @@ Pictured below is the main PHITS Tools GUI window followed by the `[DIRECTORY mo
 
 Essentially, the CLI serves to interface with the core three functions of PHITS Tools: [**`parse_tally_output_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file), [**`parse_tally_dump_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_dump_file), and [**`parse_all_tally_output_in_dir()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_all_tally_output_in_dir).  The required `file` argument is checked to see if it is a directory or a file, and, if the latter, whether the `-d` option is used denoting a dump output file, otherwise defaulting to assuming it is a PHITS standard tally output file; then `file` and the relevant settings are sent to the corresponding main function.  Explicitly, inclusion of the various CLI options have the following effects on the main functions' arguments and settings:
 
+
 - Affecting all functions
+  - `file` is passed to `tally_output_filepath`, `path_to_dump_file`, or `tally_output_dirpath`
   - `-skip` sets `prefer_reading_existing_pickle = True` (`False` if excluded)
 - [**`parse_tally_output_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file) (and passed to it via [**`parse_all_tally_output_in_dir()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_all_tally_output_in_dir))
   - `-np` sets `make_PandasDF = False` (`True` if excluded)
   - `-na` sets `calculate_absolute_errors = False` (`True` if excluded)
   - `-lzma` sets `compress_pickle_with_lzma = True` (`False` if excluded)
 - [**`parse_tally_dump_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_dump_file) (and passed to it via [**`parse_all_tally_output_in_dir()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_all_tally_output_in_dir))
+  - `-d` tells the CLI that `file` should be processed as a dump file (if it's not a directory)
   - `-dvals` passes the provided sequence of values to `dump_data_sequence` (`None` if excluded)
   - `-dbin` specifies that the file is binary (that `dump_data_number=len(dump_data_sequence)` and *is positive*)
   - `-dnmax` passes its value to `max_entries_read` (`None` if excluded)
