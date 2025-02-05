@@ -90,7 +90,7 @@ Essentially, the CLI serves to interface with the core three functions of PHITS 
       - `-lzma` sets `compress_pickle_with_lzma = True` (`False` if excluded)
 - `parse_tally_dump_file` (and passed to it via `parse_all_tally_output_in_dir`)
       - `-dvals` passes the provided sequence of values to `dump_data_sequence` (`None` if excluded)
-      - `-dbin` specifies that the file is binary (`dump_data_number=len(dump_data_sequence)` and *is positive*)
+      - `-dbin` specifies that the file is binary (that `dump_data_number=len(dump_data_sequence)` and *is positive*)
       - `-dnmax` passes its value to `max_entries_read` (`None` if excluded)
       - `-ddir` sets `return_directional_info = True` (`False` if excluded)
       - `-ddeg` sets `use_degrees = True` (`False` if excluded)
