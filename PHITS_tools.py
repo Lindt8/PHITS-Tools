@@ -24,6 +24,7 @@ There are three main ways one can use this Python module:
           containing multiple files to be parsed) as the required argument.
           Execute `python PHITS_tools.py --help` to see all of the different options that can be used with this module
           to parse standard or dump PHITS output files (individually and directories containing them) via the CLI.
+          How the CLI options explicity translate to the functions documented here is covered further below.
  3. As a **graphical user interface (GUI)**
       - When the module is executed without any additional arguments, `python PHITS_tools.py`, (or with the `--GUI` or `-g` flag in the CLI)
           a GUI will be launched to step you through selecting what "mode" you would like to run PHITS Tools in (`STANDARD`, `DUMP`, or `DIRECTORY`),
@@ -70,6 +71,42 @@ functions return the data objects they produce for your own further analyses.
 - `data_row_to_num_list`            : extract numeric values from a line in the tally content section
 - `calculate_tally_absolute_errors` : calculate absolute uncertainties from read values and relative errors
 - `build_tally_Pandas_dataframe`    : make Pandas dataframe from the main results NumPy array and the metadata
+
+
+### **CLI options**
+
+Essentially, the CLI serves to interface with the core three functions of PHITS Tools: `parse_tally_output_file`,
+ `parse_tally_dump_file`, and `parse_all_tally_output_in_dir`. 
+ The required `file` argument is checked to see if it is a directory or a file, and, if the latter, whether the `-d` 
+ option is used denoting a dump output file, otherwise defaulting to assuming it is a PHITS standard tally output file; 
+ then `file` and the relevant settings are sent to the corresponding main function. 
+ Explicitly, inclusion of the various CLI options have the following effects on the main functions' arguments and settings:
+
+- Affecting all functions
+      - `-skip` sets `prefer_reading_existing_pickle = True` (`False` if excluded)
+- `parse_tally_output_file` (and passed to it via `parse_all_tally_output_in_dir`)
+      - `-np` sets `make_PandasDF = False` (`True` if excluded)
+      - `-na` sets `calculate_absolute_errors = False` (`True` if excluded)
+      - `-lzma` sets `compress_pickle_with_lzma = True` (`False` if excluded)
+- `parse_tally_dump_file` (and passed to it via `parse_all_tally_output_in_dir`)
+      - `-dvals` passes the provided sequence of values to `dump_data_sequence` (`None` if excluded)
+      - `-dbin` specifies that the file is binary (`dump_data_number=len(dump_data_sequence)` and *is positive*)
+      - `-dnmax` passes its value to `max_entries_read` (`None` if excluded)
+      - `-ddir` sets `return_directional_info = True` (`False` if excluded)
+      - `-ddeg` sets `use_degrees = True` (`False` if excluded)
+      - `-dnsl` sets `save_namedtuple_list = False` (`True` if excluded)
+      - `-dnsp` sets `save_Pandas_dataframe = False` (`True` if excluded)
+      - `-dmaxGB` passes its value to `split_binary_dumps_over_X_GB` (`20` GB if excluded)
+      - `-dsplit` passes its value to `merge_split_dump_handling` (`0` if excluded)
+- `parse_all_tally_output_in_dir` exclusively
+      - `-r` sets `include_subdirectories = True` (`False` if excluded)
+      - `-fpre` passes its value to `output_file_prefix` (`''` if excluded)
+      - `-fsuf` passes its value to `output_file_suffix` (`'.out'` if excluded)
+      - `-fstr` passes its value to `output_file_required_string` (`''` if excluded)
+      - `-d` sets `include_dump_files = True` (`False` if excluded)
+      - `-dnmmpi` sets `dump_merge_MPI_subdumps = False` (`True` if excluded)
+      - `-dndmpi` sets `dump_delete_MPI_subdumps_post_merge = False` (`True` if excluded)
+
 
 '''
 '''
@@ -584,9 +621,9 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
         - **`merge_split_dump_handling`** = (optional, D=`0`) For instances where binary dump files are to be split, 
                 described above for `split_binary_dumps_over_X_GB` and the the note below&Dagger;, input one of the following 
                 numbers to determine what will happen to the intermediate pickle files created from each split chunk:  
-                         - `0` = Merge the intermediate pickle files (with `merge_dump_file_pickles()`), and once successful delete them.  
-                         - `1` = Do not merge the intermediate pickle files.  
-                         - `2` = Merge the intermediate pickle files but do not delete them afterward.
+           - `0` = Merge the intermediate pickle files (via `merge_dump_file_pickles()`), then, if successful, delete them.  
+           - `1` = Do not merge the intermediate pickle files.  
+           - `2` = Merge the intermediate pickle files but do not delete them afterward.
     
     Outputs:
         - **`dump_data_list`** = List of length equal to the number of records contained in the file. Each entry in the list
@@ -1047,9 +1084,9 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
        - **`merge_split_dump_handling`** = (optional, D=`0`) For instances where binary dump files are to be split, 
                as determined by the `split_binary_dumps_over_X_GB` setting, input one of the following 
                numbers to determine what will happen to the intermediate pickle files created from each split chunk:  
-                       - `0` = Merge the intermediate pickle files (with `merge_dump_file_pickles()`), and once successful delete them.  
-                       - `1` = Do not merge the intermediate pickle files.  
-                       - `2` = Merge the intermediate pickle files but do not delete them afterward.
+           - `0` = Merge the intermediate pickle files (via `merge_dump_file_pickles()`), then, if successful, delete them.  
+           - `1` = Do not merge the intermediate pickle files.  
+           - `2` = Merge the intermediate pickle files but do not delete them afterward.
        - **`dump_merge_MPI_subdumps`** = (optional, D=`True`) Boolean designating whether the pickled namedtuple lists and/or
                Pandas DataFrames for all "sub-dumps" from an MPI run of PHITS should be merged into single namedtuple 
                list and/or Pandas DataFrame pickle file(s) (with `merge_dump_file_pickles()`). When a dump file is written in an MPI execution of PHITS, 
@@ -4010,7 +4047,7 @@ if run_with_CLI_inputs:
     parser.add_argument("-g", "--GUI", help="Launch the PHITS Tools GUI and ignore all other command line inputs", action="store_true")
     parser.add_argument("-np", "--disable_PandasDF", help="[standard output] disable automatic creation of Pandas DataFrame of PHITS output", action="store_true")
     parser.add_argument("-na", "--disable_abs_err_calc", help="[standard output] disable automatic calculation of absolute errors", action="store_true")
-    parser.add_argument("-lzma", "--use_lzma_compression", help="[all output] compress pickle output with LZMA", action="store_true")
+    parser.add_argument("-lzma", "--use_lzma_compression", help="[standard output] compress tally output pickle with LZMA", action="store_true")
     parser.add_argument("-skip", "--skip_existing_pickles", help="[all output] skip files where output pickle already exists", action="store_true")
     # Not going to add below option. Why would you ever run this in CLI if not trying to generate the pickle file?
     # parser.add_argument("-ns", "--disable_saving_pickle", help="disable saving of pickle of of PHITS output", action="store_true")
@@ -4020,14 +4057,14 @@ if run_with_CLI_inputs:
     parser.add_argument("-dbin", "--dump_file_is_binary", action="store_true", help="[dump output] specify that the provided dump file is binary; otherwise it is assumed to be ASCII (REQUIRED for dump files, but an attempt to assign automatically will be made first if left unspecified)")
     parser.add_argument("-dnmax", "--dump_max_entries_read", type=int, help="[dump output] specify maximum integer number of entries to read (read all by default)")
     parser.add_argument("-ddir", "--dump_return_directional_info", action="store_true", help="[dump output] return extra directional information: radial distance r from the origin in cm, radial distance rho from the z-axis in cm, polar angle theta between the direction vector and z-axis in radians [0,pi] (or degrees), and azimuthal angle phi of the direction vector in radians [-pi,pi] (or degrees). Note: This option requires all position and direction values [x,y,z,u,v,w] to be included in the dump file.")
-    parser.add_argument("-ddeg", "--dump_use_degrees", action="store_true", help="[dump output] anular quantities will be in degrees instead of radians")
+    parser.add_argument("-ddeg", "--dump_use_degrees", action="store_true", help="[dump output] angular quantities will be in degrees instead of radians")
     parser.add_argument("-dnsl", "--dump_no_save_namedtuple_list", action="store_true", help="[dump output] do NOT save parsed dump file info to list of namedtuples to pickle file (-dnsl and -dnsp cannot both be enabled if parsing a dump file)")
     parser.add_argument("-dnsp", "--dump_no_save_Pandas_dataframe", action="store_true", help="[dump output] do NOT save parsed dump file info to Pandas DataFrame to pickle file (-dnsl and -dnsp cannot both be enabled if parsing a dump file)")
-    parser.add_argument("-dnmmpi", "--dump_no_merge_MPI_dumps", action="store_true", help="[dump output] do NOT merge the dump namedtuple list / Pandas DataFrame pickle files for dump files from the same tally split up by MPI")
-    parser.add_argument("-dndmpi", "--dump_no_delete_MPI_subpickles", action="store_true", help="[dump output] do NOT delete the individual dump namedtuple list / Pandas DataFrame pickle files for dump files from the same tally split up by MPI after they have been merged (ignored if -dnmmpi is used)")
     parser.add_argument("-dmaxGB", "--dump_max_GB_per_chunk", type=float, default=20, help="[dump output] split binary dump files larger than inputted number of GB for processing (20 GB by default)")
     parser.add_argument("-dsplit", "--dump_split_handling", type=int, default=0, help="[dump output] (0 by default) how split/merged dump files are handled; enter 0 (merge at end, delete parts), 1 (no merge), or 2 (merge, keep parts)")
     # Flags for processing files in a directory
+    parser.add_argument("-dnmmpi", "--dump_no_merge_MPI_dumps", action="store_true", help="[directory with dump output] do NOT merge the dump namedtuple list / Pandas DataFrame pickle files for dump files from the same tally split up by MPI")
+    parser.add_argument("-dndmpi", "--dump_no_delete_MPI_subpickles", action="store_true", help="[directory with dump output] do NOT delete the individual dump namedtuple list / Pandas DataFrame pickle files for dump files from the same tally split up by MPI after they have been merged (ignored if -dnmmpi is used)")
     parser.add_argument("-r", "--recursive_search", action="store_true", help="[directory parsing] If the provided 'file' is a directory, also recursively search subdirectories for files to process.")
     parser.add_argument("-fpre", "--file_prefix", default='', help="[directory parsing] A string specifying what characters processed filenames (including the file extension) must begin with to be included. This condition is not enforced if set to an empty string (default).")
     parser.add_argument("-fsuf", "--file_suffix", default='.out', help="[directory parsing] A string specifying what characters processed filenames (including the file extension) must end in to be included. This condition is not enforced if set to an empty string. This is '.out' by deault.")
