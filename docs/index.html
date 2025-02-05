@@ -130,6 +130,7 @@ then <code>file</code> and the relevant settings are sent to the corresponding m
 Explicitly, inclusion of the various CLI options have the following effects on the main functions' arguments and settings:</p>
 <ul>
 <li>Affecting all functions<ul>
+<li><code>file</code> is passed to <code>tally_output_filepath</code>, <code>path_to_dump_file</code>, or <code>tally_output_dirpath</code></li>
 <li><code>-skip</code> sets <code>prefer_reading_existing_pickle = True</code> (<code>False</code> if excluded)</li>
 </ul>
 </li>
@@ -140,6 +141,7 @@ Explicitly, inclusion of the various CLI options have the following effects on t
 </ul>
 </li>
 <li><code><a title="PHITS_tools.parse_tally_dump_file" href="#PHITS_tools.parse_tally_dump_file">parse_tally_dump_file()</a></code> (and passed to it via <code><a title="PHITS_tools.parse_all_tally_output_in_dir" href="#PHITS_tools.parse_all_tally_output_in_dir">parse_all_tally_output_in_dir()</a></code>)<ul>
+<li><code>-d</code> tells the CLI that <code>file</code> should be processed as a dump file (if it's not a directory)</li>
 <li><code>-dvals</code> passes the provided sequence of values to <code>dump_data_sequence</code> (<code>None</code> if excluded)</li>
 <li><code>-dbin</code> specifies that the file is binary (that <code>dump_data_number=len(dump_data_sequence)</code> and <em>is positive</em>)</li>
 <li><code>-dnmax</code> passes its value to <code>max_entries_read</code> (<code>None</code> if excluded)</li>
@@ -251,14 +253,16 @@ Essentially, the CLI serves to interface with the core three functions of PHITS 
  Explicitly, inclusion of the various CLI options have the following effects on the main functions&#39; arguments and settings:
 
 - Affecting all functions
+      - `file` is passed to `tally_output_filepath`, `path_to_dump_file`, or `tally_output_dirpath`
       - `-skip` sets `prefer_reading_existing_pickle = True` (`False` if excluded)
 - `parse_tally_output_file` (and passed to it via `parse_all_tally_output_in_dir`)
       - `-np` sets `make_PandasDF = False` (`True` if excluded)
       - `-na` sets `calculate_absolute_errors = False` (`True` if excluded)
       - `-lzma` sets `compress_pickle_with_lzma = True` (`False` if excluded)
 - `parse_tally_dump_file` (and passed to it via `parse_all_tally_output_in_dir`)
+      - `-d` tells the CLI that `file` should be processed as a dump file (if it&#39;s not a directory)
       - `-dvals` passes the provided sequence of values to `dump_data_sequence` (`None` if excluded)
-      - `-dbin` specifies that the file is binary (`dump_data_number=len(dump_data_sequence)` and *is positive*)
+      - `-dbin` specifies that the file is binary (that `dump_data_number=len(dump_data_sequence)` and *is positive*)
       - `-dnmax` passes its value to `max_entries_read` (`None` if excluded)
       - `-ddir` sets `return_directional_info = True` (`False` if excluded)
       - `-ddeg` sets `use_degrees = True` (`False` if excluded)
