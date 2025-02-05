@@ -25,7 +25,7 @@ There are three main ways one can use this Python module:
 3. As a **graphical user interface (GUI)** 
     - When the module is executed without any additional arguments, `python PHITS_tools.py`, (or with the `-g` or `--GUI` flag in the CLI) a GUI will be launched to step you through selecting what "mode" you would like to run PHITS Tools in (`STANDARD`, `DUMP`, or `DIRECTORY`), selecting a file to be parsed (or a directory containing multiple files to be parsed), and the various options for each mode.
 
-Aside from the main PHITS output parsing function **`parse_tally_output_file()`** for general tally output, the **`parse_tally_dump_file()`** function for parsing tally dump file outputs, and the **`parse_all_tally_output_in_dir()`** function for parsing all standard (and, optionally, dump) tally outputs in a directory, PHITS_tools.py also contains a number of other functions that may be of use for further analyses, such as tallying contents of dump files, rebinning historgrammed results, applying [ICRP 116 effective dose conversion coefficients](https://doi.org/10.1016/j.icrp.2011.10.001) to scored particled fluences, and retreiving PHITS-formatted [Material] section entries from a large database of materials (primarily from [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125)), among others.
+Aside from the main PHITS output parsing function [**`parse_tally_output_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file) for general tally output, the [**`parse_tally_dump_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_dump_file) function for parsing tally dump file outputs, and the [**`parse_all_tally_output_in_dir()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_all_tally_output_in_dir) function for parsing all standard (and, optionally, dump) tally outputs in a directory, PHITS_tools.py also contains a number of other functions that may be of use for further analyses, such as tallying contents of dump files, rebinning historgrammed results, applying [ICRP 116 effective dose conversion coefficients](https://doi.org/10.1016/j.icrp.2011.10.001) to scored particled fluences, and retreiving PHITS-formatted [Material] section entries from a large database of materials (primarily from [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125)), among others.
 
 The CLI and GUI options result in the parsed file's contents being saved to a [pickle](https://docs.python.org/3/library/pickle.html) file, which can be reopened and used later in a Python script. (The pickle files produced when parsing "dump" output files are by default compressed via Python's built-in [LZMA compression](https://docs.python.org/3/library/lzma.html), indicated with an additional `'.xz'` file extension.) When using the main functions within a Python script which has imported the PHITS_tools module, you can optionally choose not to save the pickle files (if desired) and only have the tally output/dump parsing functions return the data objects they produce (dictionaries, NumPy arrays, Pandas DataFrames, and *[only for dump outputs]* lists of [namedtuples](https://docs.python.org/3/library/collections.html#collections.namedtuple) / similarly functioning [NumPy recarray](https://numpy.org/doc/stable/reference/generated/numpy.recarray.html)s when saved to a pickle file) for your own further analyses.
 
@@ -36,7 +36,36 @@ Pictured below is the main PHITS Tools GUI window followed by the `[DIRECTORY mo
 
 ![](/docs/PHITS_tools_GUI_directory-mode.png?raw=true "PHITS Tools GUI 'DIRECTORY mode' window")
 
-Below is also a picture of all of the options available for use within the CLI:
+## CLI options
+
+Essentially, the CLI serves to interface with the core 3 functions of PHITS Tools: [**`parse_tally_output_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file), [**`parse_tally_dump_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_dump_file), and [**`parse_all_tally_output_in_dir()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_all_tally_output_in_dir).  The required `file` argument is checked to see if it is a directory or a file, and, if the latter, whether it is a PHITS standard tally output or dump output file; then `file` and the relevant settings are sent to the corresponding main function.  Explicitly, inclusion of the various CLI inputs/options/flags have the following effects on the main functions:
+
+- Affecting all functions
+  - `-skip` sets `prefer_reading_existing_pickle = True` (`False` if excluded)
+- [**`parse_tally_output_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file) and [**`parse_all_tally_output_in_dir()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_all_tally_output_in_dir)
+  - `-np` sets `make_PandasDF = False` (`True` if excluded)
+  - `-na` sets `calculate_absolute_errors = False` (`True` if excluded)
+  - `-lzma` sets `compress_pickle_with_lzma = True` (`False` if excluded)
+- [**`parse_tally_dump_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_dump_file) and [**`parse_all_tally_output_in_dir()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_all_tally_output_in_dir)
+  - `-dvals` passes the provided sequence of values to `dump_data_sequence` (`None` if excluded)
+  - `-dbin` specifies that the file is binary (that `dump_data_number = 1 * len(dump_data_sequence)` and is positive)
+  - `-dnmax` passes its value to `max_entries_read` (`None` if excluded)
+  - `-ddir` sets `return_directional_info = True` (`False` if excluded)
+  - `-ddeg` sets `use_degrees = True` (`False` if excluded)
+  - `-dnsl` sets `save_namedtuple_list = False` (`True` if excluded)
+  - `-dnsp` sets `save_Pandas_dataframe = False` (`True` if excluded)
+  - `-dmaxGB` passes its value to `split_binary_dumps_over_X_GB` (`20` GB if excluded)
+  - `-dsplit` passes its value to `merge_split_dump_handling` (`0` if excluded)
+- [**`parse_all_tally_output_in_dir()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_all_tally_output_in_dir) exclusively
+  - `-r` sets `include_subdirectories = True` (`False` if excluded)
+  - `-fpre` passes its value to `output_file_prefix` (`''` if excluded)
+  - `-fsuf` passes its value to `output_file_suffix` (`'.out'` if excluded)
+  - `-fstr` passes its value to `output_file_required_string` (`''` if excluded)
+  - `-d` sets `include_dump_files = True` (`False` if excluded)
+  - `-dnmmpi` sets `dump_merge_MPI_subdumps = False` (`True` if excluded)
+  - `-dndmpi` sets `dump_delete_MPI_subdumps_post_merge = False` (`True` if excluded)
+
+Below is also a picture of all of these options available for use within the CLI.  
 
 ![](/docs/PHITS_tools_CLI.png?raw=true "PHITS Tools CLI options")
 
