@@ -68,7 +68,7 @@ Essentially, the CLI serves to interface with the core three functions of PHITS 
   - `-dnmmpi` sets `dump_merge_MPI_subdumps = False` (`True` if excluded)
   - `-dndmpi` sets `dump_delete_MPI_subdumps_post_merge = False` (`True` if excluded)
 
-Below is a picture of all of the options available for use within the CLI.  
+Below is a picture of all of these options available for use within the CLI.  
 
 ![](/docs/PHITS_tools_CLI.png?raw=true "PHITS Tools CLI options")
 
