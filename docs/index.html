@@ -504,7 +504,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        added to `tally_metadata` under the keys `nuclide_ZZZAAAM_list` and `nuclide_isomer_list`, i.e.
        `tally_metadata[&#39;nuclide_ZZZAAAM_list&#39;]` and `tally_metadata[&#39;nuclide_isomer_list&#39;]`.
        These lists should be referenced to see what nuclide each of index `ic` refers to.
-       The entries of the ZZZAAAM list are intergers calculated with the formula 10000\*Z + 10\*A + M, where M is the
+       The entries of the ZZZAAAM list are intergers calculated with the formula 10000&amp;ast;Z + 10&amp;ast;A + M, where M is the
        metastable state of the isomer (0 = ground state, 1 = 1st metastable/isomeric state, etc.).  The entries
        of the isomer list are these same nuclides in the same order but written as plaintext strings, e.g. `&#39;Al-28&#39;` and `&#39;Xe-133m1&#39;`.
        The lists are ordered in the same order nuclides are encountered while parsing the output file.
@@ -2065,13 +2065,13 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath=&#39;m
 def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter=&#39;-&#39;):
     &#39;&#39;&#39;
     Description:
-        Converts a plaintext string of a nuclide to an integer ZZZAAAM = 10000\*Z + 10\*A + M
+        Converts a plaintext string of a nuclide from an integer ZZZAAAM = 10000&amp;ast;Z + 10&amp;ast;A + M
 
     Dependencies:
         `Element_Z_to_Sym` (function within the &#34;PHITS Tools&#34; package)
 
     Input:
-       - `ZZZAAAM` = integer equal to 10000*Z + 10*A + M, where M designates the metastable state (0=ground)
+       - `ZZZAAAM` = integer equal to 10000&amp;ast;Z + 10&amp;ast;A + M, where M designates the metastable state (0=ground)
        - `include_Z` = Boolean denoting whether the Z number should be included in the output string (D=`False`)
        - `ZZZAAA` = Boolean denoting whether the input should be interpreted as a ZZZAAA value (1000Z+A) instead (D=`False`)
        - `delimiter` = string which will be used to separate elements of the output string (D=`-`)
@@ -4805,7 +4805,7 @@ elif test_explicit_files_dirs:
 
     test_parsing_of_dir = False #True
     if test_parsing_of_dir:
-        dir_path = output_file_path = Path(base_path + &#39;t-cross\complex\proton_in_hist_rz.out&#39;)
+        dir_path = output_file_path = Path(base_path + r&#39;t-cross\complex\proton_in_hist_rz.out&#39;)
         dir_output_list = parse_all_tally_output_in_dir(dir_path)
         print(dir_output_list)
         sys.exit()
@@ -4835,7 +4835,7 @@ elif test_explicit_files_dirs:
     if test_dump_file:
         #dump_file_path = Path(base_path + &#39;t-cross\complex\\neutron_yield_dmp.out&#39;)
         #dump_control_str = &#39;2   3   4   5   6   7   8  10&#39;
-        dump_file_path = Path(base_path + &#39;tally\\t-product\\dump\\product_dmp.out&#39;)
+        dump_file_path = Path(base_path + r&#39;tally\\t-product\\dump\\product_dmp.out&#39;)
         dump_control_str = &#39;1  2 3 4 8 10 9  17   18    19    20&#39;
         #nt_list, df = parse_tally_dump_file(dump_file_path,8,dump_control_str, save_namedtuple_list=True, save_Pandas_dataframe=True)
         # test automatic finding of dump parameters
@@ -4848,7 +4848,7 @@ elif test_explicit_files_dirs:
         import pickle
         import lzma
         #path_to_pickle_file = Path(base_path + &#39;t-cross\complex\\neutron_yield_dmp_namedtuple_list.dill.xz&#39;)
-        path_to_pickle_file = Path(base_path + &#39;tally\\t-product\\dump\\product_dmp_namedtuple_list.pickle.xz&#39;)
+        path_to_pickle_file = Path(base_path + r&#39;tally\\t-product\\dump\\product_dmp_namedtuple_list.pickle.xz&#39;)
         with lzma.open(path_to_pickle_file, &#39;rb&#39;) as handle:
             nt_list_dill = pickle.load(handle)
 
@@ -5055,7 +5055,7 @@ Owing to the huge number of possible nuclides, a list of found nuclides with non
 added to <code>tally_metadata</code> under the keys <code>nuclide_ZZZAAAM_list</code> and <code>nuclide_isomer_list</code>, i.e.
 <code>tally_metadata['nuclide_ZZZAAAM_list']</code> and <code>tally_metadata['nuclide_isomer_list']</code>.
 These lists should be referenced to see what nuclide each of index <code>ic</code> refers to.
-The entries of the ZZZAAAM list are intergers calculated with the formula 10000*Z + 10*A + M, where M is the
+The entries of the ZZZAAAM list are intergers calculated with the formula 10000&ast;Z + 10&ast;A + M, where M is the
 metastable state of the isomer (0 = ground state, 1 = 1st metastable/isomeric state, etc.).
 The entries
 of the isomer list are these same nuclides in the same order but written as plaintext strings, e.g. <code>'Al-28'</code> and <code>'Xe-133m1'</code>.
@@ -5237,7 +5237,7 @@ the yield results of production of carbon-14 (C-14), one would use the following
        added to `tally_metadata` under the keys `nuclide_ZZZAAAM_list` and `nuclide_isomer_list`, i.e.
        `tally_metadata[&#39;nuclide_ZZZAAAM_list&#39;]` and `tally_metadata[&#39;nuclide_isomer_list&#39;]`.
        These lists should be referenced to see what nuclide each of index `ic` refers to.
-       The entries of the ZZZAAAM list are intergers calculated with the formula 10000\*Z + 10\*A + M, where M is the
+       The entries of the ZZZAAAM list are intergers calculated with the formula 10000&amp;ast;Z + 10&amp;ast;A + M, where M is the
        metastable state of the isomer (0 = ground state, 1 = 1st metastable/isomeric state, etc.).  The entries
        of the isomer list are these same nuclides in the same order but written as plaintext strings, e.g. `&#39;Al-28&#39;` and `&#39;Xe-133m1&#39;`.
        The lists are ordered in the same order nuclides are encountered while parsing the output file.
@@ -7285,12 +7285,12 @@ with default settings except <code>save_namedtuple_list=True</code> and
 </code></dt>
 <dd>
 <div class="desc"><h2 id="description">Description</h2>
-<p>Converts a plaintext string of a nuclide to an integer ZZZAAAM = 10000*Z + 10*A + M</p>
+<p>Converts a plaintext string of a nuclide from an integer ZZZAAAM = 10000&ast;Z + 10&ast;A + M</p>
 <h2 id="dependencies">Dependencies</h2>
 <p><code><a title="PHITS_tools.Element_Z_to_Sym" href="#PHITS_tools.Element_Z_to_Sym">Element_Z_to_Sym()</a></code> (function within the "PHITS Tools" package)</p>
 <h2 id="input">Input</h2>
 <ul>
-<li><code>ZZZAAAM</code> = integer equal to 10000<em>Z + 10</em>A + M, where M designates the metastable state (0=ground)</li>
+<li><code>ZZZAAAM</code> = integer equal to 10000&ast;Z + 10&ast;A + M, where M designates the metastable state (0=ground)</li>
 <li><code>include_Z</code> = Boolean denoting whether the Z number should be included in the output string (D=<code>False</code>)</li>
 <li><code>ZZZAAA</code> = Boolean denoting whether the input should be interpreted as a ZZZAAA value (1000Z+A) instead (D=<code>False</code>)</li>
 <li><code>delimiter</code> = string which will be used to separate elements of the output string (D=<code>-</code>)</li>
@@ -7306,13 +7306,13 @@ with default settings except <code>save_namedtuple_list=True</code> and
 <pre><code class="python">def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter=&#39;-&#39;):
     &#39;&#39;&#39;
     Description:
-        Converts a plaintext string of a nuclide to an integer ZZZAAAM = 10000\*Z + 10\*A + M
+        Converts a plaintext string of a nuclide from an integer ZZZAAAM = 10000&amp;ast;Z + 10&amp;ast;A + M
 
     Dependencies:
         `Element_Z_to_Sym` (function within the &#34;PHITS Tools&#34; package)
 
     Input:
-       - `ZZZAAAM` = integer equal to 10000*Z + 10*A + M, where M designates the metastable state (0=ground)
+       - `ZZZAAAM` = integer equal to 10000&amp;ast;Z + 10&amp;ast;A + M, where M designates the metastable state (0=ground)
        - `include_Z` = Boolean denoting whether the Z number should be included in the output string (D=`False`)
        - `ZZZAAA` = Boolean denoting whether the input should be interpreted as a ZZZAAA value (1000Z+A) instead (D=`False`)
        - `delimiter` = string which will be used to separate elements of the output string (D=`-`)

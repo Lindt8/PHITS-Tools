@@ -334,7 +334,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        added to `tally_metadata` under the keys `nuclide_ZZZAAAM_list` and `nuclide_isomer_list`, i.e.
        `tally_metadata['nuclide_ZZZAAAM_list']` and `tally_metadata['nuclide_isomer_list']`.
        These lists should be referenced to see what nuclide each of index `ic` refers to.
-       The entries of the ZZZAAAM list are intergers calculated with the formula 10000\*Z + 10\*A + M, where M is the
+       The entries of the ZZZAAAM list are intergers calculated with the formula 10000&ast;Z + 10&ast;A + M, where M is the
        metastable state of the isomer (0 = ground state, 1 = 1st metastable/isomeric state, etc.).  The entries
        of the isomer list are these same nuclides in the same order but written as plaintext strings, e.g. `'Al-28'` and `'Xe-133m1'`.
        The lists are ordered in the same order nuclides are encountered while parsing the output file.
@@ -1895,13 +1895,13 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
 def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter='-'):
     '''
     Description:
-        Converts a plaintext string of a nuclide to an integer ZZZAAAM = 10000\*Z + 10\*A + M
+        Converts a plaintext string of a nuclide from an integer ZZZAAAM = 10000&ast;Z + 10&ast;A + M
 
     Dependencies:
         `Element_Z_to_Sym` (function within the "PHITS Tools" package)
 
     Input:
-       - `ZZZAAAM` = integer equal to 10000*Z + 10*A + M, where M designates the metastable state (0=ground)
+       - `ZZZAAAM` = integer equal to 10000&ast;Z + 10&ast;A + M, where M designates the metastable state (0=ground)
        - `include_Z` = Boolean denoting whether the Z number should be included in the output string (D=`False`)
        - `ZZZAAA` = Boolean denoting whether the input should be interpreted as a ZZZAAA value (1000Z+A) instead (D=`False`)
        - `delimiter` = string which will be used to separate elements of the output string (D=`-`)
@@ -4635,7 +4635,7 @@ elif test_explicit_files_dirs:
 
     test_parsing_of_dir = False #True
     if test_parsing_of_dir:
-        dir_path = output_file_path = Path(base_path + 't-cross\complex\proton_in_hist_rz.out')
+        dir_path = output_file_path = Path(base_path + r't-cross\complex\proton_in_hist_rz.out')
         dir_output_list = parse_all_tally_output_in_dir(dir_path)
         print(dir_output_list)
         sys.exit()
@@ -4665,7 +4665,7 @@ elif test_explicit_files_dirs:
     if test_dump_file:
         #dump_file_path = Path(base_path + 't-cross\complex\\neutron_yield_dmp.out')
         #dump_control_str = '2   3   4   5   6   7   8  10'
-        dump_file_path = Path(base_path + 'tally\\t-product\\dump\\product_dmp.out')
+        dump_file_path = Path(base_path + r'tally\\t-product\\dump\\product_dmp.out')
         dump_control_str = '1  2 3 4 8 10 9  17   18    19    20'
         #nt_list, df = parse_tally_dump_file(dump_file_path,8,dump_control_str, save_namedtuple_list=True, save_Pandas_dataframe=True)
         # test automatic finding of dump parameters
@@ -4678,7 +4678,7 @@ elif test_explicit_files_dirs:
         import pickle
         import lzma
         #path_to_pickle_file = Path(base_path + 't-cross\complex\\neutron_yield_dmp_namedtuple_list.dill.xz')
-        path_to_pickle_file = Path(base_path + 'tally\\t-product\\dump\\product_dmp_namedtuple_list.pickle.xz')
+        path_to_pickle_file = Path(base_path + r'tally\\t-product\\dump\\product_dmp_namedtuple_list.pickle.xz')
         with lzma.open(path_to_pickle_file, 'rb') as handle:
             nt_list_dill = pickle.load(handle)
 
