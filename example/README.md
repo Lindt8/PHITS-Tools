@@ -12,7 +12,7 @@ secondary program which processes the `*.out` file to create the `*.eps` file).
 The `product_dmp.out` file is the "dump" output file, with 11 columns of data 
 in ASCII format (since the tally has set the parameter `dump = -11`).
 
-In `example_PHITS_tools.py`, PHITS Tools is used to parse both the standard 
+In `example_PHITS_tools.[py/ipynb]`, PHITS Tools is used to parse both the standard 
 tally output file and the dump file.  See the comments in the code to be 
 stepped through instructions for what is being done.  The `*.pickle` and 
 `*.pickle.xz` files are produced by PHITS Tools, containing the numerical results
