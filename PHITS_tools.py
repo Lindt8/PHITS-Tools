@@ -317,7 +317,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        - `'value_label'` = the string of the vertical axis label of the 1D plots used in the .eps files
        - `'axis2_label'` = the string of the vertical axis label of the 2D plots used in the .eps files
        
-       Note that for a some tallies there may be additional special entries (like for [T-Point]) or that some of the key 
+       Note that for some tallies there may be additional special entries (like for [T-Point]) or that some of the key 
        names may differ slightly from those stated here (such as for [T-Deposit2]).
        
        
