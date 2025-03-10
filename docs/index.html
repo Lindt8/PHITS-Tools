@@ -407,7 +407,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        **The `&#39;tally_data&#39;` 10-dimensional NumPy array**
 
        Many quantities can be scored across the various tallies in the PHITS code.  This function outputs a &#34;universal&#34;
-       array `tally_data` (`tally_data = tally_output[&#39;tally_metadata&#39;]`) that can accomodate all of the different 
+       array `tally_data` (`tally_data = tally_output[&#39;tally_data&#39;]`) that can accomodate all of the different 
        scoring geometry meshes, physical quantities with assigned meshes, and output axes provided within PHITS. 
        This is achieved with a 10-dimensional array accessible as
         
@@ -5035,7 +5035,7 @@ set <code>prefer_to_munch_meta_dict = False</code>.</em></p>
 <p><strong>The <code>'tally_data'</code> 10-dimensional NumPy array</strong></p>
 <p>Many quantities can be scored across the various tallies in the PHITS code.
 This function outputs a "universal"
-array <code>tally_data</code> (<code>tally_data = tally_output['tally_metadata']</code>) that can accomodate all of the different
+array <code>tally_data</code> (<code>tally_data = tally_output['tally_data']</code>) that can accomodate all of the different
 scoring geometry meshes, physical quantities with assigned meshes, and output axes provided within PHITS.
 This is achieved with a 10-dimensional array accessible as</p>
 <p><code>tally_data[ ir, iy, iz, ie, it, ia, il, ip, ic, ierr ]</code>, with indices explained below:</p>
@@ -5265,7 +5265,7 @@ the yield results of production of carbon-14 (C-14), one would use the following
        **The `&#39;tally_data&#39;` 10-dimensional NumPy array**
 
        Many quantities can be scored across the various tallies in the PHITS code.  This function outputs a &#34;universal&#34;
-       array `tally_data` (`tally_data = tally_output[&#39;tally_metadata&#39;]`) that can accomodate all of the different 
+       array `tally_data` (`tally_data = tally_output[&#39;tally_data&#39;]`) that can accomodate all of the different 
        scoring geometry meshes, physical quantities with assigned meshes, and output axes provided within PHITS. 
        This is achieved with a 10-dimensional array accessible as
         

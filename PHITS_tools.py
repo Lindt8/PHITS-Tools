@@ -237,7 +237,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        **The `'tally_data'` 10-dimensional NumPy array**
 
        Many quantities can be scored across the various tallies in the PHITS code.  This function outputs a "universal"
-       array `tally_data` (`tally_data = tally_output['tally_metadata']`) that can accomodate all of the different 
+       array `tally_data` (`tally_data = tally_output['tally_data']`) that can accomodate all of the different 
        scoring geometry meshes, physical quantities with assigned meshes, and output axes provided within PHITS. 
        This is achieved with a 10-dimensional array accessible as
         
