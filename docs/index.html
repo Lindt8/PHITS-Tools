@@ -397,13 +397,20 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        will just be a standard dictionary object.  If, for whatever reason, you have Munch installed but do not wish for 
        `tally_metadata` to be a Munch object, then in the first line of code for the `parse_tally_header()` function, 
        set `prefer_to_munch_meta_dict = False`._
-
+    
+       -----
+    
+       -----
+    
     Notes:
+    
+       **The `&#39;tally_data&#39;` 10-dimensional NumPy array**
 
        Many quantities can be scored across the various tallies in the PHITS code.  This function outputs a &#34;universal&#34;
-       array `tally_data` that can accomodate all of the different scoring geometry meshes, physical quantities with
-       assigned meshes, and output axes provided within PHITS.  This is achieved with a 10-dimensional array accessible as
-
+       array `tally_data` (`tally_data = tally_output[&#39;tally_metadata&#39;]`) that can accomodate all of the different 
+       scoring geometry meshes, physical quantities with assigned meshes, and output axes provided within PHITS. 
+       This is achieved with a 10-dimensional array accessible as
+        
        `tally_data[ ir, iy, iz, ie, it, ia, il, ip, ic, ierr ]`, with indices explained below:
 
        Tally data indices and corresponding mesh/axis:
@@ -420,16 +427,73 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
         - `9` | `ierr = 0/1/2`, Value / relative uncertainty / absolute uncertainty (expanded to `3/4/5`, or `2/3` if
         `calculate_absolute_errors = False`, for [T-Cross] `mesh=r-z` with `enclos=0` case; see notes further below)
 
-       -----
 
        By default, all array dimensions are length-1 (except `ierr`, which is length-3).  These dimensions are set/corrected
        automatically when parsing the tally output file.  Thus, for very simple tallies, most of these indices will be
        set to 0 when accessing tally results, e.g. `tally_data[2,0,0,:,0,0,0,:,0,:]` to access the full energy spectrum
        in the third region for all scored particles / particle groups with the values and uncertainties.
+       
+       -----
+       
+       **The `&#39;tally_metadata&#39;` dictionary**
 
        The output `tally_metadata` dictionary contains all information needed to identify every bin along every
        dimension: region numbers/groups, particle names/groups, bin edges and midpoints for all mesh types
        (x, y, z, r, energy, angle, time, and LET) used in the tally.
+       
+       It typically contains quite a bit of information. To conveniently view its contents, one can import the built-in
+       pprint library `import pprint` and then use `pprint.pp(dict(tally_output[&#39;tally_metadata&#39;]))`.
+       
+       At a basic level, the &#34;header&#34; of the PHITS output file (everything before the first instance of `newpage:`) is
+       parsed and, in effect, a key+value pair is created for every line containing an equals sign `=`.
+       
+       The following keys exist denoting the lengths of the first 9 axes/dimensions of the `tally_data` NumPy array: 
+       `&#39;nreg&#39;`/`&#39;nx&#39;`/`&#39;nr&#39;`/`&#39;ntet&#39;`, `&#39;ny&#39;`, `&#39;nz&#39;`, `&#39;ne&#39;`, `&#39;nt&#39;`, `&#39;na&#39;`, `&#39;nl&#39;`,  `&#39;npart&#39;`, and `&#39;nc&#39;`. 
+       These keys are all initialized as `None` and assigned a value if found in the PHITS output file. Thus, if one of
+       these retains its value of `None`, the corresponding array axis length should be 1.  The `&#39;found_mesh_kinds&#39;` key 
+       lists which of these meshes are identified.
+       For these values with a defined numerical mesh, taking energy `&#39;e&#39;` for example here, a number of different keys 
+       and values will be read/generated for the metadata dictionary, such as: `&#39;e-type&#39;`, `&#39;emin&#39;`, `&#39;emax&#39;`, `&#39;edel&#39;`, 
+       `&#39;e-mesh_bin_edges&#39;`, `&#39;e-mesh_bin_mids&#39;`, and `&#39;e-mesh_bin_mids_log&#39;`.
+       
+       Complications arise in PHITS allowing the flexibility of grouping regions and particles together for scoring.
+       For example, something like `(1 2 5)` can be provided to `reg = ` or something like `(neutron photon)` can be 
+       provided to `part = ` in a tally.  To accomodate this, some additional key+value pairs are introduced for the 
+       metadata dictionary:
+       
+       For regions:
+       
+       - `&#39;reg&#39;` = the string following `reg = ` in the PHITS output
+       - `&#39;reg_groups&#39;` = a list of strings of each &#34;group&#34; of region(s) provided to `reg = ` in the PHITS output
+       - `&#39;num_reg_groups&#39;` = an integer of the length of `&#39;reg_groups&#39;`, which is also the length of the first dimension of the `tally_data` array and should equal `&#39;nreg&#39;`
+       - `&#39;nreg&#39;` = an integer of the number of scoring regions, should equal `&#39;num_reg_groups&#39;`
+       - `&#39;reg_serial_num&#39;` = a list of integers counting the region groups, starting at 1
+       - `&#39;reg_num&#39;` = a list of unique strings of the region numbers found (for individual regions) or assigned by PHITS (for combined regions)
+       
+       For particles:
+       
+       - `&#39;part&#39;` = the string following `part = ` in the PHITS output
+       - `&#39;npart&#39;` = the integer number of particle scoring groups provided to `part = ` in the PHITS output
+       - `&#39;part_groups&#39;` = a list of strings of each &#34;group&#34; of particle(s) provided to `part = ` in the PHITS output
+       - `&#39;kf_groups&#39;` = a list of strings like `&#39;part_groups&#39;` but containing the kf-code particle identification numbers (see PHITS manual Table 4.4) for each particle/group; `0` is assigned to `part = all`
+       - `&#39;part_serial_groups&#39;` = a list of strings with the serialized name of each particle scoring group (`&#39;p1-group&#39;`, `&#39;p2-group&#39;`, etc.)
+       
+       Perhaps of use for quickly making plots using PHITS Tools, the following keys also exist:
+       
+       - `&#39;title&#39;` = the title string of the plots used in the .eps files
+       - `&#39;axis_dimensions&#39;` = `1` or `2` denoting whether the value provided to `axis = ` indicated one or two dimensional plots
+       - `&#39;axis_index_of_tally_array&#39;` = integer specifying what axis of `tally_data` should be accessed for the quantity provided to `axis = `
+       - `&#39;axis1_label&#39;` = the string of the horizontal axis label of the plots used in the .eps files
+       - `&#39;value_label&#39;` = the string of the vertical axis label of the 1D plots used in the .eps files
+       - `&#39;axis2_label&#39;` = the string of the vertical axis label of the 2D plots used in the .eps files
+       
+       Note that for a some tallies there may be additional special entries (like for [T-Point]) or that some of the key 
+       names may differ slightly from those stated here (such as for [T-Deposit2]).
+       
+       
+       -----
+       
+       **The `&#39;tally_dataframe&#39;` Pandas DataFrame**
 
        The `tally_dataframe` Pandas dataframe output functions as normal. The dataframe contains a number of rows equal
        to the number of Values in the NumPy array (i.e., the product of the lengths of the first nine dimensions of the
@@ -439,6 +503,10 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        can be accessed with `tally_dataframe.attrs`.
 
        -----
+    
+       -----
+    
+    Exceptions:
 
        **Unsupported tallies and DCHAIN**
 
@@ -4730,10 +4798,10 @@ elif launch_GUI:
 
 
 elif test_explicit_files_dirs:
-    #base_path = r&#39;G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\\&#39;
+    base_path = r&#39;G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\\&#39;
     #output_file_path = Path(base_path + &#39;t-deposit\deposit_reg.out&#39;)
     #output_file_path = Path(base_path + &#39;t-deposit\deposit_eng_sp-reg.out&#39;)
-    #output_file_path = Path(base_path + &#39;t-track\\track_reg.out&#39;)
+    output_file_path = Path(base_path + &#39;t-track\\track_reg.out&#39;)
     #output_file_path = Path(base_path + &#39;t-track\\track_r-z.out&#39;)
     #output_file_path = Path(base_path + &#39;t-track\\track_xyz-xy.out&#39;)
     #output_file_path = Path(base_path + r&#39;t-track\track_r-z_axis-rad.out&#39;)
@@ -4789,7 +4857,7 @@ elif test_explicit_files_dirs:
     #output_file_path = Path(base_path + r&#39;t-yield\yield_reg_axis-chart.out&#39;)
     #output_file_path = Path(base_path + r&#39;t-yield\yield_xyz_axis-chart.out&#39;)
 
-    base_path = r&#39;G:\Cloud\OneDrive\work\PHITS\test_tallies\\&#39;
+    #base_path = r&#39;G:\Cloud\OneDrive\work\PHITS\test_tallies\\&#39;
     #output_file_path = Path(base_path + r&#39;tally\t-deposit\deposit_reg_spec-all.out&#39;)
     #output_file_path = Path(base_path + r&#39;sample\icrp\mrcp\External\result\Dose_MRCP-AF_reg.out&#39;)
     #output_file_path = Path(base_path + r&#39;sample\misc\batch_source\track_yz_001.out&#39;)
@@ -4800,7 +4868,7 @@ elif test_explicit_files_dirs:
     #output_file_path = Path(base_path + r&#39;recommendation\BNCT\dose.out&#39;)
     #output_file_path = Path(base_path + r&#39;recommendation\SemiConductor\deposit.out&#39;)
     #output_file_path = Path(base_path + r&#39;recommendation\Shielding\track-rz.out&#39;)
-    output_file_path = Path(base_path + r&#39;recommendation\TrackStructure\interact.out&#39;)
+    #output_file_path = Path(base_path + r&#39;recommendation\TrackStructure\interact.out&#39;)
 
 
     test_parsing_of_dir = False #True
@@ -4810,7 +4878,7 @@ elif test_explicit_files_dirs:
         print(dir_output_list)
         sys.exit()
     
-    test_large_dump_splitting = True
+    test_large_dump_splitting = False
     if test_large_dump_splitting:
         base_path = r&#39;G:\Cloud\OneDrive\work\PHITS\test_tallies\\&#39;
         dump_file_path = Path(base_path + r&#39;big_dumps\\proton_track_dmp.out&#39;)
@@ -4831,7 +4899,7 @@ elif test_explicit_files_dirs:
         print(dir_output_list)
         sys.exit()
 
-    test_dump_file = True #False
+    test_dump_file = False
     if test_dump_file:
         #dump_file_path = Path(base_path + &#39;t-cross\complex\\neutron_yield_dmp.out&#39;)
         #dump_control_str = &#39;2   3   4   5   6   7   8  10&#39;
@@ -4870,7 +4938,9 @@ elif test_explicit_files_dirs:
     tally_data = tally_output[&#39;tally_data&#39;]
     tally_metadata = tally_output[&#39;tally_metadata&#39;]
 
-    #pprint.pp(dict(tally_metadata))
+    pprint.pp(dict(tally_metadata))
+    sys.exit()
+    
     #                ir, iy, iz, ie, it, ia, il, ip, ic, ierr
     print(tally_data[ :,  0,  0,  :,  0,  0,  0,  0,  0, 0])
     print(tally_data[ :,  0,  0,  :,  0,  0,  0,  0,  0, 1])
@@ -4959,11 +5029,14 @@ will just be a standard dictionary object.
 If, for whatever reason, you have Munch installed but do not wish for
 <code>tally_metadata</code> to be a Munch object, then in the first line of code for the <code><a title="PHITS_tools.parse_tally_header" href="#PHITS_tools.parse_tally_header">parse_tally_header()</a></code> function,
 set <code>prefer_to_munch_meta_dict = False</code>.</em></p>
+<hr>
+<hr>
 <h2 id="notes">Notes</h2>
+<p><strong>The <code>'tally_data'</code> 10-dimensional NumPy array</strong></p>
 <p>Many quantities can be scored across the various tallies in the PHITS code.
 This function outputs a "universal"
-array <code>tally_data</code> that can accomodate all of the different scoring geometry meshes, physical quantities with
-assigned meshes, and output axes provided within PHITS.
+array <code>tally_data</code> (<code>tally_data = tally_output['tally_metadata']</code>) that can accomodate all of the different
+scoring geometry meshes, physical quantities with assigned meshes, and output axes provided within PHITS.
 This is achieved with a 10-dimensional array accessible as</p>
 <p><code>tally_data[ ir, iy, iz, ie, it, ia, il, ip, ic, ierr ]</code>, with indices explained below:</p>
 <p>Tally data indices and corresponding mesh/axis:</p>
@@ -4982,16 +5055,66 @@ This is achieved with a 10-dimensional array accessible as</p>
 <li><code>9</code> | <code>ierr = 0/1/2</code>, Value / relative uncertainty / absolute uncertainty (expanded to <code>3/4/5</code>, or <code>2/3</code> if
 <code>calculate_absolute_errors = False</code>, for [T-Cross] <code>mesh=r-z</code> with <code>enclos=0</code> case; see notes further below)</li>
 </ul>
-<hr>
 <p>By default, all array dimensions are length-1 (except <code>ierr</code>, which is length-3).
 These dimensions are set/corrected
 automatically when parsing the tally output file.
 Thus, for very simple tallies, most of these indices will be
 set to 0 when accessing tally results, e.g. <code>tally_data[2,0,0,:,0,0,0,:,0,:]</code> to access the full energy spectrum
 in the third region for all scored particles / particle groups with the values and uncertainties.</p>
+<hr>
+<p><strong>The <code>'tally_metadata'</code> dictionary</strong></p>
 <p>The output <code>tally_metadata</code> dictionary contains all information needed to identify every bin along every
 dimension: region numbers/groups, particle names/groups, bin edges and midpoints for all mesh types
 (x, y, z, r, energy, angle, time, and LET) used in the tally.</p>
+<p>It typically contains quite a bit of information. To conveniently view its contents, one can import the built-in
+pprint library <code>import pprint</code> and then use <code>pprint.pp(dict(tally_output['tally_metadata']))</code>.</p>
+<p>At a basic level, the "header" of the PHITS output file (everything before the first instance of <code>newpage:</code>) is
+parsed and, in effect, a key+value pair is created for every line containing an equals sign <code>=</code>.</p>
+<p>The following keys exist denoting the lengths of the first 9 axes/dimensions of the <code>tally_data</code> NumPy array:
+<code>'nreg'</code>/<code>'nx'</code>/<code>'nr'</code>/<code>'ntet'</code>, <code>'ny'</code>, <code>'nz'</code>, <code>'ne'</code>, <code>'nt'</code>, <code>'na'</code>, <code>'nl'</code>,
+<code>'npart'</code>, and <code>'nc'</code>.
+These keys are all initialized as <code>None</code> and assigned a value if found in the PHITS output file. Thus, if one of
+these retains its value of <code>None</code>, the corresponding array axis length should be 1.
+The <code>'found_mesh_kinds'</code> key
+lists which of these meshes are identified.
+For these values with a defined numerical mesh, taking energy <code>'e'</code> for example here, a number of different keys
+and values will be read/generated for the metadata dictionary, such as: <code>'e-type'</code>, <code>'emin'</code>, <code>'emax'</code>, <code>'edel'</code>,
+<code>'e-mesh_bin_edges'</code>, <code>'e-mesh_bin_mids'</code>, and <code>'e-mesh_bin_mids_log'</code>.</p>
+<p>Complications arise in PHITS allowing the flexibility of grouping regions and particles together for scoring.
+For example, something like <code>(1 2 5)</code> can be provided to <code>reg =</code> or something like <code>(neutron photon)</code> can be
+provided to <code>part =</code> in a tally.
+To accomodate this, some additional key+value pairs are introduced for the
+metadata dictionary:</p>
+<p>For regions:</p>
+<ul>
+<li><code>'reg'</code> = the string following <code>reg =</code> in the PHITS output</li>
+<li><code>'reg_groups'</code> = a list of strings of each "group" of region(s) provided to <code>reg =</code> in the PHITS output</li>
+<li><code>'num_reg_groups'</code> = an integer of the length of <code>'reg_groups'</code>, which is also the length of the first dimension of the <code>tally_data</code> array and should equal <code>'nreg'</code></li>
+<li><code>'nreg'</code> = an integer of the number of scoring regions, should equal <code>'num_reg_groups'</code></li>
+<li><code>'reg_serial_num'</code> = a list of integers counting the region groups, starting at 1</li>
+<li><code>'reg_num'</code> = a list of unique strings of the region numbers found (for individual regions) or assigned by PHITS (for combined regions)</li>
+</ul>
+<p>For particles:</p>
+<ul>
+<li><code>'part'</code> = the string following <code>part =</code> in the PHITS output</li>
+<li><code>'npart'</code> = the integer number of particle scoring groups provided to <code>part =</code> in the PHITS output</li>
+<li><code>'part_groups'</code> = a list of strings of each "group" of particle(s) provided to <code>part =</code> in the PHITS output</li>
+<li><code>'kf_groups'</code> = a list of strings like <code>'part_groups'</code> but containing the kf-code particle identification numbers (see PHITS manual Table 4.4) for each particle/group; <code>0</code> is assigned to <code>part = all</code></li>
+<li><code>'part_serial_groups'</code> = a list of strings with the serialized name of each particle scoring group (<code>'p1-group'</code>, <code>'p2-group'</code>, etc.)</li>
+</ul>
+<p>Perhaps of use for quickly making plots using PHITS Tools, the following keys also exist:</p>
+<ul>
+<li><code>'title'</code> = the title string of the plots used in the .eps files</li>
+<li><code>'axis_dimensions'</code> = <code>1</code> or <code>2</code> denoting whether the value provided to <code>axis =</code> indicated one or two dimensional plots</li>
+<li><code>'axis_index_of_tally_array'</code> = integer specifying what axis of <code>tally_data</code> should be accessed for the quantity provided to <code>axis =</code></li>
+<li><code>'axis1_label'</code> = the string of the horizontal axis label of the plots used in the .eps files</li>
+<li><code>'value_label'</code> = the string of the vertical axis label of the 1D plots used in the .eps files</li>
+<li><code>'axis2_label'</code> = the string of the vertical axis label of the 2D plots used in the .eps files</li>
+</ul>
+<p>Note that for a some tallies there may be additional special entries (like for [T-Point]) or that some of the key
+names may differ slightly from those stated here (such as for [T-Deposit2]).</p>
+<hr>
+<p><strong>The <code>'tally_dataframe'</code> Pandas DataFrame</strong></p>
 <p>The <code>tally_dataframe</code> Pandas dataframe output functions as normal. The dataframe contains a number of rows equal
 to the number of Values in the NumPy array (i.e., the product of the lengths of the first nine dimensions of the
 ten-dimensional array) and extra columns for each array dimension of length greater than one (e.g., if the tally
@@ -4999,6 +5122,8 @@ includes an energy and/or angle mesh, columns will be present stating the energy
 A dictionary containing supplemental information that is common to all rows of the dataframe is included and
 can be accessed with <code>tally_dataframe.attrs</code>.</p>
 <hr>
+<hr>
+<h2 id="exceptions">Exceptions</h2>
 <p><strong>Unsupported tallies and DCHAIN</strong></p>
 <p>The following tallies are NOT supported by this function:</p>
 <ul>
@@ -5130,13 +5255,20 @@ the yield results of production of carbon-14 (C-14), one would use the following
        will just be a standard dictionary object.  If, for whatever reason, you have Munch installed but do not wish for 
        `tally_metadata` to be a Munch object, then in the first line of code for the `parse_tally_header()` function, 
        set `prefer_to_munch_meta_dict = False`._
-
+    
+       -----
+    
+       -----
+    
     Notes:
+    
+       **The `&#39;tally_data&#39;` 10-dimensional NumPy array**
 
        Many quantities can be scored across the various tallies in the PHITS code.  This function outputs a &#34;universal&#34;
-       array `tally_data` that can accomodate all of the different scoring geometry meshes, physical quantities with
-       assigned meshes, and output axes provided within PHITS.  This is achieved with a 10-dimensional array accessible as
-
+       array `tally_data` (`tally_data = tally_output[&#39;tally_metadata&#39;]`) that can accomodate all of the different 
+       scoring geometry meshes, physical quantities with assigned meshes, and output axes provided within PHITS. 
+       This is achieved with a 10-dimensional array accessible as
+        
        `tally_data[ ir, iy, iz, ie, it, ia, il, ip, ic, ierr ]`, with indices explained below:
 
        Tally data indices and corresponding mesh/axis:
@@ -5153,16 +5285,73 @@ the yield results of production of carbon-14 (C-14), one would use the following
         - `9` | `ierr = 0/1/2`, Value / relative uncertainty / absolute uncertainty (expanded to `3/4/5`, or `2/3` if
         `calculate_absolute_errors = False`, for [T-Cross] `mesh=r-z` with `enclos=0` case; see notes further below)
 
-       -----
 
        By default, all array dimensions are length-1 (except `ierr`, which is length-3).  These dimensions are set/corrected
        automatically when parsing the tally output file.  Thus, for very simple tallies, most of these indices will be
        set to 0 when accessing tally results, e.g. `tally_data[2,0,0,:,0,0,0,:,0,:]` to access the full energy spectrum
        in the third region for all scored particles / particle groups with the values and uncertainties.
+       
+       -----
+       
+       **The `&#39;tally_metadata&#39;` dictionary**
 
        The output `tally_metadata` dictionary contains all information needed to identify every bin along every
        dimension: region numbers/groups, particle names/groups, bin edges and midpoints for all mesh types
        (x, y, z, r, energy, angle, time, and LET) used in the tally.
+       
+       It typically contains quite a bit of information. To conveniently view its contents, one can import the built-in
+       pprint library `import pprint` and then use `pprint.pp(dict(tally_output[&#39;tally_metadata&#39;]))`.
+       
+       At a basic level, the &#34;header&#34; of the PHITS output file (everything before the first instance of `newpage:`) is
+       parsed and, in effect, a key+value pair is created for every line containing an equals sign `=`.
+       
+       The following keys exist denoting the lengths of the first 9 axes/dimensions of the `tally_data` NumPy array: 
+       `&#39;nreg&#39;`/`&#39;nx&#39;`/`&#39;nr&#39;`/`&#39;ntet&#39;`, `&#39;ny&#39;`, `&#39;nz&#39;`, `&#39;ne&#39;`, `&#39;nt&#39;`, `&#39;na&#39;`, `&#39;nl&#39;`,  `&#39;npart&#39;`, and `&#39;nc&#39;`. 
+       These keys are all initialized as `None` and assigned a value if found in the PHITS output file. Thus, if one of
+       these retains its value of `None`, the corresponding array axis length should be 1.  The `&#39;found_mesh_kinds&#39;` key 
+       lists which of these meshes are identified.
+       For these values with a defined numerical mesh, taking energy `&#39;e&#39;` for example here, a number of different keys 
+       and values will be read/generated for the metadata dictionary, such as: `&#39;e-type&#39;`, `&#39;emin&#39;`, `&#39;emax&#39;`, `&#39;edel&#39;`, 
+       `&#39;e-mesh_bin_edges&#39;`, `&#39;e-mesh_bin_mids&#39;`, and `&#39;e-mesh_bin_mids_log&#39;`.
+       
+       Complications arise in PHITS allowing the flexibility of grouping regions and particles together for scoring.
+       For example, something like `(1 2 5)` can be provided to `reg = ` or something like `(neutron photon)` can be 
+       provided to `part = ` in a tally.  To accomodate this, some additional key+value pairs are introduced for the 
+       metadata dictionary:
+       
+       For regions:
+       
+       - `&#39;reg&#39;` = the string following `reg = ` in the PHITS output
+       - `&#39;reg_groups&#39;` = a list of strings of each &#34;group&#34; of region(s) provided to `reg = ` in the PHITS output
+       - `&#39;num_reg_groups&#39;` = an integer of the length of `&#39;reg_groups&#39;`, which is also the length of the first dimension of the `tally_data` array and should equal `&#39;nreg&#39;`
+       - `&#39;nreg&#39;` = an integer of the number of scoring regions, should equal `&#39;num_reg_groups&#39;`
+       - `&#39;reg_serial_num&#39;` = a list of integers counting the region groups, starting at 1
+       - `&#39;reg_num&#39;` = a list of unique strings of the region numbers found (for individual regions) or assigned by PHITS (for combined regions)
+       
+       For particles:
+       
+       - `&#39;part&#39;` = the string following `part = ` in the PHITS output
+       - `&#39;npart&#39;` = the integer number of particle scoring groups provided to `part = ` in the PHITS output
+       - `&#39;part_groups&#39;` = a list of strings of each &#34;group&#34; of particle(s) provided to `part = ` in the PHITS output
+       - `&#39;kf_groups&#39;` = a list of strings like `&#39;part_groups&#39;` but containing the kf-code particle identification numbers (see PHITS manual Table 4.4) for each particle/group; `0` is assigned to `part = all`
+       - `&#39;part_serial_groups&#39;` = a list of strings with the serialized name of each particle scoring group (`&#39;p1-group&#39;`, `&#39;p2-group&#39;`, etc.)
+       
+       Perhaps of use for quickly making plots using PHITS Tools, the following keys also exist:
+       
+       - `&#39;title&#39;` = the title string of the plots used in the .eps files
+       - `&#39;axis_dimensions&#39;` = `1` or `2` denoting whether the value provided to `axis = ` indicated one or two dimensional plots
+       - `&#39;axis_index_of_tally_array&#39;` = integer specifying what axis of `tally_data` should be accessed for the quantity provided to `axis = `
+       - `&#39;axis1_label&#39;` = the string of the horizontal axis label of the plots used in the .eps files
+       - `&#39;value_label&#39;` = the string of the vertical axis label of the 1D plots used in the .eps files
+       - `&#39;axis2_label&#39;` = the string of the vertical axis label of the 2D plots used in the .eps files
+       
+       Note that for a some tallies there may be additional special entries (like for [T-Point]) or that some of the key 
+       names may differ slightly from those stated here (such as for [T-Deposit2]).
+       
+       
+       -----
+       
+       **The `&#39;tally_dataframe&#39;` Pandas DataFrame**
 
        The `tally_dataframe` Pandas dataframe output functions as normal. The dataframe contains a number of rows equal
        to the number of Values in the NumPy array (i.e., the product of the lengths of the first nine dimensions of the
@@ -5172,6 +5361,10 @@ the yield results of production of carbon-14 (C-14), one would use the following
        can be accessed with `tally_dataframe.attrs`.
 
        -----
+    
+       -----
+    
+    Exceptions:
 
        **Unsupported tallies and DCHAIN**
 
