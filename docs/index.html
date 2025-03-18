@@ -389,7 +389,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
         - **`tally_output`** = a dictionary object with the below keys and values:
             - `&#39;tally_data&#39;` = a 10-dimensional NumPy array containing all tally results, explained in more detail below
             - `&#39;tally_metadata&#39;` = a dictionary/Munch&amp;dagger; object with various data extracted from the tally output file, such as axis binning and units
-            - `&#39;tally_dataframe&#39;` = (optionally included if setting `make_PandasDF = True`) a Pandas dataframe version of `tally_data`
+            - `&#39;tally_dataframe&#39;` = a Pandas dataframe version of `tally_data` (`None` if `make_PandasDF = False`) 
        
        &amp;dagger;_If you have the [Munch package](https://github.com/Infinidat/munch) installed, the `tally_metadata` dictionary
        will instead be a Munch object, which is identical to a dictionary but additionally allows attribute-style access 
@@ -404,6 +404,15 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
     
     Notes:
     
+       **Quick code for loading pickled tally output**
+       
+           import pickle, lzma; from pathlib import Path
+           p = Path(&#39;path/to/pickle/file.pickle[.xz]&#39;)
+           tally_output = pickle.load(lzma.open(p, &#39;rb&#39;) if p.name[-3:]==&#39;.xz&#39; else open(p, &#39;rb&#39;))
+           tally_data, tally_metadata, tally_dataframe = [tally_output[k] for k in tally_output.keys()]
+       
+       -----
+       
        **The `&#39;tally_data&#39;` 10-dimensional NumPy array**
 
        Many quantities can be scored across the various tallies in the PHITS code.  This function outputs a &#34;universal&#34;
@@ -5017,7 +5026,7 @@ great for output from massive tallies.</li>
 <li><strong><code>tally_output</code></strong> = a dictionary object with the below keys and values:<ul>
 <li><code>'tally_data'</code> = a 10-dimensional NumPy array containing all tally results, explained in more detail below</li>
 <li><code>'tally_metadata'</code> = a dictionary/Munch&dagger; object with various data extracted from the tally output file, such as axis binning and units</li>
-<li><code>'tally_dataframe'</code> = (optionally included if setting <code>make_PandasDF = True</code>) a Pandas dataframe version of <code>tally_data</code></li>
+<li><code>'tally_dataframe'</code> = a Pandas dataframe version of <code>tally_data</code> (<code>None</code> if <code>make_PandasDF = False</code>) </li>
 </ul>
 </li>
 </ul>
@@ -5032,6 +5041,13 @@ set <code>prefer_to_munch_meta_dict = False</code>.</em></p>
 <hr>
 <hr>
 <h2 id="notes">Notes</h2>
+<p><strong>Quick code for loading pickled tally output</strong></p>
+<pre><code>import pickle, lzma; from pathlib import Path
+p = Path('path/to/pickle/file.pickle[.xz]')
+tally_output = pickle.load(lzma.open(p, 'rb') if p.name[-3:]=='.xz' else open(p, 'rb'))
+tally_data, tally_metadata, tally_dataframe = [tally_output[k] for k in tally_output.keys()]
+</code></pre>
+<hr>
 <p><strong>The <code>'tally_data'</code> 10-dimensional NumPy array</strong></p>
 <p>Many quantities can be scored across the various tallies in the PHITS code.
 This function outputs a "universal"
@@ -5247,7 +5263,7 @@ the yield results of production of carbon-14 (C-14), one would use the following
         - **`tally_output`** = a dictionary object with the below keys and values:
             - `&#39;tally_data&#39;` = a 10-dimensional NumPy array containing all tally results, explained in more detail below
             - `&#39;tally_metadata&#39;` = a dictionary/Munch&amp;dagger; object with various data extracted from the tally output file, such as axis binning and units
-            - `&#39;tally_dataframe&#39;` = (optionally included if setting `make_PandasDF = True`) a Pandas dataframe version of `tally_data`
+            - `&#39;tally_dataframe&#39;` = a Pandas dataframe version of `tally_data` (`None` if `make_PandasDF = False`) 
        
        &amp;dagger;_If you have the [Munch package](https://github.com/Infinidat/munch) installed, the `tally_metadata` dictionary
        will instead be a Munch object, which is identical to a dictionary but additionally allows attribute-style access 
@@ -5262,6 +5278,15 @@ the yield results of production of carbon-14 (C-14), one would use the following
     
     Notes:
     
+       **Quick code for loading pickled tally output**
+       
+           import pickle, lzma; from pathlib import Path
+           p = Path(&#39;path/to/pickle/file.pickle[.xz]&#39;)
+           tally_output = pickle.load(lzma.open(p, &#39;rb&#39;) if p.name[-3:]==&#39;.xz&#39; else open(p, &#39;rb&#39;))
+           tally_data, tally_metadata, tally_dataframe = [tally_output[k] for k in tally_output.keys()]
+       
+       -----
+       
        **The `&#39;tally_data&#39;` 10-dimensional NumPy array**
 
        Many quantities can be scored across the various tallies in the PHITS code.  This function outputs a &#34;universal&#34;
