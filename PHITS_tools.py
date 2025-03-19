@@ -2403,6 +2403,7 @@ def split_into_header_and_content(output_file_path):
             else:
                 header.append(line.strip())
     # add "footer" to peel off last bit of "content" section?
+    if in_debug_mode: print(len(content), 'content blocks (pages) found in tally output')
     return header, content
 
 def parse_tally_header(tally_header,tally_content):
@@ -2944,8 +2945,8 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                         mesh_char = part.split('=')[0].strip().replace('i','')
                         #print(mesh_char)
                         if mesh_char == 'no.':
-                            if '***' in part:
-                                break # this is a bugged line
+                            if '***' in part and bi<998:
+                                break # this is a bugged line (or "no." is 4+ digits, which is fine)
                             continue
                         elif mesh_char == 'part.' or mesh_char == 'partcle' or mesh_char == 'part':
                             part_grp_name = part.split('=')[1].strip()
@@ -3025,7 +3026,9 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                         else:
                             raise ValueError('ERROR! Unregistered potential index ['+part.split('=')[0].strip()+'] found')
 
-
+            if in_debug_mode:
+                print('\tcontent block',bi,', indices:', ir, iy, iz, ie, it, ia, il, ip, ic)
+            
             # extract data from table
             # determine meaning of table rows
             row_ivar = tdata_ivar_strs[meta['axis_index_of_tally_array']]
@@ -3524,7 +3527,8 @@ def split_str_of_equalities(text):
     original_text = text
     #if text[0] == "'": # more loosely formatted text
     #    problem_strs = ['tot DPA']
-    text = text.replace("'",'').replace(',',' ').replace('#','').replace('=',' = ')
+    if text[0] == "#" and 'no. =***' in text and text[-1]=='=': return [] # skip broken lines
+    text = text.replace("'",'').replace(',',' ').replace('#','').replace('=',' = ').replace('***','999999999')
     text_pieces = text.split()
     #i_equal_sign = [i for i, x in enumerate(text_pieces) if x == "="]
     is_i_equal_sign = [x=='=' for x in text_pieces]
