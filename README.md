@@ -21,7 +21,7 @@ Install PHITS Tools:
 Import PHITS Tools like any other Python module:
 `import PHITS_tools` / `from PHITS_tools import *`
 
-Note: To use the CLI/GUI, you must execute the `PHITS_tools.py` module file with `python`.  To find the installed location of the module file, execute: `pip show PHITS-Tools -f`
+*Note:* To use the CLI/GUI, you must execute the `PHITS_tools.py` module file with `python`.  To find the installed location of the module file, execute: `pip show PHITS-Tools -f`
 
 ### Manually 
 
