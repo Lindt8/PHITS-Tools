@@ -2,6 +2,7 @@
 
 # PHITS Tools
 [![status](https://joss.theoj.org/papers/ef67acccadb883867ba60dc9e018ff70/status.svg)](https://joss.theoj.org/papers/ef67acccadb883867ba60dc9e018ff70)
+[![PyPI - Version](https://img.shields.io/pypi/v/PHITS-Tools)](https://pypi.org/project/PHITS-Tools/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14262720.svg)](https://doi.org/10.5281/zenodo.14262720)
 
 ## Purpose
@@ -11,6 +12,19 @@ This module is a collection of Python 3 functions that serve to automatically pr
 Specifically, PHITS Tools seeks to be a universal PHITS output parser, supporting output from all tallies, both normal "standard" output as well as dump file outputs (in ASCII and binary formats), reading in the numeric data and metadata and storing them in Python objects for further use and analysis in Python.  PHITS Tools is also coupled to the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools/) module and can import it to process DCHAIN output when the main tally output parsing function is provided DCHAIN-related files.  PHITS Tools also contains a number of functions for assisting in some types of further analyses.   You can read more about how to use PHITS Tools and its output in its online documentation: [lindt8.github.io/PHITS-Tools/](https://lindt8.github.io/PHITS-Tools/)
 
 ## Installation
+
+### With `pip`
+
+Install PHITS Tools:
+`pip install PHITS-Tools`
+
+Import PHITS Tools like any other Python module:
+`import PHITS_tools` / `from PHITS_tools import *`
+
+Note: To use the CLI/GUI, you must execute the `PHITS_tools.py` module file with `python`.  Execute `pip show PHITS-Tools -f` to find the installed location of the module file.
+
+### Manually 
+
 One may use the functions by first placing the PHITS_tools.py Python script into a folder in their PYTHONPATH system variable or in the active directory and then just importing them normally (`import PHITS_tools` / `from PHITS_tools import *`) or by executing the script `python PHITS_tools.py` with the PHITS output file to be parsed as the required argument (see `python PHITS_tools.py --help` for all CLI options) / without a file argument to be guided through with a GUI.
 
 The short list of required package/library dependencies for PHITS Tools (and DCHAIN Tools) can be found in `requirements.txt` and installed by executing `pip install -r requirements.txt`.
