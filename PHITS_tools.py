@@ -524,8 +524,11 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
             try:
                 from dchain_tools import process_dchain_simulation_output
             except:
-                print('Failed to import the DCHAIN Tools module; to parse DCHAIN output via PHITS Tools, please install DCHAIN Tools and configure it in your Python environment')
-                return None
+                try:
+                    from PHITS_tools.dchain_tools import process_dchain_simulation_output
+                except:
+                    print('Failed to import the DCHAIN Tools module; to parse DCHAIN output via PHITS Tools, please install DCHAIN Tools and configure it in your Python environment')
+                    return None
             simulation_folder_path = str(Path(tally_output_filepath.parent)) + '\\'
             simulation_basename = str(tally_output_filepath.stem)
             dchain_output = process_dchain_simulation_output(simulation_folder_path,simulation_basename,process_DCS_file=True)
