@@ -97,6 +97,8 @@ Likewise, if you have any questions or ideas for improvements / feature suggesti
 
 If using [T-Dchain] in PHITS and/or the DCHAIN-PHITS code, the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools/) repository contains a separate Python module for parsing and processing that related code output.  While PHITS Tools will import and use DCHAIN Tools if provided with DCHAIN-related files, direct usage of DCHAIN Tools may be desired if you want greater control of the various output parsing options within it or want to make use of some of its useful standalone functions. All of these functions are documented online at [lindt8.github.io/DCHAIN-Tools/](https://lindt8.github.io/DCHAIN-Tools/). 
 
+DCHAIN Tools is distributed as a submodule of PHITS Tools.  If installing PHITS Tools via `pip install PHITS-Tools`, you can access DCHAIN Tools with `import PHITS_tools.dchain_tools as dchain_tools` / `from PHITS_tools.dchain_tools import *`.  If installing PHITS Tools manually, see `dchain_tools.py` in the `DCHAIN-Tools` directory/submodule link.
+
 -----
 
 These functions are tools I have developed over time to speed up my usage of PHITS; they are not officially supported by the PHITS development team.  All of the professionally-relevant Python modules I have developed are summarized [here](https://lindt8.github.io/professional-code-projects/), and more general information about me and the work I do / have done can be found on [my personal webpage](https://lindt8.github.io/).
