@@ -13,7 +13,7 @@ Specifically, PHITS Tools seeks to be a universal PHITS output parser, supportin
 
 ## Installation
 
-### With `pip`
+### With `pip` (Python >= 3.10)
 
 Install PHITS Tools:
 `pip install PHITS-Tools`
