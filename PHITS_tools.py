@@ -2903,7 +2903,7 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                     hli = li
                     hli_found = True
                     continue
-                if hli_found and (line[:12] == '#   sum over' or line[:7] == '#   sum' or line[:5] == '#----' or (len(block[li-1]) == 0 and hli != 0 and li>hli+2) or "'" in line or '{' in line):
+                if hli_found and (line[:12] == '#   sum over' or line[:7] == '#   sum' or line[:5] == '#----' or line[:12] == '#   overflow' or (len(block[li-1]) == 0 and hli != 0 and li>hli+2) or "'" in line or '{' in line):
                     fli = li
                     if (len(block[li-1]) == 0 and hli != 0 and li>hli+2): fli = li - 1 # triggered by blank line after data
                     #if "'" in line or '{' in line:
@@ -3865,10 +3865,18 @@ def build_tally_Pandas_dataframe(tdata,meta):
     ecols, tcols, acols, lcols, pcols, ccols = False, False, False, False, False, False
     single_specified_bin_axes = [] # log axes which are provided by user but only contain 1 bin
     single_bin_ranges_or_values = []
-    if meta['ne'] != None:
+    if meta['ne'] != None or ie_max>1: #  
         if meta['ne']==1:
             single_specified_bin_axes.append('e')
             single_bin_ranges_or_values.append(['Energy',meta['e-mesh_bin_edges']])
+        elif meta['tally_type']=='[T-Deposit2]':
+            if meta['ne1']==1:
+                single_specified_bin_axes.append('e1')
+                single_bin_ranges_or_values.append(['Energy1', meta['e1-mesh_bin_edges']])
+            else:
+                ecols = True
+                ecol_names_list = ['ie', 'e1_mid']
+                col_names_list += ecol_names_list
         else:
             ecols = True
             ecol_names_list = ['ie','e_mid']
@@ -3906,8 +3914,8 @@ def build_tally_Pandas_dataframe(tdata,meta):
     else:
         single_bin_ranges_or_values.append(['LET','default/all'])
 
-    if meta['nc'] != None:
-        if meta['nc'] == 1:
+    if meta['nc'] != None or ic_max>1:
+        if meta['nc'] == 1 or ic_max==1:
             pass
         else:
             ccols = True
@@ -3921,8 +3929,17 @@ def build_tally_Pandas_dataframe(tdata,meta):
                 elif meta['axis'] == 'mass':
                     ccol_names_list = ['ic/A/mass']
                     col_names_list += ccol_names_list
+            elif meta['tally_type'] == '[T-Interact]':
+                if meta['axis'] == 'act':
+                    ccol_names_list = ['ic', '#Interactions']
+                    col_names_list += ccol_names_list
             elif meta['tally_type'] == '[T-Deposit2]':
-                pass
+                if meta['ne2'] == 1:
+                    single_specified_bin_axes.append('e2')
+                    single_bin_ranges_or_values.append(['Energy2', meta['e2-mesh_bin_edges']])
+                else:
+                    ccol_names_list = ['ic', 'e2_mid']
+                    col_names_list += ccol_names_list
 
     if meta['npart'] != None: # and meta['part_groups'][0]=='all':
         if meta['npart']==1:
@@ -4049,7 +4066,10 @@ def build_tally_Pandas_dataframe(tdata,meta):
 
                                         if ecols: # ecol_names_list = ['ie','e_mid']
                                             df_dict[ecol_names_list[0]].append(ie)
-                                            df_dict[ecol_names_list[1]].append(meta['e-mesh_bin_mids'][ie])
+                                            if meta['tally_type'] == '[T-Deposit2]':
+                                                df_dict[ecol_names_list[1]].append(meta['e1-mesh_bin_mids'][ie])
+                                            else:
+                                                df_dict[ecol_names_list[1]].append(meta['e-mesh_bin_mids'][ie])
                                         if tcols: # tcol_names_list = ['it','t_mid']
                                             df_dict[tcol_names_list[0]].append(it)
                                             df_dict[tcol_names_list[1]].append(meta['t-mesh_bin_mids'][it])
@@ -4073,6 +4093,14 @@ def build_tally_Pandas_dataframe(tdata,meta):
                                                 elif meta['axis'] == 'mass':
                                                     #ccol_names_list = ['ic/A/mass']
                                                     df_dict[ccol_names_list[0]].append(ic)
+                                            elif meta['tally_type'] == '[T-Interact]':
+                                                if meta['axis'] == 'act':
+                                                    #ccol_names_list = ['act']
+                                                    df_dict[ccol_names_list[0]].append(ic)
+                                                    df_dict[ccol_names_list[1]].append(ic+1)
+                                            elif meta['tally_type'] == '[T-Deposit2]':
+                                                df_dict[ccol_names_list[0]].append(ic)
+                                                df_dict[ccol_names_list[1]].append(meta['e2-mesh_bin_mids'][ic])
 
                                         # Value columns
                                         #val_names_list = ['value', 'rel.err.','abs.err.']
@@ -4662,7 +4690,7 @@ elif test_explicit_files_dirs:
     #output_file_path = Path(base_path + 't-cross\cross_reg_axis-reg.out')
     #output_file_path = Path(base_path + 't-cross\cross_xyz_axis-eng.out')
     #output_file_path = Path(base_path + 't-cross\cross_xyz_axis-eng_enclosed.out')
-    #output_file_path = Path(base_path + 't-cross\cross_xyz_axis-reg.out')
+    ###output_file_path = Path(base_path + 't-cross\cross_xyz_axis-reg.out')
     #output_file_path = Path(base_path + 't-cross\cross_xyz_axis-xy.out')
     #output_file_path = Path(base_path + 't-cross\cross-r-z_axis-eng.out')
     #output_file_path = Path(base_path + 't-cross\cross-r-z_axis-eng_0r.out')
@@ -4688,6 +4716,7 @@ elif test_explicit_files_dirs:
     #output_file_path = Path(base_path + 't-heat\heat_reg.out')
     #output_file_path = Path(base_path + 't-heat\heat_xyz.out')
     #output_file_path = Path(base_path + 't-interact\interact_reg.out')
+    #output_file_path = Path(base_path + 't-interact\interact_reg_axis-act.out')
     #output_file_path = Path(base_path + 't-interact\interact_xyz.out')
     #output_file_path = Path(base_path + 't-let\let-distribution_reg.out')
     #output_file_path = Path(base_path + 't-let\let-distribution_r-z.out')
@@ -4783,6 +4812,7 @@ elif test_explicit_files_dirs:
                                            save_output_pickle=True)
     tally_data = tally_output['tally_data']
     tally_metadata = tally_output['tally_metadata']
+    tally_df = tally_output['tally_dataframe']
 
     pprint.pp(dict(tally_metadata))
     sys.exit()
