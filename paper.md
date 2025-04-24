@@ -46,7 +46,7 @@ time scales of nuclear reactions. To calculate the creation and destruction of n
 with time (activation, buildup, burnup, and decay) on any scale (seconds to centuries), 
 distributed with and coupled to PHITS is the DCHAIN [@DCHAIN_ref] (or DCHAIN-PHITS) code[^2].
 
-[^1]: Current PHITS userbase statistics can be found at: [https://phits.jaea.go.jp/usermap/PHITS_map_userbase.html](https://phits.jaea.go.jp/usermap/PHITS_map_userbase.html)
+[^1]: For current PHITS userbase statistics, see: [https://phits.jaea.go.jp/usermap/PHITS_map_userbase.html](https://phits.jaea.go.jp/usermap/PHITS_map_userbase.html)
 [^2]: PHITS and DCHAIN are distributed by the Japan Atomic Energy Agency and the OECD/NEA Data Bank. For more information, see: [https://phits.jaea.go.jp/howtoget.html](https://phits.jaea.go.jp/howtoget.html).  
 
 Within PHITS are "tallies" which score various physical quantities
