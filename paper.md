@@ -41,10 +41,10 @@ While simplified "rule of thumb" calculations can provide crude answers in some 
 fully modeling a radiation scenario is often necessary to obtain a much more precise answer. 
 PHITS [@PHITS333_ref] (Particle and Heavy Ion Transport code System) 
 is one such general purpose Monte Carlo particle transport simulation code, presently with over 7400 users worldwide[^1].
-Though PHITS can simulate a large variety of complex nuclear physics, it can only do so on the extremely short
+Though PHITS can simulate a large variety of complex physics, it can only do so on the extremely short
 time scales of nuclear reactions. To calculate the creation and destruction of nuclides
 with time (activation, buildup, burnup, and decay) on any scale (seconds to centuries), 
-distributed with and coupled to PHITS is the DCHAIN [@DCHAIN_ref] (or DCHAIN-PHITS) code[^2].
+distributed with and coupled to PHITS is the DCHAIN [@DCHAIN_ref] code[^2].
 
 [^1]: For current PHITS userbase statistics, see: [https://phits.jaea.go.jp/usermap/PHITS_map_userbase.html](https://phits.jaea.go.jp/usermap/PHITS_map_userbase.html)
 [^2]: PHITS and DCHAIN are distributed by the Japan Atomic Energy Agency and the OECD/NEA Data Bank. For more information, see: [https://phits.jaea.go.jp/howtoget.html](https://phits.jaea.go.jp/howtoget.html).  
