@@ -37,8 +37,8 @@ What dose will an individual receive in a particular exposure scenario?
 After how long will an irradiated radioactive sample decay enough to become safe to handle?
 How should an experiment be designed to make the most of limited time at an accelerator facility?
 
-While simplified "rule of thumb" calculations can provide crude answers in some very basic scenarios,
-often it is necessary to fully model a radiation scenario to obtain a much more precise answer. 
+While simplified "rule of thumb" calculations can provide crude answers in some basic scenarios,
+fully modeling a radiation scenario is often necessary to obtain a much more precise answer. 
 PHITS [@PHITS333_ref] (Particle and Heavy Ion Transport code System) 
 is one such general purpose Monte Carlo particle transport simulation code, presently with over 7400 users worldwide[^1].
 Though PHITS can simulate a large variety of complex nuclear physics, it can only do so on the extremely short
