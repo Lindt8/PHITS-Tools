@@ -40,7 +40,7 @@ How should an experiment be designed to make the most of limited time at an acce
 While simplified "rule of thumb" calculations can provide crude answers in some basic scenarios,
 fully modeling a radiation scenario is often necessary to obtain a much more precise answer. 
 PHITS [@PHITS333_ref] (Particle and Heavy Ion Transport code System) 
-is one such general purpose Monte Carlo particle transport simulation code, presently with over 7400 users worldwide[^1].
+is one such general purpose Monte Carlo particle transport simulation code, presently with over 7400 users[^1].
 Though PHITS can simulate a large variety of complex physics, it can only do so on the extremely short
 time scales of nuclear reactions. To calculate the creation and destruction of nuclides
 with time (activation, buildup, burnup, and decay) on any scale (seconds to centuries), 
