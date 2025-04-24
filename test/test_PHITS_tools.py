@@ -7,6 +7,8 @@ path_to_phits_base_folder = Path('C:\phits')
 
 phits_sample_dir = Path(path_to_phits_base_folder,'sample')
 phits_recommendation_dir = Path(path_to_phits_base_folder,'recommendation')
+test_autoplotting = False  # Determines if autoplot_tally_results() is tested too for each tally output (notably slows testing)
+plot_paths = []
 
 sample_files = phits_sample_dir.rglob('*.out')
 recommendation_files = phits_recommendation_dir.rglob('*.out')
@@ -46,7 +48,8 @@ for f in files_to_parse:
         if '_dmp.out' in str(f):
             x = PHITS_tools.parse_tally_dump_file(f, save_namedtuple_list=False, save_Pandas_dataframe=False)
         else:
-            x = PHITS_tools.parse_tally_output_file(f,save_output_pickle=False)
+            x = PHITS_tools.parse_tally_output_file(f,save_output_pickle=False,autoplot_tally_output=test_autoplotting)
+            if test_autoplotting and Path(f.parent, f.stem + '.pdf').is_file(): plot_paths.append(Path(f.parent, f.stem + '.pdf'))
         log_str = test_num_str + '     pass  ' + str(f) + '\n'
         num_passed += 1
     except Exception as e:
@@ -72,3 +75,12 @@ log_file_str += log_str
 log_file_path = Path(Path.cwd(), 'test.log')
 with open(log_file_path, "w") as f:
     f.write(log_file_str)
+
+# uncomment to compile generated PDFs into a single PDF
+#if test_autoplotting:
+#    from pypdf import PdfWriter
+#    merger = PdfWriter()
+#    for pdf in plot_paths: 
+#        merger.append(pdf)
+#    merger.write("test_tally_plots.pdf")
+#    merger.close()

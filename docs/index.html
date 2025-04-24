@@ -120,6 +120,8 @@ functions return the data objects they produce for your own further analyses.</p
 <li><code><a title="PHITS_tools.calculate_tally_absolute_errors" href="#PHITS_tools.calculate_tally_absolute_errors">calculate_tally_absolute_errors()</a></code> : calculate absolute uncertainties from read values and relative errors</li>
 <li><code><a title="PHITS_tools.build_tally_Pandas_dataframe" href="#PHITS_tools.build_tally_Pandas_dataframe">build_tally_Pandas_dataframe()</a></code>
 : make Pandas dataframe from the main results NumPy array and the metadata</li>
+<li><code><a title="PHITS_tools.autoplot_tally_results" href="#PHITS_tools.autoplot_tally_results">autoplot_tally_results()</a></code>
+: make plot(s), saved as PDFs, of tally results from tally output Pandas DataFrame(s)</li>
 </ul>
 <h3 id="cli-options"><strong>CLI options</strong></h3>
 <p>Essentially, the CLI serves to interface with the core three functions of PHITS Tools: <code><a title="PHITS_tools.parse_tally_output_file" href="#PHITS_tools.parse_tally_output_file">parse_tally_output_file()</a></code>,
@@ -138,6 +140,7 @@ Explicitly, inclusion of the various CLI options have the following effects on t
 <li><code>-np</code> sets <code>make_PandasDF = False</code> (<code>True</code> if excluded)</li>
 <li><code>-na</code> sets <code>calculate_absolute_errors = False</code> (<code>True</code> if excluded)</li>
 <li><code>-lzma</code> sets <code>compress_pickle_with_lzma = True</code> (<code>False</code> if excluded)</li>
+<li><code>-p</code> sets <code>autoplot_tally_output = True</code> (<code>False</code> if excluded)</li>
 </ul>
 </li>
 <li><code><a title="PHITS_tools.parse_tally_dump_file" href="#PHITS_tools.parse_tally_dump_file">parse_tally_dump_file()</a></code> (and passed to it via <code><a title="PHITS_tools.parse_all_tally_output_in_dir" href="#PHITS_tools.parse_all_tally_output_in_dir">parse_all_tally_output_in_dir()</a></code>)<ul>
@@ -161,6 +164,7 @@ Explicitly, inclusion of the various CLI options have the following effects on t
 <li><code>-d</code> sets <code>include_dump_files = True</code> (<code>False</code> if excluded)</li>
 <li><code>-dnmmpi</code> sets <code>dump_merge_MPI_subdumps = False</code> (<code>True</code> if excluded)</li>
 <li><code>-dndmpi</code> sets <code>dump_delete_MPI_subdumps_post_merge = False</code> (<code>True</code> if excluded)</li>
+<li><code>-pa</code> sets <code>autoplot_all_tally_output_in_dir = True</code> (<code>False</code> if excluded)</li>
 </ul>
 </li>
 </ul>
@@ -241,6 +245,7 @@ functions return the data objects they produce for your own further analyses.
 - `data_row_to_num_list`            : extract numeric values from a line in the tally content section
 - `calculate_tally_absolute_errors` : calculate absolute uncertainties from read values and relative errors
 - `build_tally_Pandas_dataframe`    : make Pandas dataframe from the main results NumPy array and the metadata
+- `autoplot_tally_results`          : make plot(s), saved as PDFs, of tally results from tally output Pandas DataFrame(s)
 
 
 ### **CLI options**
@@ -259,6 +264,7 @@ Essentially, the CLI serves to interface with the core three functions of PHITS 
       - `-np` sets `make_PandasDF = False` (`True` if excluded)
       - `-na` sets `calculate_absolute_errors = False` (`True` if excluded)
       - `-lzma` sets `compress_pickle_with_lzma = True` (`False` if excluded)
+      - `-p` sets `autoplot_tally_output = True` (`False` if excluded)
 - `parse_tally_dump_file` (and passed to it via `parse_all_tally_output_in_dir`)
       - `-d` tells the CLI that `file` should be processed as a dump file (if it&#39;s not a directory)
       - `-dvals` passes the provided sequence of values to `dump_data_sequence` (`None` if excluded)
@@ -278,6 +284,7 @@ Essentially, the CLI serves to interface with the core three functions of PHITS 
       - `-d` sets `include_dump_files = True` (`False` if excluded)
       - `-dnmmpi` sets `dump_merge_MPI_subdumps = False` (`True` if excluded)
       - `-dndmpi` sets `dump_delete_MPI_subdumps_post_merge = False` (`True` if excluded)
+      - `-pa` sets `autoplot_all_tally_output_in_dir = True` (`False` if excluded)
 
 
 &#39;&#39;&#39;
@@ -341,7 +348,8 @@ if in_debug_mode:
 
 
 def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calculate_absolute_errors = True,
-                            save_output_pickle=True, prefer_reading_existing_pickle=False, compress_pickle_with_lzma=False):
+                            save_output_pickle=True, prefer_reading_existing_pickle=False, compress_pickle_with_lzma=False, 
+                            autoplot_tally_output=False):
     &#39;&#39;&#39;
     Description:
         Parse any PHITS tally output file, returning tally metadata and an array of its values (and optionally
@@ -384,6 +392,9 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
                       For most &#34;normal&#34; tallies, the pickle file sizes are likely to be small enough to not warrant 
                       compression, but LZMA compression can reduce the file size by several orders of magnitude, 
                       great for output from massive tallies.
+       - **`autoplot_tally_output`** = (optional, D=`False`; requires `make_PandasDF=True`) Boolean denoting whether 
+                      the tally&#39;s output will be automatically plotted and saved to a PDF (of the same name/path as 
+                      `tally_output_filepath` but ending in `.pdf`) using the `autoplot_tally_results()` function.
 
     Output:
         - **`tally_output`** = a dictionary object with the below keys and values:
@@ -694,8 +705,11 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
             try:
                 from dchain_tools import process_dchain_simulation_output
             except:
-                print(&#39;Failed to import the DCHAIN Tools module; to parse DCHAIN output via PHITS Tools, please install DCHAIN Tools and configure it in your Python environment&#39;)
-                return None
+                try:
+                    from PHITS_tools.dchain_tools import process_dchain_simulation_output
+                except:
+                    print(&#39;Failed to import the DCHAIN Tools module; to parse DCHAIN output via PHITS Tools, please install DCHAIN Tools and configure it in your Python environment&#39;)
+                    return None
             simulation_folder_path = str(Path(tally_output_filepath.parent)) + &#39;\\&#39;
             simulation_basename = str(tally_output_filepath.stem)
             dchain_output = process_dchain_simulation_output(simulation_folder_path,simulation_basename,process_DCS_file=True)
@@ -710,9 +724,9 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
             return dchain_output
         else:
             return None
-    if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Yield]&#39; and tally_metadata[&#39;axis&#39;] == &#39;dchain&#39;:
+    if (tally_metadata[&#39;tally_type&#39;] == &#39;[T-Yield]&#39; or tally_metadata[&#39;tally_type&#39;] == &#39;[T-Track]&#39;) and tally_metadata[&#39;axis&#39;] == &#39;dchain&#39;:
         dchain_tools_url = &#39;github.com/Lindt8/DCHAIN-Tools&#39;
-        print(&#39;This function does not support [T-Yield] with setting &#34;axis = dchain&#34;.&#39;)
+        print(&#39;This function does not support [T-Yield]/[T-Track] with setting &#34;axis = dchain&#34;.&#39;)
         print(&#39;However, the DCHAIN Tools module (&#39;, dchain_tools_url, &#39;) is capable of parsing all DCHAIN-related output.&#39;)
         return None
 
@@ -785,7 +799,14 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
                 pickle.dump(tally_output, handle, protocol=pickle.HIGHEST_PROTOCOL)
         print(&#39;Pickle file written:&#39;, path_to_pickle_file, &#39;\n&#39;)
         if in_debug_mode: print(&#34;\tComplete!   ({:0.2f} seconds elapsed)&#34;.format(time.time() - start))
-
+    
+    if autoplot_tally_output:
+        if not make_PandasDF:
+            print(&#39;Plotting via &#34;autoplot_tally_output=True&#34; requires also setting &#34;make_PandasDF=True&#34;.&#39;)
+        else:
+            plot_filepath = Path(tally_output_filepath.parent, tally_output_filepath.stem + &#39;.pdf&#39;)
+            autoplot_tally_results(tally_output, plot_errorbars=calculate_absolute_errors, output_filename=plot_filepath)
+    
     return tally_output
 
 
@@ -1217,7 +1238,8 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = &#3
                                   dump_max_entries_read=None,
                                   dump_save_namedtuple_list=True, dump_save_Pandas_dataframe=True,
                                   dump_merge_MPI_subdumps=True, dump_delete_MPI_subdumps_post_merge=True,
-                                  split_binary_dumps_over_X_GB=20, merge_split_dump_handling=0
+                                  split_binary_dumps_over_X_GB=20, merge_split_dump_handling=0,
+                                  autoplot_tally_output=False, autoplot_all_tally_output_in_dir=False
                                   ):
     &#39;&#39;&#39;
     Description:
@@ -1278,6 +1300,12 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = &#3
                       output files as usual and overwrite the existing pickle file.  If `True`, this function will instead
                       simply just read the existing found pickle file, extracting its stored `tally_output` contents 
                       (and, if for dump file pickles, they&#39;ll simply be skipped and not reprocessed). (D=`False`)
+       - **`autoplot_all_tally_output_in_dir`** = (optional, D=`False`; requires `make_PandasDF=True`) Boolean denoting, 
+                      for all tally outputs included in this function&#39;s call, whether the tallies&#39; outputs will be automatically 
+                      plotted and saved to a single PDF, with path/name &#34;`tally_output_dirpath`/ALL_TALLY_OUTPUTS_PLOTTED.pdf&#34; by default, 
+                      using the `autoplot_tally_results()` function.  If a string is provided instead of a Boolean, 
+                      this setting will be set to `True` and the string will be used as the plot PDF&#39;s filename, with 
+                      the file name and path as &#34;`tally_output_dirpath`/`autoplot_all_tally_output_in_dir`.pdf&#34;.
 
     Inputs:
        (optional, the same as in and directly passed to the `parse_tally_output_file()` function)
@@ -1299,6 +1327,9 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = &#3
                       For most &#34;normal&#34; tallies, the pickle file sizes are likely to be small enough to not warrant 
                       compression, but LZMA compression can reduce the file size by several orders of magnitude, 
                       great for output from massive tallies.
+       - **`autoplot_tally_output`** = (optional, D=`False`; requires `make_PandasDF=True`) Boolean denoting whether, for each tally, 
+                      the tally&#39;s output will be automatically plotted and saved to a PDF (of the same name/path as 
+                      the tally&#39;s output file but ending in `.pdf`) using the `autoplot_tally_results()` function. 
 
     Inputs:
        (optional, the same as in and directly passed to the `parse_tally_dump_file()` function)
@@ -1366,6 +1397,11 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = &#3
             print(&#39;Nor is it a valid path to a file. ERROR! Aborting...&#39;)
             return None
 
+    autoplot_dir_filename = &#34;ALL_TALLY_OUTPUTS_PLOTTED.pdf&#34;
+    if isinstance(autoplot_all_tally_output_in_dir, str):
+        autoplot_dir_filename = autoplot_all_tally_output_in_dir + &#39;.pdf&#39;
+        autoplot_all_tally_output_in_dir = True
+
     if include_subdirectories:
         # Get paths to all files in this dir and subdirs
         files_in_dir = []
@@ -1413,13 +1449,16 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = &#3
     for f in filepaths_to_process:
         f = Path(f)
         path_to_pickle_file = Path(f.parent, f.stem + &#39;.pickle&#39;)
-        tally_output_pickle_path_list.append(path_to_pickle_file)
         tally_output = parse_tally_output_file(f, make_PandasDF=make_PandasDF,
                                                calculate_absolute_errors=calculate_absolute_errors,
                                                save_output_pickle=save_output_pickle,
                                                prefer_reading_existing_pickle=prefer_reading_existing_pickle,
-                                               compress_pickle_with_lzma=compress_pickle_with_lzma)
-        if return_tally_output: tally_output_list.append(tally_output)
+                                               compress_pickle_with_lzma=compress_pickle_with_lzma,
+                                               autoplot_tally_output=autoplot_tally_output)
+        if tally_output != None:
+            tally_output_pickle_path_list.append(path_to_pickle_file)
+        if return_tally_output: 
+            tally_output_list.append(tally_output)
 
     if include_dump_files:
         for f in dump_filepaths_to_process:
@@ -1445,6 +1484,17 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = &#3
                 merged_fp = Path(Path(id_head),id_tail)
                 merge_succeeded = merge_dump_file_pickles(dumps_to_merge, merged_dump_base_filepath=merged_fp, 
                                                           delete_pre_merge_pickles=dump_delete_MPI_subdumps_post_merge)
+                
+    if autoplot_all_tally_output_in_dir:
+        if not make_PandasDF:
+            print(&#39;Plotting via &#34;autoplot_tally_output=True&#34; or &#34;autoplot_all_tally_output_in_dir=True&#34; requires also setting &#34;make_PandasDF=True&#34;.&#39;)
+        else:
+            plot_filepath = Path(tally_output_dirpath, autoplot_dir_filename)
+            if return_tally_output:
+                plot_list = tally_output_list
+            else:
+                plot_list = tally_output_pickle_path_list
+            autoplot_tally_results(plot_list, plot_errorbars=calculate_absolute_errors, output_filename=plot_filepath)
 
     if return_tally_output:
         return tally_output_list
@@ -2573,6 +2623,7 @@ def split_into_header_and_content(output_file_path):
             else:
                 header.append(line.strip())
     # add &#34;footer&#34; to peel off last bit of &#34;content&#34; section?
+    if in_debug_mode: print(len(content), &#39;content blocks (pages) found in tally output&#39;)
     return header, content
 
 def parse_tally_header(tally_header,tally_content):
@@ -2644,6 +2695,7 @@ def parse_tally_header(tally_header,tally_content):
         elif &#39;=&#39; in line:
             if line[0] == &#39;#&#39;:  # commented line
                 key, value = extract_data_from_header_line(line[1:])
+                if key==&#39;file&#39; and key in meta and &#39;_dmp&#39; in value: continue # do not overwrite existing file parameter with dump file
             else:
                 key, value = extract_data_from_header_line(line)
             if in_exceptional_mesh_kind:
@@ -2652,6 +2704,9 @@ def parse_tally_header(tally_header,tally_content):
                 elif key==&#39;ne&#39;:
                     key = &#39;n&#39; + current_data_mesh_kind
             meta[key] = value
+            if (tally_type==&#39;[T-Yield]&#39; or tally_type==&#39;[T-Track]&#39;) and key==&#39;axis&#39; and value==&#39;dchain&#39;:
+                # Unsupported tally output!
+                return meta
 
             if &#39;type&#39; in key:
                 current_data_mesh_kind = key.replace(&#39;-type&#39;,&#39;&#39;)
@@ -2927,7 +2982,7 @@ def parse_tally_header(tally_header,tally_content):
             elif meta[&#39;axis_dimensions&#39;] == 2:
                 if hc_passed: # second instance of y:
                     value_label = line[2:].strip()
-                    #break
+                    break
                 else: # first instance of y:
                     axis2_label = line[2:].strip()
                     hc_passed = True
@@ -2980,7 +3035,7 @@ def parse_tally_header(tally_header,tally_content):
                         meta[&#39;reg_volume&#39;] = vol
                         meta[&#39;nreg&#39;] = len(reg)
 
-            break
+                break
     meta[&#39;axis1_label&#39;] = axis1_label
     meta[&#39;axis2_label&#39;] = axis2_label
     meta[&#39;value_label&#39;] = value_label
@@ -3037,7 +3092,7 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
 
     ignored_eq_strs = [&#39;axis&#39;,&#39;axs&#39;,&#39;ar&#39;,&#39;rr&#39;,&#39;m jm&#39;,&#39;Z&#39;,&#39;cmax nmax&#39;]
     replace_eq_strs_dict = {&#39;ang&#39;:&#39;a&#39;}
-
+    
     ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max, ierr_max = np.shape(tdata)
 
     axes_1D = [&#39;eng&#39;, &#39;reg&#39;, &#39;x&#39;, &#39;y&#39;, &#39;z&#39;, &#39;r&#39;, &#39;t&#39;, &#39;cos&#39;, &#39;the&#39;, &#39;mass&#39;, &#39;charge&#39;, &#39;let&#39;, &#39;tet&#39;, &#39;eng1&#39;, &#39;eng2&#39;,
@@ -3069,7 +3124,7 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                     hli = li
                     hli_found = True
                     continue
-                if hli_found and (line[:12] == &#39;#   sum over&#39; or line[:7] == &#39;#   sum&#39; or line[:5] == &#39;#----&#39; or (len(block[li-1]) == 0 and hli != 0 and li&gt;hli+2) or &#34;&#39;&#34; in line or &#39;{&#39; in line):
+                if hli_found and (line[:12] == &#39;#   sum over&#39; or line[:7] == &#39;#   sum&#39; or line[:5] == &#39;#----&#39; or line[:12] == &#39;#   overflow&#39; or (len(block[li-1]) == 0 and hli != 0 and li&gt;hli+2) or &#34;&#39;&#34; in line or &#39;{&#39; in line):
                     fli = li
                     if (len(block[li-1]) == 0 and hli != 0 and li&gt;hli+2): fli = li - 1 # triggered by blank line after data
                     #if &#34;&#39;&#34; in line or &#39;{&#39; in line:
@@ -3114,8 +3169,8 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                         mesh_char = part.split(&#39;=&#39;)[0].strip().replace(&#39;i&#39;,&#39;&#39;)
                         #print(mesh_char)
                         if mesh_char == &#39;no.&#39;:
-                            if &#39;***&#39; in part:
-                                break # this is a bugged line
+                            if &#39;***&#39; in part and bi&lt;998:
+                                break # this is a bugged line (or &#34;no.&#34; is 4+ digits, which is fine)
                             continue
                         elif mesh_char == &#39;part.&#39; or mesh_char == &#39;partcle&#39; or mesh_char == &#39;part&#39;:
                             part_grp_name = part.split(&#39;=&#39;)[1].strip()
@@ -3195,7 +3250,9 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                         else:
                             raise ValueError(&#39;ERROR! Unregistered potential index [&#39;+part.split(&#39;=&#39;)[0].strip()+&#39;] found&#39;)
 
-
+            if in_debug_mode:
+                print(&#39;\tcontent block&#39;,bi,&#39;, indices:&#39;, ir, iy, iz, ie, it, ia, il, ip, ic)
+            
             # extract data from table
             # determine meaning of table rows
             row_ivar = tdata_ivar_strs[meta[&#39;axis_index_of_tally_array&#39;]]
@@ -3279,7 +3336,7 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
 
     elif meta[&#39;axis_dimensions&#39;]==2:
         for bi, block in enumerate(tally_blocks):
-            hli, bli = 0 , 0
+            hli, fli = 0 , 0
             data_keyword_found = False
             for li, line in enumerate(block):
                 if meta[&#39;2D-type&#39;] in [1, 2, 3, 6, 7]:
@@ -3626,7 +3683,7 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
             print(&#39;\t&#39;+line)
 
     return_updated_metadata_too = False
-    if meta[&#39;tally_type&#39;] == &#39;[T-Yield]&#39;:
+    if meta[&#39;tally_type&#39;] == &#39;[T-Yield]&#39; and meta[&#39;axis&#39;] in [&#39;chart&#39;,&#39;charge&#39;,&#39;mass&#39;]:
         return_updated_metadata_too = True
         if meta[&#39;axis&#39;] == &#39;chart&#39;:
             meta[&#39;nuclide_ZZZAAAM_list&#39;] = ZZZAAAM_list
@@ -3694,7 +3751,8 @@ def split_str_of_equalities(text):
     original_text = text
     #if text[0] == &#34;&#39;&#34;: # more loosely formatted text
     #    problem_strs = [&#39;tot DPA&#39;]
-    text = text.replace(&#34;&#39;&#34;,&#39;&#39;).replace(&#39;,&#39;,&#39; &#39;).replace(&#39;#&#39;,&#39;&#39;).replace(&#39;=&#39;,&#39; = &#39;)
+    if text[0] == &#34;#&#34; and &#39;no. =***&#39; in text and text[-1]==&#39;=&#39;: return [] # skip broken lines
+    text = text.replace(&#34;&#39;&#34;,&#39;&#39;).replace(&#39;,&#39;,&#39; &#39;).replace(&#39;#&#39;,&#39;&#39;).replace(&#39;=&#39;,&#39; = &#39;).replace(&#39;***&#39;,&#39;999999999&#39;)
     text_pieces = text.split()
     #i_equal_sign = [i for i, x in enumerate(text_pieces) if x == &#34;=&#34;]
     is_i_equal_sign = [x==&#39;=&#39; for x in text_pieces]
@@ -4028,10 +4086,18 @@ def build_tally_Pandas_dataframe(tdata,meta):
     ecols, tcols, acols, lcols, pcols, ccols = False, False, False, False, False, False
     single_specified_bin_axes = [] # log axes which are provided by user but only contain 1 bin
     single_bin_ranges_or_values = []
-    if meta[&#39;ne&#39;] != None:
+    if meta[&#39;ne&#39;] != None or ie_max&gt;1: #  
         if meta[&#39;ne&#39;]==1:
             single_specified_bin_axes.append(&#39;e&#39;)
             single_bin_ranges_or_values.append([&#39;Energy&#39;,meta[&#39;e-mesh_bin_edges&#39;]])
+        elif meta[&#39;tally_type&#39;]==&#39;[T-Deposit2]&#39;:
+            if meta[&#39;ne1&#39;]==1:
+                single_specified_bin_axes.append(&#39;e1&#39;)
+                single_bin_ranges_or_values.append([&#39;Energy1&#39;, meta[&#39;e1-mesh_bin_edges&#39;]])
+            else:
+                ecols = True
+                ecol_names_list = [&#39;ie&#39;, &#39;e1_mid&#39;]
+                col_names_list += ecol_names_list
         else:
             ecols = True
             ecol_names_list = [&#39;ie&#39;,&#39;e_mid&#39;]
@@ -4069,8 +4135,8 @@ def build_tally_Pandas_dataframe(tdata,meta):
     else:
         single_bin_ranges_or_values.append([&#39;LET&#39;,&#39;default/all&#39;])
 
-    if meta[&#39;nc&#39;] != None:
-        if meta[&#39;nc&#39;] == 1:
+    if meta[&#39;nc&#39;] != None or ic_max&gt;1:
+        if meta[&#39;nc&#39;] == 1 or ic_max==1:
             pass
         else:
             ccols = True
@@ -4084,8 +4150,17 @@ def build_tally_Pandas_dataframe(tdata,meta):
                 elif meta[&#39;axis&#39;] == &#39;mass&#39;:
                     ccol_names_list = [&#39;ic/A/mass&#39;]
                     col_names_list += ccol_names_list
+            elif meta[&#39;tally_type&#39;] == &#39;[T-Interact]&#39;:
+                if meta[&#39;axis&#39;] == &#39;act&#39;:
+                    ccol_names_list = [&#39;ic&#39;, &#39;#Interactions&#39;]
+                    col_names_list += ccol_names_list
             elif meta[&#39;tally_type&#39;] == &#39;[T-Deposit2]&#39;:
-                pass
+                if meta[&#39;ne2&#39;] == 1:
+                    single_specified_bin_axes.append(&#39;e2&#39;)
+                    single_bin_ranges_or_values.append([&#39;Energy2&#39;, meta[&#39;e2-mesh_bin_edges&#39;]])
+                else:
+                    ccol_names_list = [&#39;ic&#39;, &#39;e2_mid&#39;]
+                    col_names_list += ccol_names_list
 
     if meta[&#39;npart&#39;] != None: # and meta[&#39;part_groups&#39;][0]==&#39;all&#39;:
         if meta[&#39;npart&#39;]==1:
@@ -4212,7 +4287,10 @@ def build_tally_Pandas_dataframe(tdata,meta):
 
                                         if ecols: # ecol_names_list = [&#39;ie&#39;,&#39;e_mid&#39;]
                                             df_dict[ecol_names_list[0]].append(ie)
-                                            df_dict[ecol_names_list[1]].append(meta[&#39;e-mesh_bin_mids&#39;][ie])
+                                            if meta[&#39;tally_type&#39;] == &#39;[T-Deposit2]&#39;:
+                                                df_dict[ecol_names_list[1]].append(meta[&#39;e1-mesh_bin_mids&#39;][ie])
+                                            else:
+                                                df_dict[ecol_names_list[1]].append(meta[&#39;e-mesh_bin_mids&#39;][ie])
                                         if tcols: # tcol_names_list = [&#39;it&#39;,&#39;t_mid&#39;]
                                             df_dict[tcol_names_list[0]].append(it)
                                             df_dict[tcol_names_list[1]].append(meta[&#39;t-mesh_bin_mids&#39;][it])
@@ -4236,6 +4314,14 @@ def build_tally_Pandas_dataframe(tdata,meta):
                                                 elif meta[&#39;axis&#39;] == &#39;mass&#39;:
                                                     #ccol_names_list = [&#39;ic/A/mass&#39;]
                                                     df_dict[ccol_names_list[0]].append(ic)
+                                            elif meta[&#39;tally_type&#39;] == &#39;[T-Interact]&#39;:
+                                                if meta[&#39;axis&#39;] == &#39;act&#39;:
+                                                    #ccol_names_list = [&#39;act&#39;]
+                                                    df_dict[ccol_names_list[0]].append(ic)
+                                                    df_dict[ccol_names_list[1]].append(ic+1)
+                                            elif meta[&#39;tally_type&#39;] == &#39;[T-Deposit2]&#39;:
+                                                df_dict[ccol_names_list[0]].append(ic)
+                                                df_dict[ccol_names_list[1]].append(meta[&#39;e2-mesh_bin_mids&#39;][ic])
 
                                         # Value columns
                                         #val_names_list = [&#39;value&#39;, &#39;rel.err.&#39;,&#39;abs.err.&#39;]
@@ -4269,8 +4355,752 @@ def build_tally_Pandas_dataframe(tdata,meta):
     return tally_df
 
 
+def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename=&#39;results.pdf&#39;,show_plots=False):
+    &#39;&#39;&#39;
+    Description:
+        Generates visualizations/plots of the data in the output Pandas DataFrames from the `parse_tally_output_file()` 
+        function in an automated fashion.  Note that this function only seeks to accomplish exactly this. 
+        It is not a function for generating customized plots; it exists to automate creating visualizations of PHITS 
+        output using sets of predetermined rules and settings, principally for initial checking of results. 
+        Generally, it does not respect plotting-relevant settings provided to PHITS tallies (e.g., `samepage`, `axis`, `angel`, etc.), 
+        though it will use the `title` parameter and the plot axis titles for ANGEL included in the .out files, which are
+        influenced by some tally parameters, such as `unit` and `y-txt`.
+        This function seeks to compile plots of results from one or multiple tallies into a single PDF file. 
+        It is primarily intended to be called by `parse_tally_output_file()` and `parse_all_tally_output_in_dir()`.
+        The [seaborn](https://seaborn.pydata.org/) package&#39;s [relplot](https://seaborn.pydata.org/generated/seaborn.relplot.html) function is used for generating these plots.
 
+    Dependencies:
+        - `import seaborn as sns`
+        - `import pandas as pd`
+        - `import matplotlib.pyplot as plt`
+        - `from matplotlib.colors import LogNorm, SymLogNorm, Normalize`
+        - `from matplotlib.backends.backend_pdf import PdfPages`
 
+    Inputs:
+        - `tally_output_list` = the `tally_output` output from the `parse_tally_output_file()` function, a string/Path
+                object pointing to the pickle file of such output, or a list of such outputs or pickle filepaths.
+        - `plot_errorbars` = (optional, D=`True`, requires `calculate_absolute_errors=True` to have been set in the 
+                `parse_tally_output_file()` call producing the `tally_output`) Boolean determining if errorbars will be 
+                displayed in plots.  Note that owing to shortcomings in the [seaborn](https://seaborn.pydata.org/) package&#39;s
+                handling of error bars (i.e., not supporting externally calculated error bars) that a workaround has 
+                instead been implemented but is only functional for &#34;line&#34;-type plots.
+        - `output_filename` = (optional, D=`results.pdf`) String or Path object designating the name/path where the 
+                PDF of plots will be saved.
+        - `show_plots` = (optional, D=`False`) Boolean denoting whether this function will make a `plt.show()` call
+                immediately before the `return` statement.
+
+    Outputs:
+        - `None` (and the saved file of plot(s) specified by `output_filename`)
+
+    &#39;&#39;&#39;
+    &#39;&#39;&#39;
+    Behavior of this function within PHITS Tools:
+        - The option to execute this function on each produced output should be available for both `parse_tally_output_file()`
+                and `parse_all_tally_output_in_dir()` (one PDF file per tally output file) 
+        - Also for `parse_all_tally_output_in_dir()` should be an option to execute this function on ALL tally outputs 
+                handled by the dir parsing function (combining all plots into a single PDF)
+        - By default, both of these options should be disabled (set False) by default when PHITS Tools is used as an imported module.
+        - For GUI/CLI usage, checkboxes/flags for these three options should appear
+        - For GUI/CLI usage of `parse_tally_output_file()`, use of this function should be enabled/disabled by default.
+        - For GUI/CLI usage of `parse_all_tally_output_in_dir()`, use of this function should be enabled/disabled by default 
+                only for combining all output in a directory; making individual PDFs of each handled tally output should
+                be disabled/disabled by default.
+                
+        CLI flag name ideas: --plot (-p), --plot_each (-pe) , --plot_all (-pa)
+    &#39;&#39;&#39;
+    
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    from matplotlib.colors import LogNorm, SymLogNorm, Normalize
+    from matplotlib.backends.backend_pdf import PdfPages
+    import pickle, lzma
+    import datetime
+    
+    fig_aspect_ratio = 1.414  # width / height
+    fig_height = 4  # inches
+    max_num_values_to_plot = 1e7  # if the number of data points to plot exceeds this, plotting is skipped for that tally
+    figi = 10000  # figure number
+    
+    # Convert provided input to a list of `tally_output` dictionary objects
+    if isinstance(tally_output_list, dict):  # single tally output, tally output object
+        tally_output_list = [tally_output_list]
+    elif not isinstance(tally_output_list, list):  # single tally output, pickle file of tally output object
+        p = Path(tally_output_list)
+        tally_output = pickle.load(lzma.open(p, &#39;rb&#39;) if p.name[-3:] == &#39;.xz&#39; else open(p, &#39;rb&#39;))
+        tally_output_list = [tally_output]
+    else:  # list of tally output objects and/or pickles
+        for i, to in enumerate(tally_output_list): # open any pickle files provided
+            if not isinstance(to, dict):
+                p = Path(to)
+                tally_output_list[i] = pickle.load(lzma.open(p, &#39;rb&#39;) if p.name[-3:] == &#39;.xz&#39; else open(p, &#39;rb&#39;))
+    
+    def are_bins_linearly_spaced(bin_mids):
+        &#39;&#39;&#39;
+        Return True/False designating whether bin centers appear to be linearly spaced or not
+        &#39;&#39;&#39;
+        diff = np.diff(bin_mids).round(decimals=8)
+        vals, counts = np.unique(diff, return_counts=True)
+        counts, vals = zip(*sorted(zip(counts, vals), reverse=True))
+        if 0 in vals:
+            izero = vals.index(0)
+            counts, vals = list(counts), list(vals)
+            counts.pop(izero)
+            vals.pop(izero)
+        if len(vals) &lt;= 1: # all diff values are the same
+            bins_are_lin_spaced = True 
+        else:
+            if counts[0]/sum(counts) &gt; 0.5: # most frequent difference is more than half of all differences
+                bins_are_lin_spaced = True 
+            else:
+                bins_are_lin_spaced = False
+        return bins_are_lin_spaced
+
+    with PdfPages(output_filename) as pdf:
+        for toi, tally_output in enumerate(tally_output_list):
+            tally_data, tally_metadata, tally_dataframe = [tally_output[k] for k in tally_output.keys()]
+            # determine number of plots necessary
+            ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max, ierr_max = np.shape(tally_data)
+            if ierr_max==2 or ierr_max==4: plot_errorbars = False
+            special_tcross_case = False
+            if ierr_max&gt;3: special_tcross_case = True
+            if special_tcross_case:
+                df_cols = tally_dataframe.columns.values.tolist()
+                #print(df_cols)
+                df1 = tally_dataframe.copy().drop([&#39;r_surf&#39;, &#39;z_mid&#39;, &#39;value2&#39;, &#39;rel.err.2&#39;, &#39;abs.err.2&#39;], axis=1)
+                df2 = tally_dataframe.copy().drop([&#39;r_mid&#39;, &#39;z_surf&#39;, &#39;value&#39;, &#39;rel.err.&#39;, &#39;abs.err.&#39;], axis=1).rename(columns={&#39;value2&#39;:&#39;value&#39;, &#39;rel.err.2&#39;:&#39;rel.err.&#39;, &#39;abs.err.2&#39;:&#39;abs.err.&#39;})
+                #print(df1.columns.values.tolist())
+                #print(df2.columns.values.tolist())
+                tally_df_list = [df1, df2]
+            else:
+                tally_df_list = [tally_dataframe]
+                
+            for tally_df in tally_df_list:
+                df_cols = tally_df.columns.values.tolist()
+                array_axes_lens = [ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max]
+                tot_plot_axes = sum(1 for i in array_axes_lens if i &gt; 1)
+                tot_num_values = np.prod(array_axes_lens)
+                
+                if tot_num_values &gt; max_num_values_to_plot:
+                    print(&#39;WARNING: Tally output for &#39;,tally_metadata[&#39;file&#39;],&#39; is VERY LARGE (&#39;,tot_num_values,&#39; elements), deemed too large for automatic plotting.&#39;)
+                    continue
+                
+                if tot_plot_axes==0: # case where the tally is only scoring a single value
+                    fig = plt.figure(figi,(fig_aspect_ratio*fig_height,fig_height))
+                    plt.errorbar(1,tally_data[0,0,0,0,0,0,0,0,0,0],yerr=tally_data[0,0,0,0,0,0,0,0,0,2],marker=&#39;o&#39;)
+                    plt.title(tally_metadata[&#39;tally_type&#39;] + &#39;, &#39; + tally_metadata[&#39;file&#39;] + &#39;\n&#39; + tally_metadata[&#39;title&#39;])
+                    plt.ylabel(&#39;value&#39;)
+                    plt.tight_layout()
+                    # add PHITS Tools info
+                    fontdict = {&#39;color&#39;: &#39;#666666&#39;, &#39;weight&#39;: &#39;normal&#39;, &#39;size&#39;: 8, &#39;style&#39;: &#39;italic&#39;}
+                    fig.text(0.005, 0.005, &#39;Figure generated by PHITS Tools, github.com/Lindt8/PHITS-Tools&#39;,
+                             fontdict=fontdict, ha=&#39;left&#39;, va=&#39;bottom&#39;, url=&#39;https://github.com/Lindt8/PHITS-Tools&#39;)
+                    pdf.savefig()
+                    if not show_plots: plt.close()
+                    figi += 1
+                    continue
+                
+                # We can divide axes into two categories:
+                # - categorical: &#39;reg&#39;, &#39;tet&#39;, &#39;point#&#39;, &#39;ring#&#39;, &#39;particle&#39;,&#39;nuclide&#39;, &#39;ZZZAAAM&#39;
+                # - numerical: &#39;r_mid&#39;, &#39;r_surf&#39;, &#39;x_mid&#39;, &#39;y_mid&#39;, &#39;z_surf&#39;, &#39;z_mid&#39;, &#39;e_mid&#39;, &#39;t_mid&#39;, &#39;a_mid&#39;, &#39;LET_mid&#39;, &#39;ic/Z/charge&#39;, &#39;ic/A/mass&#39;
+                plot_axes = []
+                plot_axes_lens = []
+                plot_axes_ivars = []
+                num_axes = []
+                cat_axes = []
+                # assign all possible dimensions a &#34;priority&#34; score to compare for tiebreakers (dimensions of equal length)
+                ax_priority_vals = {&#39;reg&#39;: 100, &#39;tet&#39;: 100, &#39;point#&#39;: 101, &#39;ring#&#39;: 101,
+                                    &#39;r_mid&#39;: 100, &#39;r_surf&#39;: 101, &#39;x_mid&#39;: 100,
+                                    &#39;y_mid&#39;: 90, &#39;z_mid&#39;: 80, &#39;z_surf&#39;: 81,
+                                    &#39;e_mid&#39;: 110, &#39;e1_mid&#39;: 111,
+                                    &#39;t_mid&#39;: 70,
+                                    &#39;a_mid&#39;: 60,
+                                    &#39;LET_mid&#39;: 109,
+                                    &#39;particle&#39;: 95,
+                                    &#39;nuclide&#39;: 20, &#39;ZZZAAAM&#39;: 19,
+                                    &#39;ic/Z/charge&#39;: 30, &#39;ic/A/mass&#39;: 30,
+                                    &#39;#Interactions&#39;: 10, &#39;e2_mid&#39;: 109
+                                    }
+                cat_ax_to_index = {&#39;reg&#39;: &#39;ir&#39;, &#39;tet&#39;: &#39;ir&#39;, &#39;point#&#39;: &#39;ir&#39;, &#39;ring#&#39;: &#39;ir&#39;,
+                                   &#39;particle&#39;: &#39;ip&#39;,
+                                   &#39;nuclide&#39;: &#39;ic&#39;, &#39;ZZZAAAM&#39;: &#39;ic&#39;
+                                   }
+                # For the sake of making the plot labels nicer, also determine appropriate label for each axis
+                a_units = &#39;Angle [degrees]&#39;
+                if &#39;a-type&#39; in tally_metadata:
+                    if tally_metadata[&#39;a-type&#39;]&gt;0:
+                        a_units = &#39;cos(Angle)&#39;
+                    elif tally_metadata[&#39;axis&#39;] == &#39;rad&#39;:
+                            a_units = &#39;Angle [radians]&#39;
+                value_label_from_phits = &#39;value&#39;
+                if tally_metadata[&#39;axis_dimensions&#39;] == 1:
+                    if tally_metadata[&#39;value_label&#39;] != &#39;&#39;:
+                        value_label_from_phits = tally_metadata[&#39;value_label&#39;] 
+                    elif tally_metadata[&#39;axis2_label&#39;] != &#39;&#39;:
+                        value_label_from_phits = tally_metadata[&#39;axis2_label&#39;] 
+                else:
+                    if tally_metadata[&#39;value_label&#39;] != &#39;&#39;:
+                        value_label_from_phits = tally_metadata[&#39;value_label&#39;] 
+                if value_label_from_phits != &#39;value&#39;:
+                    value_label_from_phits = r&#39;{}&#39;.format(value_label_from_phits.replace(&#39;^2&#39;,&#39;$^2$&#39;))
+                    value_label_from_phits = r&#39;{}&#39;.format(value_label_from_phits.replace(&#39;^3&#39;,&#39;$^3$&#39;))
+                ax_labels = {&#39;reg&#39;:&#39;Region #&#39;, &#39;tet&#39;:&#39;Tet #&#39;, &#39;point#&#39;:&#39;Point det #&#39;, &#39;ring#&#39;:&#39;Ring det #&#39;,
+                                    &#39;r_mid&#39;:&#39;r [cm]&#39;, &#39;r_surf&#39;:&#39;r_surface [cm]&#39;, &#39;x_mid&#39;:&#39;x [cm]&#39;,
+                                    &#39;y_mid&#39;:&#39;y [cm]&#39;, &#39;z_mid&#39;:&#39;z [cm]&#39;, &#39;z_surf&#39;:&#39;z_surface [cm]&#39;,
+                                    &#39;e_mid&#39;:&#39;Energy [MeV]&#39;, &#39;e1_mid&#39;:&#39;Energy 1 [MeV]&#39;,
+                                    &#39;t_mid&#39;:&#39;Time [ns]&#39;,
+                                    &#39;a_mid&#39;:a_units,
+                                    &#39;LET_mid&#39;:r&#39;LET [keV/$\mu$m]&#39;,
+                                    &#39;particle&#39;:&#39;Particle&#39;,
+                                    &#39;nuclide&#39;:&#39;Nuclide&#39;, &#39;ZZZAAAM&#39;:&#39;ZZZAAAM&#39;,
+                                    &#39;ic/Z/charge&#39;:&#39;Z (proton #)&#39;, &#39;ic/A/mass&#39;:&#39;A (mass #)&#39;, 
+                                    &#39;#Interactions&#39;:&#39;Number of interactions&#39;, &#39;e2_mid&#39;:&#39;Energy 2 [MeV]&#39;,
+                                    &#39;value&#39;:value_label_from_phits, &#39;value2&#39;:value_label_from_phits,
+                                    &#39;rel.err.&#39;:&#39;relative error&#39;, &#39;rel.err.2&#39;:&#39;relative error&#39;
+                                    }
+                # now determine what axes are getting plotted
+                for i, leni in enumerate(array_axes_lens):
+                    if leni==1: continue
+                    if i==0: # &#39;reg&#39;, &#39;tet&#39;, &#39;point#&#39;, &#39;ring#&#39;, &#39;r_mid&#39;, &#39;r_surf&#39;, &#39;x_mid&#39;
+                        if any(a in [&#39;reg&#39;, &#39;point#&#39;, &#39;ring#&#39;] for a in df_cols):  # categorical
+                            col = [a for a in [&#39;reg&#39;, &#39;point#&#39;, &#39;ring#&#39;] if a in df_cols][0]
+                            cat_axes.append(col)
+                        else:  # numerical 
+                            col = [a for a in [&#39;r_mid&#39;, &#39;r_surf&#39;, &#39;x_mid&#39;, &#39;tet&#39;] if a in df_cols][0]
+                            num_axes.append(col)
+                            if col==&#39;tet&#39;: # convert tet number from string to float
+                                tally_df[&#39;tet&#39;] = tally_df[&#39;tet&#39;].astype(float)
+                    elif i==1: # &#39;y_mid&#39;
+                        col = &#39;y_mid&#39;
+                        num_axes.append(col)
+                    elif i==2: # &#39;z_mid&#39;, &#39;z_surf&#39;
+                        col = [a for a in [&#39;z_mid&#39;, &#39;z_surf&#39;] if a in df_cols][0]
+                        num_axes.append(col)
+                    elif i==3: # &#39;e_mid&#39;
+                        col = [a for a in [&#39;e_mid&#39;, &#39;e1_mid&#39;] if a in df_cols][0]
+                        num_axes.append(col)
+                    elif i==4: # &#39;t_mid&#39;
+                        col = &#39;t_mid&#39;
+                        num_axes.append(col)
+                    elif i==5: # &#39;a_mid&#39;
+                        col = &#39;a_mid&#39;
+                        num_axes.append(col)
+                    elif i==6: # &#39;LET_mid&#39;
+                        col = &#39;LET_mid&#39;
+                        num_axes.append(col)
+                    elif i==7: # &#39;particle&#39;
+                        col = &#39;particle&#39;
+                        cat_axes.append(col)
+                    elif i==8: # &#39;nuclide&#39;, &#39;ZZZAAAM&#39;, &#39;ic/Z/charge&#39;, &#39;ic/A/mass&#39;, &#39;act&#39;
+                        if any(a in [&#39;nuclide&#39;, &#39;ZZZAAAM&#39;] for a in df_cols):  # categorical
+                            col = [a for a in [&#39;nuclide&#39;, &#39;ZZZAAAM&#39;] if a in df_cols][0]
+                            cat_axes.append(col)
+                        else:  # numerical
+                            col = [a for a in [&#39;ic/Z/charge&#39;, &#39;ic/A/mass&#39;, &#39;#Interactions&#39;, &#39;e2_mid&#39;] if a in df_cols][0]
+                            num_axes.append(col)
+                    plot_axes.append(col)
+                    plot_axes_lens.append(leni)
+                # sort the lists in order of descending lengths, with &#34;higher priority&#34; axes coming first when equal in length
+                plot_axes_sorted = []
+                plot_axes_lens_sorted = []
+                num_axes_sorted = []
+                num_lens_sorted = []
+                cat_axes_sorted = []
+                cat_lens_sorted = []
+                ax_props = [(plot_axes[i],plot_axes_lens[i],ax_priority_vals[plot_axes[i]]) for i in range(len(plot_axes))]
+                ax_props.sort(key=lambda x: (-x[1], -x[2])) # sort first by length then priority, both in descending order
+                for i,tup in enumerate(ax_props):
+                    plot_axes_sorted.append(tup[0])
+                    plot_axes_lens_sorted.append(tup[1])
+                    if tup[0] in cat_axes:
+                        cat_axes_sorted.append(tup[0])
+                        cat_lens_sorted.append(tup[1])
+                    else:
+                        num_axes_sorted.append(tup[0])
+                        num_lens_sorted.append(tup[1])
+                cat = cat_axes_sorted 
+                num = num_axes_sorted
+                
+                # Now determine how each axis will be represented in the plot
+                &#39;&#39;&#39;
+                How we represent the data will depend on:
+                - how many axes there are to represent
+                - the specific combination of A cat and B num
+                - whether the longest axes are cat or num
+                
+                For the total number axes variables (r, y, z, e, t, a, l, p, and c) with length &gt; 1:
+                [unless stated otherwise, y=&#39;value&#39; for all options]
+                [charts become difficult to read if length of axis passed to hue and (especially) style are too long;
+                 therefore, maxlen = 6 is set, meaning if this length is exceeded for an axis bound for hue/style, 
+                 instead it will be split in row/col and/or cause a shift from a 1D line plot to a 2D scatter plot.]
+                - 0 : set x to 1, y to &#39;value&#39;
+                - 1 : 1 cat + 0 num : scatter(line?) : x = i_cat1, hue=style=cat1
+                - 1 : 0 cat + 1 num : line : x = num1
+                - 2 : 2 cat + 0 num : scatter(line?) : x = i_cat1, hue=cat1, style=cat2
+                - 2 : 1 cat + 1 num : line : x = num1, hue=style=cat1
+                - 2 : 0 cat + 2 num : line : x = num1, hue=style=num2 (suitable if len(num2) &lt;= maxlen)
+                      OR            : scatter : x = num1, y = num2, hue=&#39;value&#39; (increase marker size for pseudo 2D plot)
+                - 3 : 3 cat + 0 num : scatter(line?) : x = i_cat1, hue=cat1, style=cat2, row=cat3 (note: this scenario is extremely unlikely to happen)
+                - 3 : 2 cat + 1 num : line : x = num1, hue=cat1, style=cat2
+                - 3 : 1 cat + 2 num : line : x = num1, hue=num2, row=cat1 (suitable if len(num2) &lt;= maxlen)
+                      OR            : scatter : x = num1, y = num2, hue=&#39;value&#39;, row=cat1
+                - 3 : 0 cat + 3 num : line : x = num1, hue=num2, row=num3 (suitable if len(num2) &lt;= maxlen)
+                      OR            : scatter : x = num1, y = num2, hue=&#39;value&#39;, row=num3
+                - 4 : 3 cat + 1 num : line : x = num1, hue=cat1, style=cat2, row=cat3
+                - 4 : 2 cat + 2 num : line : x = num1, hue=num2, style=cat1, row=cat2 (suitable if len(num2) &lt;= maxlen and len(cat1) &lt;= maxlen)
+                      OR            : line : x = num1, hue=num2, row=cat1, col=cat2 (if len(num2) &lt;= maxlen but len(cat1) &gt; maxlen)
+                      OR            : scatter : x = num1, y = num2, hue=&#39;value&#39;, row=cat1, col=cat2
+                - 4 : 1 cat + 3 num : line : x = num1, hue=num2, style=cat1, row=num3 (suitable if len(num2) &lt;= maxlen and len(cat1) &lt;= maxlen)
+                      OR            : line : x = num1, hue=num2, row=num3, col=cat1 (if len(num2) &lt;= maxlen but len(cat1) &gt; maxlen)
+                      OR            : scatter : x = num1, y = num2, hue=&#39;value&#39;, row=num3, col=cat1
+                - 4 : 0 cat + 4 num : line : x = num1, hue=num2, style=num3, row=num4 (suitable if len(num2) &lt;= maxlen and len(num3) &lt;= maxlen)
+                      OR            : line : x = num1, hue=num2, row=num3, col=num4 (if len(num2) &lt;= maxlen but len(num3) &gt; maxlen)
+                      OR            : scatter : x = num1, y = num2, hue=&#39;value&#39;, row=num3, col=num4
+                - 5 : any 5 cat/num : line : x = num1, hue=num2, style=num5, row=num3, col=num4
+                - 6 : any 6 cat/num : line : x = num1, hue=num2, style=num5, size=num6, row=num3, col=num4
+                - 7+ : no plot will be generated, output will be skipped. If you have a tally this complex, you already have usage ideas.
+                &#39;&#39;&#39;
+                maxlen = 6  # if an axis length exceeds this, it may need to be reassigned to row/col or the plot type changed
+                maxlines = 16 # will modify plotting strategy if combining two axes on a line plot results in more lines than this
+                
+                plot_kind = &#39;line&#39;  # &#39;line&#39; or &#39;scatter&#39;
+                y_var = &#39;value&#39;
+                x_var = None
+                hue_var = None
+                style_var = None
+                size_var = None
+                row_var = None
+                col_var = None
+                pseudo_2d_plot = False
+                xvar_original_label = None
+                yvar_original_label = &#39;value&#39;
+                
+                if tot_plot_axes==0:
+                    pass
+                elif tot_plot_axes==1:
+                    if len(cat)==1:  # 1 cat + 0 num
+                        plot_kind = &#39;scatter&#39;
+                        x_var = cat_ax_to_index[cat_axes_sorted[0]]
+                        xvar_original_label = cat_axes_sorted[0]
+                        cat.append(x_var)
+                        hue_var = cat[0]
+                        style_var = cat[0]
+                    else:  # 0 cat + 1 num
+                        plot_kind = &#39;line&#39;
+                        x_var = num[0]
+                elif tot_plot_axes==2:
+                    if len(cat)==2:  # 2 cat + 0 num
+                        plot_kind = &#39;scatter&#39;
+                        x_var = cat_ax_to_index[cat_axes_sorted[0]]
+                        xvar_original_label = cat_axes_sorted[0]
+                        cat.append(x_var)
+                        hue_var = cat[0]
+                        style_var = cat[1]
+                    elif len(cat)==1:  # 1 cat + 1 num
+                        plot_kind = &#39;line&#39;
+                        x_var = num[0]
+                        hue_var = cat[0]
+                        style_var = cat[0]
+                    elif len(num)==2:  # 0 cat + 2 num
+                        if num_lens_sorted[1] &lt;= maxlen:
+                            plot_kind = &#39;line&#39;
+                            x_var = num[0]
+                            hue_var = num[1]
+                            style_var = num[1]
+                        else:
+                            pseudo_2d_plot = True
+                            plot_kind = &#39;scatter&#39;
+                            x_var = num[0]
+                            y_var = num[1]
+                            hue_var = &#39;value&#39;
+                elif tot_plot_axes==3:
+                    if len(cat) == 3:  # 3 cat + 0 num
+                        plot_kind = &#39;scatter&#39;
+                        x_var = cat_ax_to_index[cat_axes_sorted[0]]
+                        xvar_original_label = cat_axes_sorted[0]
+                        cat.append(x_var)
+                        hue_var = cat[0]
+                        style_var = cat[1]
+                        row_var = cat[2]
+                    elif len(cat) == 2:  # 2 cat + 1 num
+                        plot_kind = &#39;line&#39;
+                        x_var = num[0]
+                        hue_var = cat[0]
+                        style_var = cat[1]
+                    elif len(cat) == 1:  # 1 cat + 2 num
+                        if num_lens_sorted[1] &lt;= maxlen:
+                            plot_kind = &#39;line&#39;
+                            x_var = num[0]
+                            hue_var = num[1]
+                            style_var = num[1]
+                            row_var = cat[0]
+                        else:
+                            pseudo_2d_plot = True 
+                            plot_kind = &#39;scatter&#39;
+                            x_var = num[0]
+                            y_var = num[1]
+                            hue_var = &#39;value&#39;
+                            row_var = cat[0]
+                    elif len(num) == 3:  # 0 cat + 3 num
+                        if num_lens_sorted[1] &lt;= maxlen:
+                            plot_kind = &#39;line&#39;
+                            x_var = num[0]
+                            hue_var = num[1]
+                            style_var = num[1]
+                            row_var = num[2]
+                        else:
+                            pseudo_2d_plot = True
+                            plot_kind = &#39;scatter&#39;
+                            x_var = num[0]
+                            y_var = num[1]
+                            hue_var = &#39;value&#39;
+                            row_var = num[2]
+                    &#39;&#39;&#39;
+                    if plot_axes_sorted[0] in num:
+                        x_var = plot_axes_sorted[0]
+                    else:
+                        x_var = plot_axes_sorted[0]
+                        #x_var = cat_ax_to_index[cat_axes_sorted[0]]
+                        #cat.append(x_var)
+                        style_var = plot_axes_sorted[0]
+                    if plot_axes_lens_sorted[1] &lt;= maxlen:
+                        plot_kind = &#39;line&#39;
+                        hue_var = plot_axes_sorted[1]
+                        if plot_axes_lens_sorted[1]*plot_axes_lens_sorted[2] &lt;= maxlines:
+                            style_var = plot_axes_sorted[2]
+                        else:
+                            if style_var==None: style_var = plot_axes_sorted[1]
+                            row_var = plot_axes_sorted[2]
+                    else:
+                        pseudo_2d_plot = True
+                        plot_kind = &#39;scatter&#39;
+                        if plot_axes_sorted[1] in num:
+                            y_var = plot_axes_sorted[1]
+                        else:
+                            y_var = cat_ax_to_index[cat_axes_sorted[1]]
+                            cat.append(y_var)
+                        hue_var = &#39;value&#39;
+                        row_var = plot_axes_sorted[2]
+                    &#39;&#39;&#39;
+                elif tot_plot_axes==4:
+                    if plot_axes_sorted[0] in num:
+                        x_var = plot_axes_sorted[0]
+                    else:
+                        x_var = cat_ax_to_index[cat_axes_sorted[0]]
+                        xvar_original_label = cat_axes_sorted[0]
+                        cat.append(x_var)
+                        style_var = plot_axes_sorted[0]
+                    if plot_axes_lens_sorted[1] &lt;= maxlen:
+                        plot_kind = &#39;line&#39;
+                        hue_var = plot_axes_sorted[1]
+                        if style_var==None: style_var = plot_axes_sorted[1]
+                        row_var = plot_axes_sorted[2]
+                        col_var = plot_axes_sorted[3]
+                    else:
+                        pseudo_2d_plot = True
+                        plot_kind = &#39;scatter&#39;
+                        if plot_axes_sorted[1] in num:
+                            y_var = plot_axes_sorted[1]
+                        else:
+                            y_var = cat_ax_to_index[cat_axes_sorted[1]]
+                            yvar_original_label = cat_axes_sorted[1]
+                            cat.append(y_var)
+                        hue_var = &#39;value&#39;
+                        row_var = plot_axes_sorted[2]
+                        col_var = plot_axes_sorted[3]
+                elif tot_plot_axes==5:
+                    plot_kind = &#39;line&#39;
+                    if plot_axes_sorted[0] in num:
+                        x_var = plot_axes_sorted[0]
+                    else:
+                        x_var = cat_ax_to_index[cat_axes_sorted[0]]
+                        xvar_original_label = cat_axes_sorted[0]
+                        cat.append(x_var)
+                    hue_var = plot_axes_sorted[1]
+                    row_var = plot_axes_sorted[2]
+                    col_var = plot_axes_sorted[3]
+                    style_var = plot_axes_sorted[4]
+                elif tot_plot_axes==6:
+                    plot_kind = &#39;line&#39;
+                    if plot_axes_sorted[0] in num:
+                        x_var = plot_axes_sorted[0]
+                    else:
+                        x_var = cat_ax_to_index[cat_axes_sorted[0]]
+                        xvar_original_label = cat_axes_sorted[0]
+                        cat.append(x_var)
+                    hue_var = plot_axes_sorted[1]
+                    row_var = plot_axes_sorted[2]
+                    col_var = plot_axes_sorted[3]
+                    style_var = plot_axes_sorted[4]
+                    size_var = plot_axes_sorted[5]
+                else:
+                    print(&#39;Cannot create plot with 7+ variables...&#39;)
+                    continue
+                &#39;&#39;&#39;
+                listed below are all possible column headers in the dataframe 
+                &#39;ir&#39;,&#39;reg&#39;,&#39;reg#&#39;, &#39;tet&#39;, &#39;point#&#39;, &#39;ring#&#39;
+                &#39;ip&#39;, &#39;particle&#39;, &#39;kf-code&#39;
+                &#39;ix&#39;, &#39;iy&#39;, &#39;iz&#39;, &#39;x_mid&#39;, &#39;y_mid&#39;, &#39;z_surf&#39;, &#39;z_mid&#39;
+                &#39;ir&#39;, &#39;r_mid&#39;, &#39;r_surf&#39;, 
+                &#39;ie&#39;,&#39;e_mid&#39;, &#39;it&#39;, &#39;t_mid&#39;, &#39;ia&#39;, &#39;a_mid&#39;, &#39;il&#39;, &#39;LET_mid&#39;, &#39;e1_mid&#39;
+                &#39;ic&#39;, &#39;nuclide&#39;, &#39;ZZZAAAM&#39;, &#39;ic/Z/charge&#39;, &#39;ic/A/mass&#39;, &#39;#Interactions&#39;, &#39;e2_mid&#39;
+                &#39;value&#39;, &#39;rel.err.&#39;, &#39;abs.err.&#39;
+                &#39;value2&#39;, &#39;rel.err.2&#39;, &#39;abs.err.2&#39;
+                &#39;&#39;&#39;
+                
+                for ierr in range(2): # for pseudo 2d plots, also make a rel.err. plot
+                    if ierr==1 and not pseudo_2d_plot: continue
+                    if ierr==0:
+                        hue_palette_name_str = &#34;mako_r&#34;  # &#34;cividis&#34; # &#34;rocket_r&#34;
+                    else:
+                        hue_palette_name_str = &#34;Reds&#34;  # &#34;cividis&#34; # &#34;rocket_r&#34;
+                        if hue_var==&#39;value&#39;:
+                            hue_var = &#39;rel.err.&#39;
+                        elif hue_var==&#39;value2&#39;:
+                            hue_var = &#39;rel.err.2&#39;
+                        else:
+                            continue
+                        
+                    if x_var in cat: plot_kind=&#39;scatter&#39;
+                    if plot_kind==&#39;scatter&#39;: plot_errorbars = False
+                    if plot_errorbars:
+                        # The following 3 lines are the &#34;hack&#34; to circumvent seaborn stupidly not supporting custom error values
+                        duplicates = 100
+                        df = tally_df.loc[tally_df.index.repeat(duplicates)].copy()
+                        df[&#39;value&#39;] = np.random.normal(df[&#39;value&#39;].values, df[&#39;abs.err.&#39;].values)
+                        errorbar_arg = &#39;sd&#39;
+                    else:
+                        df = tally_df.copy()
+                        errorbar_arg = None
+                        
+                    if ierr==1 and pseudo_2d_plot: df[hue_var] = df[hue_var].replace({&#39;0&#39;: &#39;1&#39;, 0: 1.0})
+            
+                    # Determine lin/log/symlog usage for axes, with the following rules:
+                    # - default to linear
+                    # - if axis is already evenly linearly binned, keep it linear
+                    # - otherwise, log scale if max/min &gt; maxratio, maxratio = 101
+                    # - if log but dataset contains is not of all same sign , use symlog
+                    x_norm, y_norm = &#39;linear&#39;, &#39;linear&#39;
+                    hue_norm, size_norm = None, None
+                    maxratio = 101
+                    if x_var not in cat:
+                        x_min, x_max = df[x_var].abs().replace(0, np.nan).min(), df[x_var].abs().replace(0, np.nan).max()
+                        bins_are_lin_spaced = are_bins_linearly_spaced(df[x_var].to_numpy())
+                        if not bins_are_lin_spaced and x_max/x_min&gt;maxratio:
+                            if len(np.sign(df[x_var]).unique())&gt;1:
+                                x_norm = &#39;log&#39; #&#39;symlog&#39;
+                            else:
+                                x_norm = &#39;log&#39;
+                    if y_var not in cat:
+                        y_min, y_max = df[y_var].abs().replace(0, np.nan).min(), df[y_var].abs().replace(0, np.nan).max()
+                        bins_are_lin_spaced = are_bins_linearly_spaced(df[y_var].to_numpy())
+                        if not bins_are_lin_spaced and y_max/y_min&gt;maxratio:
+                            if len(np.sign(df[y_var]).unique())&gt;1:
+                                y_norm = &#39;log&#39; # &#39;symlog&#39;
+                            else:
+                                y_norm = &#39;log&#39;
+                    use_colorbar = False
+                    if hue_var != None:
+                        if hue_var not in cat:
+                            hue_min, hue_max = df[hue_var].abs().replace(0, np.nan).min(), df[hue_var].abs().replace(0, np.nan).max()
+                            bins_are_lin_spaced = are_bins_linearly_spaced(df[hue_var].to_numpy())
+                            if not bins_are_lin_spaced and hue_max/hue_min&gt;maxratio:
+                                if len(np.sign(df[hue_var]).unique())&gt;1:
+                                    hue_norm = SymLogNorm(linthresh=hue_min)
+                                else:
+                                    hue_norm = LogNorm()
+                        if pseudo_2d_plot:
+                            use_colorbar = True
+                            if hue_norm == None: hue_norm = Normalize()
+                            if ierr == 1: hue_norm = Normalize(vmin=0, vmax=1)
+                            cmap = sns.color_palette(hue_palette_name_str, as_cmap=True)
+                            sm = plt.cm.ScalarMappable(cmap=cmap, norm=hue_norm)
+                    if size_var != None and size_var not in cat:
+                        size_min, size_max = df[size_var].abs().replace(0, np.nan).min(), df[size_var].abs().replace(0,np.nan).max()
+                        bins_are_lin_spaced = are_bins_linearly_spaced(df[size_var].to_numpy())
+                        if not bins_are_lin_spaced and size_max/size_min&gt;maxratio:
+                            if len(np.sign(df[size_var]).unique())&gt;1:
+                                size_norm = SymLogNorm(linthresh=size_min)
+                            else:
+                                size_norm = LogNorm()
+                    
+                    # Right before plotting, let&#39;s rename Pandas DF columns to be nicer on plots
+                    y_var_renamed = &#39;value&#39;
+                    x_var_renamed = None
+                    hue_var_renamed = None
+                    style_var_renamed = None
+                    size_var_renamed = None
+                    row_var_renamed = None
+                    col_var_renamed = None
+                    df_renamed = df.rename(columns=ax_labels)
+                    if xvar_original_label != None:
+                        x_var_new = ax_labels[xvar_original_label] + &#39; index&#39;
+                        df_renamed = df_renamed.rename(columns={x_var:x_var_new})
+                        x_var_renamed = x_var_new
+                    else:
+                        x_var_renamed = ax_labels[x_var]
+                    if yvar_original_label != &#39;value&#39;:
+                        y_var_new = ax_labels[yvar_original_label] + &#39; index&#39;
+                        df_renamed = df_renamed.rename(columns={y_var:y_var_new})
+                        y_var_renamed = y_var_new
+                    else:
+                        y_var_renamed = ax_labels[y_var]
+                    if hue_var != None: hue_var_renamed = ax_labels[hue_var]
+                    if style_var != None: style_var_renamed = ax_labels[style_var]
+                    if size_var != None: size_var_renamed = ax_labels[size_var]
+                    if row_var != None: row_var_renamed = ax_labels[row_var]
+                    if col_var != None: col_var_renamed = ax_labels[col_var]
+                    
+                    if in_debug_mode:
+                        print(&#39;plot_kind=&#39;, plot_kind, 
+                              &#39;\ny_var=&#39;, y_var, y_var_renamed, 
+                              &#39;\nx_var=&#39;, x_var, x_var_renamed, 
+                              &#39;\nhue_var=&#39;, hue_var, hue_var_renamed, &#39;\nhue_norm=&#39;, hue_norm, 
+                              &#39;\nstyle_var=&#39;, style_var, style_var_renamed, 
+                              &#39;\nsize_var=&#39;, size_var, size_var_renamed, 
+                              &#39;\nrow_var=&#39;, row_var, row_var_renamed, 
+                              &#39;\ncol_var=&#39;, col_var, col_var_renamed, 
+                              &#39;\npseudo_2d_plot=&#39;, pseudo_2d_plot)
+                        print(df_renamed.columns.values)
+
+                    if plot_kind == &#39;line&#39;:
+                        fg = sns.relplot(data=df_renamed, kind=plot_kind, #num=figi, 
+                                         height=fig_height, aspect=fig_aspect_ratio, 
+                                         x=x_var_renamed, y=y_var_renamed, 
+                                         hue=hue_var_renamed, style=style_var_renamed, size=size_var_renamed,
+                                         hue_norm=hue_norm, size_norm=size_norm,
+                                         row=row_var_renamed, col=col_var_renamed,
+                                         errorbar=errorbar_arg, legend=&#39;auto&#39;, # markers=False, 
+                                         facet_kws={&#34;legend_out&#34;: True, }
+                                         )
+                    else: # scatterplot
+                        if pseudo_2d_plot:
+                            num_cols = df_renamed[x_var_renamed].nunique()
+                            num_rows = df_renamed[y_var_renamed].nunique()
+                            # using horizontal direction
+                            #fig_size_inch = fig_height * fig_aspect_ratio
+                            #margin = 0.05  # 0.12
+                            #n_markers = num_cols
+                            #subplot_fraction = 0.7696385
+                            # for a normal plot w/o rows/cols, widths are: fig=624.475, ax=535.807 (pre adjust) / 480.62 (post adjust), leg=58.875
+                            if use_colorbar:
+                                leg_arg = False
+                                # using vertical direction
+                                # these values are decent but could perhaps use better optimization
+                                fig_size_inch = fig_height
+                                margin = 0.06  # 0.2
+                                n_markers = num_rows
+                                subplot_fraction = 1 - 2 * margin
+                                ar_ax_vs_fig_correction = 0.95
+                            else:
+                                leg_arg = &#39;auto&#39;
+                                # using vertical direction
+                                fig_size_inch = fig_height
+                                margin = 0.185  # 0.2
+                                n_markers = num_rows
+                                subplot_fraction = 1 - 2 * margin
+                                ar_ax_vs_fig_correction = 1.3
+                            ar_if_square = num_rows / num_cols
+                            mar = fig_aspect_ratio * ar_if_square * ar_ax_vs_fig_correction  # marker aspect ratio, width/height
+                            verts = [[-mar, -1], [mar, -1], [mar, 1], [-mar, 1], [-mar, -1]]
+                            fig_ppi = 72  # 300 is default save dpi, different from draw dpi
+                            marker_size = (subplot_fraction * fig_size_inch * fig_ppi / n_markers) ** 2 # Size of the marker, in points^2
+                            s = marker_size  # universal marker size for plot
+                            if num_rows &lt;= 15:  # adjust vertical label spacing in legend, if needed, before plotting
+                                sns.set(style=None, rc={&#39;legend.labelspacing&#39;: 1.2})  
+                                
+                            fg = sns.relplot(data=df_renamed, kind=plot_kind,  # num=figi, 
+                                             height=fig_height, aspect=fig_aspect_ratio,
+                                             x=x_var_renamed, y=y_var_renamed, s=s, linewidth=0, #edgecolor=None, 
+                                             hue=hue_var_renamed, style=style_var_renamed, size=size_var_renamed,
+                                             hue_norm=hue_norm, size_norm=size_norm,
+                                             row=row_var_renamed, col=col_var_renamed,
+                                             legend=leg_arg,
+                                             palette=hue_palette_name_str,
+                                             marker=verts, alpha=1,
+                                             #facet_kws={&#34;legend_out&#34;: True, }
+                                             )
+                            #fg.set(aspect=&#39;equal&#39;)
+                            #cbar = plt.colorbar(sm, ax=plt.gca())
+                            #cbar = fg.fig.colorbar(sm, ax=fg.axes[:, -1])
+                            for col in range(np.shape(fg.axes[:,:])[1]):
+                                for row in range(np.shape(fg.axes[:,:])[0]):
+                                    cbar = plt.colorbar(sm, ax=fg.axes[row,col])
+                                    cbar.set_label(hue_var_renamed)
+                        else:
+                            fg = sns.relplot(data=df_renamed, kind=plot_kind,  # num=figi, 
+                                             height=fig_height, aspect=fig_aspect_ratio,
+                                             x=x_var_renamed, y=y_var_renamed,
+                                             hue=hue_var_renamed, style=style_var_renamed, size=size_var_renamed,
+                                             hue_norm=hue_norm, size_norm=size_norm,
+                                             row=row_var_renamed, col=col_var_renamed,
+                                             legend=&#39;auto&#39;, s=100, alpha=1,
+                                             facet_kws={&#34;legend_out&#34;: True, }
+                                             )
+                    
+                    fig, axes = fg.fig, fg.axes
+                    legend_exists = not all(v is None for v in [hue_var, style_var, size_var, col_var, row_var])
+                    if legend_exists and not pseudo_2d_plot:
+                        leg = fg._legend
+                        leg.set_bbox_to_anchor([1, 0.5])  # Move legend to far right
+                        leg._loc = 5 # https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.legend.html#matplotlib.axes.Axes.legend
+                        # later figure will be rescaled to accommodate the legend
+                        
+                    title_str = tally_metadata[&#39;tally_type&#39;] + &#39;, &#39; + tally_metadata[&#39;file&#39;] + &#39;\n&#39; + tally_metadata[&#39;title&#39;]
+                    #xlabel_str = tally_metadata[&#39;axis1_label&#39;]
+                    #ylabel_str = tally_metadata[&#39;value_label&#39;]
+            
+                    st = fg.fig.suptitle(title_str, fontsize=16, va=&#39;top&#39;, y=0.995)
+                    #fg.fig.get_axes()[0].annotate(title_str, (0.5, 0.95), xycoords=&#39;figure fraction&#39;, ha=&#39;center&#39;, fontsize=16)
+                    #fg.set_axis_labels(xlabel_str, ylabel_str)
+                    for ax in fg.axes.flat:
+                        ax.set_xscale(x_norm)
+                        ax.set_yscale(y_norm)
+                        ax.grid(which=&#39;both&#39;, linewidth=1, color=&#39;#EEEEEE&#39;, alpha=0.5)
+                        #ax.set_facecolor((0, 0, 0, 0))
+                        #ax.tick_params(labelbottom=True, labelleft=True)
+                        #ax.set_xlabel(xlabel_str, visible=True)
+                        #ax.set_ylabel(ylabel_str, visible=True)
+                    
+                    #sns.move_legend(fg, &#34;upper left&#34;, bbox_to_anchor=(1, 1))
+                    # Issue 1: tight_layout is needed to not have stuff clipped off edge
+                    # Issue 2: tight_layout causes the legend, if placed outside the plot area, to be cut out
+                    # Soltion: draw canvas early, figure out their relative widths, then adjust the right edge of the figure
+                    plt.tight_layout() # pad=3.0
+                    if legend_exists and not pseudo_2d_plot:
+                        fig.canvas.draw()
+                        fig_width = fig.get_window_extent().width
+                        leg_width = leg.get_window_extent().width
+                        #print(fig_width,ax.get_window_extent().width,leg_width)
+                        fg.fig.subplots_adjust(right=0.98*(fig_width-leg_width)/fig_width)
+                        #print(fg.fig.get_window_extent().width, fg.ax.get_window_extent().width, leg.get_window_extent().width)
+                    #if pseudo_2d_plot:
+                    #    fig.canvas.draw()
+                    #    fig_width = fig.get_window_extent().width
+                    #    #cbar_width = fg.fig.get_window_extent().width - fg.axes.get_window_extent().width
+                    #    #fg.fig.subplots_adjust(right=0.98 * (fig_width - cbar_width) / fig_width)
+                    #    fg.fig.subplots_adjust(right=0.98 * 0.8)
+                        
+                    # add PHITS Tools info
+                    fontdict = {&#39;color&#39;:&#39;#666666&#39;, &#39;weight&#39;:&#39;normal&#39;, &#39;size&#39;: 8, &#39;style&#39;:&#39;italic&#39;}
+                    fig.text(0.005,0.005,&#39;Figure generated by PHITS Tools, github.com/Lindt8/PHITS-Tools&#39;,fontdict=fontdict,ha=&#39;left&#39;, va=&#39;bottom&#39;, url=&#39;https://github.com/Lindt8/PHITS-Tools&#39;)
+    
+                    pdf.savefig(bbox_extra_artists=[st])
+                    if not show_plots: plt.close()
+                    figi += 1
+            
+        d = pdf.infodict()
+        #d[&#39;Title&#39;] = &#39;Multipage PDF Example&#39;
+        d[&#39;Author&#39;] = &#39;PHITS Tools&#39;
+        d[&#39;Subject&#39;] = &#39;https://github.com/Lindt8/PHITS-Tools/&#39;
+        #d[&#39;Keywords&#39;] = &#39;PdfPages multipage keywords author title subject&#39;
+        d[&#39;CreationDate&#39;] = datetime.datetime.today()
+        d[&#39;ModDate&#39;] = datetime.datetime.today()
+
+    print(&#39;Plot PDF written:&#39;, output_filename, &#39;\n&#39;)
+    
+    if show_plots: 
+        plt.show()
+    return None
 
 
 
@@ -4297,6 +5127,7 @@ if run_with_CLI_inputs:
     parser.add_argument(&#34;-np&#34;, &#34;--disable_PandasDF&#34;, help=&#34;[standard output] disable automatic creation of Pandas DataFrame of PHITS output&#34;, action=&#34;store_true&#34;)
     parser.add_argument(&#34;-na&#34;, &#34;--disable_abs_err_calc&#34;, help=&#34;[standard output] disable automatic calculation of absolute errors&#34;, action=&#34;store_true&#34;)
     parser.add_argument(&#34;-lzma&#34;, &#34;--use_lzma_compression&#34;, help=&#34;[standard output] compress tally output pickle with LZMA&#34;, action=&#34;store_true&#34;)
+    parser.add_argument(&#34;-p&#34;, &#34;--plot&#34;, help=&#34;[standard output] save a plot of the tally&#39;s output to a PDF&#34;, action=&#34;store_true&#34;)
     parser.add_argument(&#34;-skip&#34;, &#34;--skip_existing_pickles&#34;, help=&#34;[all output] skip files where output pickle already exists&#34;, action=&#34;store_true&#34;)
     # Not going to add below option. Why would you ever run this in CLI if not trying to generate the pickle file?
     # parser.add_argument(&#34;-ns&#34;, &#34;--disable_saving_pickle&#34;, help=&#34;disable saving of pickle of of PHITS output&#34;, action=&#34;store_true&#34;)
@@ -4318,7 +5149,8 @@ if run_with_CLI_inputs:
     parser.add_argument(&#34;-fpre&#34;, &#34;--file_prefix&#34;, default=&#39;&#39;, help=&#34;[directory parsing] A string specifying what characters processed filenames (including the file extension) must begin with to be included. This condition is not enforced if set to an empty string (default).&#34;)
     parser.add_argument(&#34;-fsuf&#34;, &#34;--file_suffix&#34;, default=&#39;.out&#39;, help=&#34;[directory parsing] A string specifying what characters processed filenames (including the file extension) must end in to be included. This condition is not enforced if set to an empty string. This is &#39;.out&#39; by deault.&#34;)
     parser.add_argument(&#34;-fstr&#34;, &#34;--file_required_string&#34;, default=&#39;&#39;, help=&#34;[directory parsing] A string which must be present anywhere within processed filenames (including the file extension) to be included. This condition is not enforced if set to an empty string (default).&#34;)
-
+    parser.add_argument(&#34;-pa&#34;, &#34;--plot_all&#34;, help=&#34;[directory parsing] save plots of all tally outputs to a single PDF&#34;, action=&#34;store_true&#34;)
+    
     args = parser.parse_args()
 
     output_file_path = Path(args.file)
@@ -4361,6 +5193,8 @@ if run_with_CLI_inputs:
     skip_existing_pickles = args.skip_existing_pickles
     dump_max_GB_per_chunk = args.dump_max_GB_per_chunk
     dump_split_handling = args.dump_split_handling
+    autoplot_tally_output = args.plot
+    autoplot_all_tally_output_in_dir = args.plot_all
     
     save_namedtuple_list = not no_save_namedtuple_list
     save_Pandas_dataframe = not no_save_Pandas_dataframe
@@ -4388,7 +5222,8 @@ if run_with_CLI_inputs:
                                       dump_merge_MPI_subdumps=dump_merge_MPI_subdumps,
                                       dump_delete_MPI_subdumps_post_merge=dump_delete_MPI_subdumps_post_merge,
                                       split_binary_dumps_over_X_GB=split_binary_dumps_over_X_GB, 
-                                      merge_split_dump_handling=merge_split_dump_handling
+                                      merge_split_dump_handling=merge_split_dump_handling,
+                                      autoplot_all_tally_output_in_dir=autoplot_all_tally_output_in_dir
                                       )
     else: # if is_path_a_file
         if is_dump_file:
@@ -4416,7 +5251,8 @@ if run_with_CLI_inputs:
                                     calculate_absolute_errors=calculate_absolute_errors,
                                     save_output_pickle=True, 
                                     prefer_reading_existing_pickle=prefer_reading_existing_pickle,
-                                    compress_pickle_with_lzma=compress_pickle_with_lzma)
+                                    compress_pickle_with_lzma=compress_pickle_with_lzma,
+                                    autoplot_tally_output=autoplot_tally_output)
 
 elif launch_GUI:
     import tkinter as tk
@@ -4474,6 +5310,10 @@ elif launch_GUI:
 
     def create_secondary_gui(option):
         secondary_gui = tk.Toplevel(root)
+        if option == 3: # This window tends to be tall and should be placed at top of screen
+            x = root.winfo_x()
+            # y = root.winfo_y()
+            secondary_gui.geometry(&#34;+%d+%d&#34; % (x + 10, 10))
 
         def on_closing_secondary_gui():
             on_closing(secondary_gui)
@@ -4483,10 +5323,10 @@ elif launch_GUI:
 
 
         inputs = {
-            1: [&#39;Checkbox 1&#39;, &#39;Checkbox 2&#39;],
+            1: [&#39;Checkbox 1&#39;, &#39;Checkbox 2&#39;, &#39;Checkbox 3&#39;],
             2: [&#39;Checkbox A&#39;, &#39;Checkbox B&#39;, &#39;Radio 1&#39;, &#39;Radio 2&#39;, &#39;Radio 3&#39;, &#39;Input 1 (str)&#39;, &#39;Input 2 (int)&#39;,
                 &#39;Input 3 (int)&#39;],
-            3: [&#39;Checkbox 1&#39;, &#39;Checkbox 2&#39;, &#39;Checkbox A&#39;, &#39;Checkbox B&#39;, &#39;Radio 1&#39;, &#39;Radio 2&#39;, &#39;Radio 3&#39;,
+            3: [&#39;Checkbox 1&#39;, &#39;Checkbox 2&#39;, &#39;Checkbox 3&#39;, &#39;Checkbox A&#39;, &#39;Checkbox B&#39;, &#39;Radio 1&#39;, &#39;Radio 2&#39;, &#39;Radio 3&#39;,
                 &#39;Input 1 (str)&#39;, &#39;Input 2 (int)&#39;, &#39;Input 3 (int)&#39;, &#39;Input 4 (str)&#39;, &#39;Input 5 (str)&#39;, &#39;Input 6 (str)&#39;,
                 &#39;Extra Checkbox 1&#39;, &#39;Extra Checkbox 2&#39;]
         }
@@ -4498,7 +5338,8 @@ elif launch_GUI:
             if option == 1:
                 settings.update({
                     &#39;option_1_cb1&#39;: cb1_var.get(),
-                    &#39;option_1_cb2&#39;: cb2_var.get()
+                    &#39;option_1_cb2&#39;: cb2_var.get(),
+                    &#39;option_1_cb3&#39;: cb3_var.get()
                 })
             elif option == 2:
                 settings.update({
@@ -4513,6 +5354,7 @@ elif launch_GUI:
                 settings.update({
                     &#39;option_3_cb1&#39;: cb1_var.get(), &#39;option_3_cb2&#39;: cb2_var.get(),
                     &#39;option_3_cb3&#39;: cb3_var.get(), &#39;option_3_cb4&#39;: cb4_var.get(),
+                    &#39;option_3_cb5&#39;: cb5_var.get(), &#39;option_3_cb6&#39;: cb6_var.get(),
                     &#39;radio&#39;: radio_var.get(),
                     &#39;input_str_1&#39;: secondary_entry_str1.get() or None,
                     &#39;input_int_1&#39;: secondary_entry_int1.get() or None,
@@ -4534,9 +5376,12 @@ elif launch_GUI:
             sample_text_label.pack(anchor=tk.W, padx=10, pady=2)
             cb1_var = tk.BooleanVar()
             cb2_var = tk.BooleanVar()
+            cb3_var = tk.BooleanVar()
             common_widgets.append(tk.Checkbutton(secondary_gui, text=&#34;Also make and save Pandas DataFrame object of results (in addition to default NumPy array)&#34;, variable=cb1_var, anchor=tk.W))
             common_widgets[-1].select()  # This makes the checkbox be ticked by default
             common_widgets.append(tk.Checkbutton(secondary_gui, text=&#34;Also calculate absolute uncertainties&#34;, variable=cb2_var, anchor=tk.W))
+            common_widgets[-1].select()  # This makes the checkbox be ticked by default
+            common_widgets.append(tk.Checkbutton(secondary_gui, text=&#34;Also make a plot of the tally&#39;s output and save it as a PDF&#34;, variable=cb3_var, anchor=tk.W))
             common_widgets[-1].select()  # This makes the checkbox be ticked by default
 
         elif option == 2:
@@ -4584,6 +5429,8 @@ elif launch_GUI:
             cb2_var = tk.BooleanVar()
             cb3_var = tk.BooleanVar()
             cb4_var = tk.BooleanVar()
+            cb5_var = tk.BooleanVar()
+            cb6_var = tk.BooleanVar()
             radio_var = tk.IntVar(value=3)
 
             secondary_entry_str1 = tk.Entry(secondary_gui, width=50)  # Extra width added here
@@ -4604,6 +5451,8 @@ elif launch_GUI:
 
             common_widgets.append(tk.Checkbutton(secondary_gui, text=&#34;Also include contents of all subdirectories&#34;, variable=cb1_var, anchor=tk.W))
             common_widgets.append(tk.Checkbutton(secondary_gui, text=&#34;Include dump files (otherwise, they will be skipped)&#34;, variable=cb2_var, anchor=tk.W))
+            common_widgets.append(tk.Checkbutton(secondary_gui, text=&#34;Save plots of all tally outputs to a single PDF&#34;, variable=cb6_var, anchor=tk.W))
+            common_widgets[-1].select()  # This makes the checkbox be ticked by default
 
         # Pack common widgets with left alignment.
         for widget in common_widgets:
@@ -4638,6 +5487,9 @@ elif launch_GUI:
             cb4obj = tk.Checkbutton(secondary_gui, text=&#34;Also calculate absolute uncertainties&#34;, variable=cb4_var, anchor=tk.W)
             cb4obj.select() # This makes the checkbox be ticked by default
             cb4obj.pack(anchor=tk.W, padx=10, pady=2)
+            cb5obj = tk.Checkbutton(secondary_gui, text=&#34;Also make a plot of each tally&#39;s output and save it as a PDF&#34;, variable=cb5_var, anchor=tk.W)
+            cb5obj.select()  # This makes the checkbox be ticked by default
+            cb5obj.pack(anchor=tk.W, padx=10, pady=2)
 
             options_frame = tk.LabelFrame(secondary_gui, text=&#34;Data output format options for dump files&#34;)
             tk.Radiobutton(options_frame, text=&#34;Save only a pickle file of a list of namedtuples with dump event information&#34;, variable=radio_var, value=1, anchor=tk.W).pack(anchor=tk.W)
@@ -4688,6 +5540,9 @@ elif launch_GUI:
 
 
     root = tk.Tk()
+    #root.eval(&#39;tk::PlaceWindow . center&#39;)
+    #root.geometry(&#34;+%d+%d&#34; % (30, 10))
+    
     root.title(&#39;PHITS Tools&#39;)
 
     # protocol for main menu window to issue warning and exit if closed
@@ -4714,8 +5569,10 @@ elif launch_GUI:
     if settings[&#39;main_mode&#39;] == 1: # standard tally mode
         make_PandasDF = settings[&#39;option_1_cb1&#39;]
         calculate_absolute_errors = settings[&#39;option_1_cb2&#39;]
+        autoplot_tally_output = settings[&#39;option_1_cb3&#39;]
         parse_tally_output_file(Path(settings[&#39;file&#39;]), make_PandasDF=make_PandasDF,
                                 calculate_absolute_errors=calculate_absolute_errors,
+                                autoplot_tally_output=autoplot_tally_output,
                                 save_output_pickle=True, prefer_reading_existing_pickle=False)
 
     elif settings[&#39;main_mode&#39;] == 2:  # dump tally mode
@@ -4757,6 +5614,8 @@ elif launch_GUI:
         include_dump_files = settings[&#39;option_3_cb2&#39;]
         make_PandasDF = settings[&#39;option_3_cb3&#39;]
         calculate_absolute_errors = settings[&#39;option_3_cb4&#39;]
+        autoplot_tally_output = settings[&#39;option_3_cb5&#39;]
+        autoplot_all_tally_output_in_dir = settings[&#39;option_3_cb6&#39;]
         file_suffix = settings[&#39;input_str_2&#39;]
         if file_suffix == None: file_suffix = &#39;&#39;
         file_prefix = settings[&#39;input_str_3&#39;]
@@ -4784,9 +5643,11 @@ elif launch_GUI:
         parse_all_tally_output_in_dir(Path(settings[&#39;directory&#39;]),
                                       output_file_suffix=file_suffix, output_file_prefix=file_prefix,
                                       output_file_required_string=file_reqstr, include_subdirectories=recursive_search,
+                                      autoplot_all_tally_output_in_dir=autoplot_all_tally_output_in_dir,
                                       return_tally_output=False,
                                       make_PandasDF=make_PandasDF, calculate_absolute_errors=calculate_absolute_errors,
                                       save_output_pickle=True, prefer_reading_existing_pickle=False,
+                                      autoplot_tally_output=autoplot_tally_output,
                                       include_dump_files=include_dump_files,
                                       dump_data_number=dump_data_number, dump_data_sequence=dump_data_sequence,
                                       dump_return_directional_info=return_directional_info,
@@ -4811,7 +5672,7 @@ elif test_explicit_files_dirs:
     #output_file_path = Path(base_path + &#39;t-deposit\deposit_reg.out&#39;)
     #output_file_path = Path(base_path + &#39;t-deposit\deposit_eng_sp-reg.out&#39;)
     output_file_path = Path(base_path + &#39;t-track\\track_reg.out&#39;)
-    #output_file_path = Path(base_path + &#39;t-track\\track_r-z.out&#39;)
+    output_file_path = Path(base_path + &#39;t-track\\track_r-z.out&#39;)
     #output_file_path = Path(base_path + &#39;t-track\\track_xyz-xy.out&#39;)
     #output_file_path = Path(base_path + r&#39;t-track\track_r-z_axis-rad.out&#39;)
     #output_file_path = Path(base_path + r&#39;t-track\track_r-z_axis-deg.out&#39;)
@@ -4825,7 +5686,7 @@ elif test_explicit_files_dirs:
     #output_file_path = Path(base_path + &#39;t-cross\cross_reg_axis-reg.out&#39;)
     #output_file_path = Path(base_path + &#39;t-cross\cross_xyz_axis-eng.out&#39;)
     #output_file_path = Path(base_path + &#39;t-cross\cross_xyz_axis-eng_enclosed.out&#39;)
-    #output_file_path = Path(base_path + &#39;t-cross\cross_xyz_axis-reg.out&#39;)
+    ###output_file_path = Path(base_path + &#39;t-cross\cross_xyz_axis-reg.out&#39;)
     #output_file_path = Path(base_path + &#39;t-cross\cross_xyz_axis-xy.out&#39;)
     #output_file_path = Path(base_path + &#39;t-cross\cross-r-z_axis-eng.out&#39;)
     #output_file_path = Path(base_path + &#39;t-cross\cross-r-z_axis-eng_0r.out&#39;)
@@ -4851,6 +5712,7 @@ elif test_explicit_files_dirs:
     #output_file_path = Path(base_path + &#39;t-heat\heat_reg.out&#39;)
     #output_file_path = Path(base_path + &#39;t-heat\heat_xyz.out&#39;)
     #output_file_path = Path(base_path + &#39;t-interact\interact_reg.out&#39;)
+    #output_file_path = Path(base_path + &#39;t-interact\interact_reg_axis-act.out&#39;)
     #output_file_path = Path(base_path + &#39;t-interact\interact_xyz.out&#39;)
     #output_file_path = Path(base_path + &#39;t-let\let-distribution_reg.out&#39;)
     #output_file_path = Path(base_path + &#39;t-let\let-distribution_r-z.out&#39;)
@@ -4866,7 +5728,7 @@ elif test_explicit_files_dirs:
     #output_file_path = Path(base_path + r&#39;t-yield\yield_reg_axis-chart.out&#39;)
     #output_file_path = Path(base_path + r&#39;t-yield\yield_xyz_axis-chart.out&#39;)
 
-    #base_path = r&#39;G:\Cloud\OneDrive\work\PHITS\test_tallies\\&#39;
+    base_path = r&#39;G:\Cloud\OneDrive\work\PHITS\test_tallies\\&#39;
     #output_file_path = Path(base_path + r&#39;tally\t-deposit\deposit_reg_spec-all.out&#39;)
     #output_file_path = Path(base_path + r&#39;sample\icrp\mrcp\External\result\Dose_MRCP-AF_reg.out&#39;)
     #output_file_path = Path(base_path + r&#39;sample\misc\batch_source\track_yz_001.out&#39;)
@@ -4878,6 +5740,11 @@ elif test_explicit_files_dirs:
     #output_file_path = Path(base_path + r&#39;recommendation\SemiConductor\deposit.out&#39;)
     #output_file_path = Path(base_path + r&#39;recommendation\Shielding\track-rz.out&#39;)
     #output_file_path = Path(base_path + r&#39;recommendation\TrackStructure\interact.out&#39;)
+    #output_file_path = Path(base_path + r&#39;recommendation\CosmicRay\dose.out&#39;) # single value output
+    #output_file_path = Path(base_path + r&#39;recommendation\CosmicRay\track.out&#39;) 
+    #output_file_path = Path(base_path + r&#39;sample\source\Cosmicray\Airshower\depthdose.out&#39;) 
+    #output_file_path = Path(base_path + r&#39;sample\misc\history_counter\track_yz_ch1.out&#39;)
+    output_file_path = Path(base_path + r&#39;recommendation\Counter\track.out&#39;)
 
 
     test_parsing_of_dir = False #True
@@ -4946,8 +5813,14 @@ elif test_explicit_files_dirs:
                                            save_output_pickle=True)
     tally_data = tally_output[&#39;tally_data&#39;]
     tally_metadata = tally_output[&#39;tally_metadata&#39;]
+    tally_df = tally_output[&#39;tally_dataframe&#39;]
 
     pprint.pp(dict(tally_metadata))
+
+    autoplot_tally_results(tally_output)
+
+    
+    
     sys.exit()
     
     #                ir, iy, iz, ie, it, ia, il, ip, ic, ierr
@@ -4972,7 +5845,7 @@ elif test_explicit_files_dirs:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="PHITS_tools.parse_tally_output_file"><code class="name flex">
-<span>def <span class="ident">parse_tally_output_file</span></span>(<span>tally_output_filepath, make_PandasDF=True, calculate_absolute_errors=True, save_output_pickle=True, prefer_reading_existing_pickle=False, compress_pickle_with_lzma=False)</span>
+<span>def <span class="ident">parse_tally_output_file</span></span>(<span>tally_output_filepath, make_PandasDF=True, calculate_absolute_errors=True, save_output_pickle=True, prefer_reading_existing_pickle=False, compress_pickle_with_lzma=False, autoplot_tally_output=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="description">Description</h2>
@@ -5020,6 +5893,9 @@ A *.pickle.xz file can then be opened (after importing <code>pickle</code> and <
 For most "normal" tallies, the pickle file sizes are likely to be small enough to not warrant
 compression, but LZMA compression can reduce the file size by several orders of magnitude,
 great for output from massive tallies.</li>
+<li><strong><code>autoplot_tally_output</code></strong> = (optional, D=<code>False</code>; requires <code>make_PandasDF=True</code>) Boolean denoting whether
+the tally's output will be automatically plotted and saved to a PDF (of the same name/path as
+<code>tally_output_filepath</code> but ending in <code>.pdf</code>) using the <code><a title="PHITS_tools.autoplot_tally_results" href="#PHITS_tools.autoplot_tally_results">autoplot_tally_results()</a></code> function.</li>
 </ul>
 <h2 id="output">Output</h2>
 <ul>
@@ -5215,7 +6091,8 @@ the yield results of production of carbon-14 (C-14), one would use the following
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calculate_absolute_errors = True,
-                            save_output_pickle=True, prefer_reading_existing_pickle=False, compress_pickle_with_lzma=False):
+                            save_output_pickle=True, prefer_reading_existing_pickle=False, compress_pickle_with_lzma=False, 
+                            autoplot_tally_output=False):
     &#39;&#39;&#39;
     Description:
         Parse any PHITS tally output file, returning tally metadata and an array of its values (and optionally
@@ -5258,6 +6135,9 @@ the yield results of production of carbon-14 (C-14), one would use the following
                       For most &#34;normal&#34; tallies, the pickle file sizes are likely to be small enough to not warrant 
                       compression, but LZMA compression can reduce the file size by several orders of magnitude, 
                       great for output from massive tallies.
+       - **`autoplot_tally_output`** = (optional, D=`False`; requires `make_PandasDF=True`) Boolean denoting whether 
+                      the tally&#39;s output will be automatically plotted and saved to a PDF (of the same name/path as 
+                      `tally_output_filepath` but ending in `.pdf`) using the `autoplot_tally_results()` function.
 
     Output:
         - **`tally_output`** = a dictionary object with the below keys and values:
@@ -5568,8 +6448,11 @@ the yield results of production of carbon-14 (C-14), one would use the following
             try:
                 from dchain_tools import process_dchain_simulation_output
             except:
-                print(&#39;Failed to import the DCHAIN Tools module; to parse DCHAIN output via PHITS Tools, please install DCHAIN Tools and configure it in your Python environment&#39;)
-                return None
+                try:
+                    from PHITS_tools.dchain_tools import process_dchain_simulation_output
+                except:
+                    print(&#39;Failed to import the DCHAIN Tools module; to parse DCHAIN output via PHITS Tools, please install DCHAIN Tools and configure it in your Python environment&#39;)
+                    return None
             simulation_folder_path = str(Path(tally_output_filepath.parent)) + &#39;\\&#39;
             simulation_basename = str(tally_output_filepath.stem)
             dchain_output = process_dchain_simulation_output(simulation_folder_path,simulation_basename,process_DCS_file=True)
@@ -5584,9 +6467,9 @@ the yield results of production of carbon-14 (C-14), one would use the following
             return dchain_output
         else:
             return None
-    if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Yield]&#39; and tally_metadata[&#39;axis&#39;] == &#39;dchain&#39;:
+    if (tally_metadata[&#39;tally_type&#39;] == &#39;[T-Yield]&#39; or tally_metadata[&#39;tally_type&#39;] == &#39;[T-Track]&#39;) and tally_metadata[&#39;axis&#39;] == &#39;dchain&#39;:
         dchain_tools_url = &#39;github.com/Lindt8/DCHAIN-Tools&#39;
-        print(&#39;This function does not support [T-Yield] with setting &#34;axis = dchain&#34;.&#39;)
+        print(&#39;This function does not support [T-Yield]/[T-Track] with setting &#34;axis = dchain&#34;.&#39;)
         print(&#39;However, the DCHAIN Tools module (&#39;, dchain_tools_url, &#39;) is capable of parsing all DCHAIN-related output.&#39;)
         return None
 
@@ -5659,7 +6542,14 @@ the yield results of production of carbon-14 (C-14), one would use the following
                 pickle.dump(tally_output, handle, protocol=pickle.HIGHEST_PROTOCOL)
         print(&#39;Pickle file written:&#39;, path_to_pickle_file, &#39;\n&#39;)
         if in_debug_mode: print(&#34;\tComplete!   ({:0.2f} seconds elapsed)&#34;.format(time.time() - start))
-
+    
+    if autoplot_tally_output:
+        if not make_PandasDF:
+            print(&#39;Plotting via &#34;autoplot_tally_output=True&#34; requires also setting &#34;make_PandasDF=True&#34;.&#39;)
+        else:
+            plot_filepath = Path(tally_output_filepath.parent, tally_output_filepath.stem + &#39;.pdf&#39;)
+            autoplot_tally_results(tally_output, plot_errorbars=calculate_absolute_errors, output_filename=plot_filepath)
+    
     return tally_output</code></pre>
 </details>
 </dd>
@@ -6196,7 +7086,7 @@ see the documentation within the following directory of your PHITS installation:
 </details>
 </dd>
 <dt id="PHITS_tools.parse_all_tally_output_in_dir"><code class="name flex">
-<span>def <span class="ident">parse_all_tally_output_in_dir</span></span>(<span>tally_output_dirpath, output_file_suffix='.out', output_file_prefix='', output_file_required_string='', include_subdirectories=False, return_tally_output=False, make_PandasDF=True, calculate_absolute_errors=True, save_output_pickle=True, prefer_reading_existing_pickle=False, compress_pickle_with_lzma=False, include_dump_files=False, dump_data_number=None, dump_data_sequence=None, dump_return_directional_info=False, dump_use_degrees=False, dump_max_entries_read=None, dump_save_namedtuple_list=True, dump_save_Pandas_dataframe=True, dump_merge_MPI_subdumps=True, dump_delete_MPI_subdumps_post_merge=True, split_binary_dumps_over_X_GB=20, merge_split_dump_handling=0)</span>
+<span>def <span class="ident">parse_all_tally_output_in_dir</span></span>(<span>tally_output_dirpath, output_file_suffix='.out', output_file_prefix='', output_file_required_string='', include_subdirectories=False, return_tally_output=False, make_PandasDF=True, calculate_absolute_errors=True, save_output_pickle=True, prefer_reading_existing_pickle=False, compress_pickle_with_lzma=False, include_dump_files=False, dump_data_number=None, dump_data_sequence=None, dump_return_directional_info=False, dump_use_degrees=False, dump_max_entries_read=None, dump_save_namedtuple_list=True, dump_save_Pandas_dataframe=True, dump_merge_MPI_subdumps=True, dump_delete_MPI_subdumps_post_merge=True, split_binary_dumps_over_X_GB=20, merge_split_dump_handling=0, autoplot_tally_output=False, autoplot_all_tally_output_in_dir=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="description">Description</h2>
@@ -6265,6 +7155,13 @@ output files as usual and overwrite the existing pickle file.
 If <code>True</code>, this function will instead
 simply just read the existing found pickle file, extracting its stored <code>tally_output</code> contents
 (and, if for dump file pickles, they'll simply be skipped and not reprocessed). (D=<code>False</code>)</li>
+<li><strong><code>autoplot_all_tally_output_in_dir</code></strong> = (optional, D=<code>False</code>; requires <code>make_PandasDF=True</code>) Boolean denoting,
+for all tally outputs included in this function's call, whether the tallies' outputs will be automatically
+plotted and saved to a single PDF, with path/name "<code>tally_output_dirpath</code>/ALL_TALLY_OUTPUTS_PLOTTED.pdf" by default,
+using the <code><a title="PHITS_tools.autoplot_tally_results" href="#PHITS_tools.autoplot_tally_results">autoplot_tally_results()</a></code> function.
+If a string is provided instead of a Boolean,
+this setting will be set to <code>True</code> and the string will be used as the plot PDF's filename, with
+the file name and path as "<code>tally_output_dirpath</code>/<code>autoplot_all_tally_output_in_dir</code>.pdf".</li>
 </ul>
 <h2 id="inputs_2">Inputs</h2>
 <p>(optional, the same as in and directly passed to the <code><a title="PHITS_tools.parse_tally_output_file" href="#PHITS_tools.parse_tally_output_file">parse_tally_output_file()</a></code> function)</p>
@@ -6286,6 +7183,9 @@ A *.pickle.xz file can then be opened (after importing <code>pickle</code> and <
 For most "normal" tallies, the pickle file sizes are likely to be small enough to not warrant
 compression, but LZMA compression can reduce the file size by several orders of magnitude,
 great for output from massive tallies.</li>
+<li><strong><code>autoplot_tally_output</code></strong> = (optional, D=<code>False</code>; requires <code>make_PandasDF=True</code>) Boolean denoting whether, for each tally,
+the tally's output will be automatically plotted and saved to a PDF (of the same name/path as
+the tally's output file but ending in <code>.pdf</code>) using the <code><a title="PHITS_tools.autoplot_tally_results" href="#PHITS_tools.autoplot_tally_results">autoplot_tally_results()</a></code> function. </li>
 </ul>
 <h2 id="inputs_3">Inputs</h2>
 <p>(optional, the same as in and directly passed to the <code><a title="PHITS_tools.parse_tally_dump_file" href="#PHITS_tools.parse_tally_dump_file">parse_tally_dump_file()</a></code> function)</p>
@@ -6364,7 +7264,8 @@ file paths to pickle files containing <code>tally_output</code> dictionary objec
                                   dump_max_entries_read=None,
                                   dump_save_namedtuple_list=True, dump_save_Pandas_dataframe=True,
                                   dump_merge_MPI_subdumps=True, dump_delete_MPI_subdumps_post_merge=True,
-                                  split_binary_dumps_over_X_GB=20, merge_split_dump_handling=0
+                                  split_binary_dumps_over_X_GB=20, merge_split_dump_handling=0,
+                                  autoplot_tally_output=False, autoplot_all_tally_output_in_dir=False
                                   ):
     &#39;&#39;&#39;
     Description:
@@ -6425,6 +7326,12 @@ file paths to pickle files containing <code>tally_output</code> dictionary objec
                       output files as usual and overwrite the existing pickle file.  If `True`, this function will instead
                       simply just read the existing found pickle file, extracting its stored `tally_output` contents 
                       (and, if for dump file pickles, they&#39;ll simply be skipped and not reprocessed). (D=`False`)
+       - **`autoplot_all_tally_output_in_dir`** = (optional, D=`False`; requires `make_PandasDF=True`) Boolean denoting, 
+                      for all tally outputs included in this function&#39;s call, whether the tallies&#39; outputs will be automatically 
+                      plotted and saved to a single PDF, with path/name &#34;`tally_output_dirpath`/ALL_TALLY_OUTPUTS_PLOTTED.pdf&#34; by default, 
+                      using the `autoplot_tally_results()` function.  If a string is provided instead of a Boolean, 
+                      this setting will be set to `True` and the string will be used as the plot PDF&#39;s filename, with 
+                      the file name and path as &#34;`tally_output_dirpath`/`autoplot_all_tally_output_in_dir`.pdf&#34;.
 
     Inputs:
        (optional, the same as in and directly passed to the `parse_tally_output_file()` function)
@@ -6446,6 +7353,9 @@ file paths to pickle files containing <code>tally_output</code> dictionary objec
                       For most &#34;normal&#34; tallies, the pickle file sizes are likely to be small enough to not warrant 
                       compression, but LZMA compression can reduce the file size by several orders of magnitude, 
                       great for output from massive tallies.
+       - **`autoplot_tally_output`** = (optional, D=`False`; requires `make_PandasDF=True`) Boolean denoting whether, for each tally, 
+                      the tally&#39;s output will be automatically plotted and saved to a PDF (of the same name/path as 
+                      the tally&#39;s output file but ending in `.pdf`) using the `autoplot_tally_results()` function. 
 
     Inputs:
        (optional, the same as in and directly passed to the `parse_tally_dump_file()` function)
@@ -6513,6 +7423,11 @@ file paths to pickle files containing <code>tally_output</code> dictionary objec
             print(&#39;Nor is it a valid path to a file. ERROR! Aborting...&#39;)
             return None
 
+    autoplot_dir_filename = &#34;ALL_TALLY_OUTPUTS_PLOTTED.pdf&#34;
+    if isinstance(autoplot_all_tally_output_in_dir, str):
+        autoplot_dir_filename = autoplot_all_tally_output_in_dir + &#39;.pdf&#39;
+        autoplot_all_tally_output_in_dir = True
+
     if include_subdirectories:
         # Get paths to all files in this dir and subdirs
         files_in_dir = []
@@ -6560,13 +7475,16 @@ file paths to pickle files containing <code>tally_output</code> dictionary objec
     for f in filepaths_to_process:
         f = Path(f)
         path_to_pickle_file = Path(f.parent, f.stem + &#39;.pickle&#39;)
-        tally_output_pickle_path_list.append(path_to_pickle_file)
         tally_output = parse_tally_output_file(f, make_PandasDF=make_PandasDF,
                                                calculate_absolute_errors=calculate_absolute_errors,
                                                save_output_pickle=save_output_pickle,
                                                prefer_reading_existing_pickle=prefer_reading_existing_pickle,
-                                               compress_pickle_with_lzma=compress_pickle_with_lzma)
-        if return_tally_output: tally_output_list.append(tally_output)
+                                               compress_pickle_with_lzma=compress_pickle_with_lzma,
+                                               autoplot_tally_output=autoplot_tally_output)
+        if tally_output != None:
+            tally_output_pickle_path_list.append(path_to_pickle_file)
+        if return_tally_output: 
+            tally_output_list.append(tally_output)
 
     if include_dump_files:
         for f in dump_filepaths_to_process:
@@ -6592,6 +7510,17 @@ file paths to pickle files containing <code>tally_output</code> dictionary objec
                 merged_fp = Path(Path(id_head),id_tail)
                 merge_succeeded = merge_dump_file_pickles(dumps_to_merge, merged_dump_base_filepath=merged_fp, 
                                                           delete_pre_merge_pickles=dump_delete_MPI_subdumps_post_merge)
+                
+    if autoplot_all_tally_output_in_dir:
+        if not make_PandasDF:
+            print(&#39;Plotting via &#34;autoplot_tally_output=True&#34; or &#34;autoplot_all_tally_output_in_dir=True&#34; requires also setting &#34;make_PandasDF=True&#34;.&#39;)
+        else:
+            plot_filepath = Path(tally_output_dirpath, autoplot_dir_filename)
+            if return_tally_output:
+                plot_list = tally_output_list
+            else:
+                plot_list = tally_output_pickle_path_list
+            autoplot_tally_results(plot_list, plot_errorbars=calculate_absolute_errors, output_filename=plot_filepath)
 
     if return_tally_output:
         return tally_output_list
@@ -8154,6 +9083,7 @@ broken into "blocks" ("newpage:"-separated) which are lists of lines belonging t
             else:
                 header.append(line.strip())
     # add &#34;footer&#34; to peel off last bit of &#34;content&#34; section?
+    if in_debug_mode: print(len(content), &#39;content blocks (pages) found in tally output&#39;)
     return header, content</code></pre>
 </details>
 </dd>
@@ -8251,6 +9181,7 @@ broken into "blocks" ("newpage:"-separated) which are lists of lines belonging t
         elif &#39;=&#39; in line:
             if line[0] == &#39;#&#39;:  # commented line
                 key, value = extract_data_from_header_line(line[1:])
+                if key==&#39;file&#39; and key in meta and &#39;_dmp&#39; in value: continue # do not overwrite existing file parameter with dump file
             else:
                 key, value = extract_data_from_header_line(line)
             if in_exceptional_mesh_kind:
@@ -8259,6 +9190,9 @@ broken into "blocks" ("newpage:"-separated) which are lists of lines belonging t
                 elif key==&#39;ne&#39;:
                     key = &#39;n&#39; + current_data_mesh_kind
             meta[key] = value
+            if (tally_type==&#39;[T-Yield]&#39; or tally_type==&#39;[T-Track]&#39;) and key==&#39;axis&#39; and value==&#39;dchain&#39;:
+                # Unsupported tally output!
+                return meta
 
             if &#39;type&#39; in key:
                 current_data_mesh_kind = key.replace(&#39;-type&#39;,&#39;&#39;)
@@ -8534,7 +9468,7 @@ broken into "blocks" ("newpage:"-separated) which are lists of lines belonging t
             elif meta[&#39;axis_dimensions&#39;] == 2:
                 if hc_passed: # second instance of y:
                     value_label = line[2:].strip()
-                    #break
+                    break
                 else: # first instance of y:
                     axis2_label = line[2:].strip()
                     hc_passed = True
@@ -8587,7 +9521,7 @@ broken into "blocks" ("newpage:"-separated) which are lists of lines belonging t
                         meta[&#39;reg_volume&#39;] = vol
                         meta[&#39;nreg&#39;] = len(reg)
 
-            break
+                break
     meta[&#39;axis1_label&#39;] = axis1_label
     meta[&#39;axis2_label&#39;] = axis2_label
     meta[&#39;value_label&#39;] = value_label
@@ -8674,7 +9608,7 @@ as is necessary when processing dedicated *_err files.</li>
 
     ignored_eq_strs = [&#39;axis&#39;,&#39;axs&#39;,&#39;ar&#39;,&#39;rr&#39;,&#39;m jm&#39;,&#39;Z&#39;,&#39;cmax nmax&#39;]
     replace_eq_strs_dict = {&#39;ang&#39;:&#39;a&#39;}
-
+    
     ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max, ierr_max = np.shape(tdata)
 
     axes_1D = [&#39;eng&#39;, &#39;reg&#39;, &#39;x&#39;, &#39;y&#39;, &#39;z&#39;, &#39;r&#39;, &#39;t&#39;, &#39;cos&#39;, &#39;the&#39;, &#39;mass&#39;, &#39;charge&#39;, &#39;let&#39;, &#39;tet&#39;, &#39;eng1&#39;, &#39;eng2&#39;,
@@ -8706,7 +9640,7 @@ as is necessary when processing dedicated *_err files.</li>
                     hli = li
                     hli_found = True
                     continue
-                if hli_found and (line[:12] == &#39;#   sum over&#39; or line[:7] == &#39;#   sum&#39; or line[:5] == &#39;#----&#39; or (len(block[li-1]) == 0 and hli != 0 and li&gt;hli+2) or &#34;&#39;&#34; in line or &#39;{&#39; in line):
+                if hli_found and (line[:12] == &#39;#   sum over&#39; or line[:7] == &#39;#   sum&#39; or line[:5] == &#39;#----&#39; or line[:12] == &#39;#   overflow&#39; or (len(block[li-1]) == 0 and hli != 0 and li&gt;hli+2) or &#34;&#39;&#34; in line or &#39;{&#39; in line):
                     fli = li
                     if (len(block[li-1]) == 0 and hli != 0 and li&gt;hli+2): fli = li - 1 # triggered by blank line after data
                     #if &#34;&#39;&#34; in line or &#39;{&#39; in line:
@@ -8751,8 +9685,8 @@ as is necessary when processing dedicated *_err files.</li>
                         mesh_char = part.split(&#39;=&#39;)[0].strip().replace(&#39;i&#39;,&#39;&#39;)
                         #print(mesh_char)
                         if mesh_char == &#39;no.&#39;:
-                            if &#39;***&#39; in part:
-                                break # this is a bugged line
+                            if &#39;***&#39; in part and bi&lt;998:
+                                break # this is a bugged line (or &#34;no.&#34; is 4+ digits, which is fine)
                             continue
                         elif mesh_char == &#39;part.&#39; or mesh_char == &#39;partcle&#39; or mesh_char == &#39;part&#39;:
                             part_grp_name = part.split(&#39;=&#39;)[1].strip()
@@ -8832,7 +9766,9 @@ as is necessary when processing dedicated *_err files.</li>
                         else:
                             raise ValueError(&#39;ERROR! Unregistered potential index [&#39;+part.split(&#39;=&#39;)[0].strip()+&#39;] found&#39;)
 
-
+            if in_debug_mode:
+                print(&#39;\tcontent block&#39;,bi,&#39;, indices:&#39;, ir, iy, iz, ie, it, ia, il, ip, ic)
+            
             # extract data from table
             # determine meaning of table rows
             row_ivar = tdata_ivar_strs[meta[&#39;axis_index_of_tally_array&#39;]]
@@ -8916,7 +9852,7 @@ as is necessary when processing dedicated *_err files.</li>
 
     elif meta[&#39;axis_dimensions&#39;]==2:
         for bi, block in enumerate(tally_blocks):
-            hli, bli = 0 , 0
+            hli, fli = 0 , 0
             data_keyword_found = False
             for li, line in enumerate(block):
                 if meta[&#39;2D-type&#39;] in [1, 2, 3, 6, 7]:
@@ -9263,7 +10199,7 @@ as is necessary when processing dedicated *_err files.</li>
             print(&#39;\t&#39;+line)
 
     return_updated_metadata_too = False
-    if meta[&#39;tally_type&#39;] == &#39;[T-Yield]&#39;:
+    if meta[&#39;tally_type&#39;] == &#39;[T-Yield]&#39; and meta[&#39;axis&#39;] in [&#39;chart&#39;,&#39;charge&#39;,&#39;mass&#39;]:
         return_updated_metadata_too = True
         if meta[&#39;axis&#39;] == &#39;chart&#39;:
             meta[&#39;nuclide_ZZZAAAM_list&#39;] = ZZZAAAM_list
@@ -9377,7 +10313,8 @@ as is necessary when processing dedicated *_err files.</li>
     original_text = text
     #if text[0] == &#34;&#39;&#34;: # more loosely formatted text
     #    problem_strs = [&#39;tot DPA&#39;]
-    text = text.replace(&#34;&#39;&#34;,&#39;&#39;).replace(&#39;,&#39;,&#39; &#39;).replace(&#39;#&#39;,&#39;&#39;).replace(&#39;=&#39;,&#39; = &#39;)
+    if text[0] == &#34;#&#34; and &#39;no. =***&#39; in text and text[-1]==&#39;=&#39;: return [] # skip broken lines
+    text = text.replace(&#34;&#39;&#34;,&#39;&#39;).replace(&#39;,&#39;,&#39; &#39;).replace(&#39;#&#39;,&#39;&#39;).replace(&#39;=&#39;,&#39; = &#39;).replace(&#39;***&#39;,&#39;999999999&#39;)
     text_pieces = text.split()
     #i_equal_sign = [i for i, x in enumerate(text_pieces) if x == &#34;=&#34;]
     is_i_equal_sign = [x==&#39;=&#39; for x in text_pieces]
@@ -9817,10 +10754,18 @@ note that tally_df.attrs returns values which are the same for all rows</li>
     ecols, tcols, acols, lcols, pcols, ccols = False, False, False, False, False, False
     single_specified_bin_axes = [] # log axes which are provided by user but only contain 1 bin
     single_bin_ranges_or_values = []
-    if meta[&#39;ne&#39;] != None:
+    if meta[&#39;ne&#39;] != None or ie_max&gt;1: #  
         if meta[&#39;ne&#39;]==1:
             single_specified_bin_axes.append(&#39;e&#39;)
             single_bin_ranges_or_values.append([&#39;Energy&#39;,meta[&#39;e-mesh_bin_edges&#39;]])
+        elif meta[&#39;tally_type&#39;]==&#39;[T-Deposit2]&#39;:
+            if meta[&#39;ne1&#39;]==1:
+                single_specified_bin_axes.append(&#39;e1&#39;)
+                single_bin_ranges_or_values.append([&#39;Energy1&#39;, meta[&#39;e1-mesh_bin_edges&#39;]])
+            else:
+                ecols = True
+                ecol_names_list = [&#39;ie&#39;, &#39;e1_mid&#39;]
+                col_names_list += ecol_names_list
         else:
             ecols = True
             ecol_names_list = [&#39;ie&#39;,&#39;e_mid&#39;]
@@ -9858,8 +10803,8 @@ note that tally_df.attrs returns values which are the same for all rows</li>
     else:
         single_bin_ranges_or_values.append([&#39;LET&#39;,&#39;default/all&#39;])
 
-    if meta[&#39;nc&#39;] != None:
-        if meta[&#39;nc&#39;] == 1:
+    if meta[&#39;nc&#39;] != None or ic_max&gt;1:
+        if meta[&#39;nc&#39;] == 1 or ic_max==1:
             pass
         else:
             ccols = True
@@ -9873,8 +10818,17 @@ note that tally_df.attrs returns values which are the same for all rows</li>
                 elif meta[&#39;axis&#39;] == &#39;mass&#39;:
                     ccol_names_list = [&#39;ic/A/mass&#39;]
                     col_names_list += ccol_names_list
+            elif meta[&#39;tally_type&#39;] == &#39;[T-Interact]&#39;:
+                if meta[&#39;axis&#39;] == &#39;act&#39;:
+                    ccol_names_list = [&#39;ic&#39;, &#39;#Interactions&#39;]
+                    col_names_list += ccol_names_list
             elif meta[&#39;tally_type&#39;] == &#39;[T-Deposit2]&#39;:
-                pass
+                if meta[&#39;ne2&#39;] == 1:
+                    single_specified_bin_axes.append(&#39;e2&#39;)
+                    single_bin_ranges_or_values.append([&#39;Energy2&#39;, meta[&#39;e2-mesh_bin_edges&#39;]])
+                else:
+                    ccol_names_list = [&#39;ic&#39;, &#39;e2_mid&#39;]
+                    col_names_list += ccol_names_list
 
     if meta[&#39;npart&#39;] != None: # and meta[&#39;part_groups&#39;][0]==&#39;all&#39;:
         if meta[&#39;npart&#39;]==1:
@@ -10001,7 +10955,10 @@ note that tally_df.attrs returns values which are the same for all rows</li>
 
                                         if ecols: # ecol_names_list = [&#39;ie&#39;,&#39;e_mid&#39;]
                                             df_dict[ecol_names_list[0]].append(ie)
-                                            df_dict[ecol_names_list[1]].append(meta[&#39;e-mesh_bin_mids&#39;][ie])
+                                            if meta[&#39;tally_type&#39;] == &#39;[T-Deposit2]&#39;:
+                                                df_dict[ecol_names_list[1]].append(meta[&#39;e1-mesh_bin_mids&#39;][ie])
+                                            else:
+                                                df_dict[ecol_names_list[1]].append(meta[&#39;e-mesh_bin_mids&#39;][ie])
                                         if tcols: # tcol_names_list = [&#39;it&#39;,&#39;t_mid&#39;]
                                             df_dict[tcol_names_list[0]].append(it)
                                             df_dict[tcol_names_list[1]].append(meta[&#39;t-mesh_bin_mids&#39;][it])
@@ -10025,6 +10982,14 @@ note that tally_df.attrs returns values which are the same for all rows</li>
                                                 elif meta[&#39;axis&#39;] == &#39;mass&#39;:
                                                     #ccol_names_list = [&#39;ic/A/mass&#39;]
                                                     df_dict[ccol_names_list[0]].append(ic)
+                                            elif meta[&#39;tally_type&#39;] == &#39;[T-Interact]&#39;:
+                                                if meta[&#39;axis&#39;] == &#39;act&#39;:
+                                                    #ccol_names_list = [&#39;act&#39;]
+                                                    df_dict[ccol_names_list[0]].append(ic)
+                                                    df_dict[ccol_names_list[1]].append(ic+1)
+                                            elif meta[&#39;tally_type&#39;] == &#39;[T-Deposit2]&#39;:
+                                                df_dict[ccol_names_list[0]].append(ic)
+                                                df_dict[ccol_names_list[1]].append(meta[&#39;e2-mesh_bin_mids&#39;][ic])
 
                                         # Value columns
                                         #val_names_list = [&#39;value&#39;, &#39;rel.err.&#39;,&#39;abs.err.&#39;]
@@ -10056,6 +11021,801 @@ note that tally_df.attrs returns values which are the same for all rows</li>
         #print(tally_df.to_string())
         print(tally_df.attrs)
     return tally_df</code></pre>
+</details>
+</dd>
+<dt id="PHITS_tools.autoplot_tally_results"><code class="name flex">
+<span>def <span class="ident">autoplot_tally_results</span></span>(<span>tally_output_list, plot_errorbars=True, output_filename='results.pdf', show_plots=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="description">Description</h2>
+<p>Generates visualizations/plots of the data in the output Pandas DataFrames from the <code><a title="PHITS_tools.parse_tally_output_file" href="#PHITS_tools.parse_tally_output_file">parse_tally_output_file()</a></code>
+function in an automated fashion.
+Note that this function only seeks to accomplish exactly this.
+It is not a function for generating customized plots; it exists to automate creating visualizations of PHITS
+output using sets of predetermined rules and settings, principally for initial checking of results.
+Generally, it does not respect plotting-relevant settings provided to PHITS tallies (e.g., <code>samepage</code>, <code>axis</code>, <code>angel</code>, etc.),
+though it will use the <code>title</code> parameter and the plot axis titles for ANGEL included in the .out files, which are
+influenced by some tally parameters, such as <code>unit</code> and <code>y-txt</code>.
+This function seeks to compile plots of results from one or multiple tallies into a single PDF file.
+It is primarily intended to be called by <code><a title="PHITS_tools.parse_tally_output_file" href="#PHITS_tools.parse_tally_output_file">parse_tally_output_file()</a></code> and <code><a title="PHITS_tools.parse_all_tally_output_in_dir" href="#PHITS_tools.parse_all_tally_output_in_dir">parse_all_tally_output_in_dir()</a></code>.
+The <a href="https://seaborn.pydata.org/">seaborn</a> package's <a href="https://seaborn.pydata.org/generated/seaborn.relplot.html">relplot</a> function is used for generating these plots.</p>
+<h2 id="dependencies">Dependencies</h2>
+<ul>
+<li><code>import seaborn as sns</code></li>
+<li><code>import pandas as pd</code></li>
+<li><code>import matplotlib.pyplot as plt</code></li>
+<li><code>from matplotlib.colors import LogNorm, SymLogNorm, Normalize</code></li>
+<li><code>from matplotlib.backends.backend_pdf import PdfPages</code></li>
+</ul>
+<h2 id="inputs">Inputs</h2>
+<ul>
+<li><code>tally_output_list</code> = the <code>tally_output</code> output from the <code><a title="PHITS_tools.parse_tally_output_file" href="#PHITS_tools.parse_tally_output_file">parse_tally_output_file()</a></code> function, a string/Path
+object pointing to the pickle file of such output, or a list of such outputs or pickle filepaths.</li>
+<li><code>plot_errorbars</code> = (optional, D=<code>True</code>, requires <code>calculate_absolute_errors=True</code> to have been set in the
+<code><a title="PHITS_tools.parse_tally_output_file" href="#PHITS_tools.parse_tally_output_file">parse_tally_output_file()</a></code> call producing the <code>tally_output</code>) Boolean determining if errorbars will be
+displayed in plots.
+Note that owing to shortcomings in the <a href="https://seaborn.pydata.org/">seaborn</a> package's
+handling of error bars (i.e., not supporting externally calculated error bars) that a workaround has
+instead been implemented but is only functional for "line"-type plots.</li>
+<li><code>output_filename</code> = (optional, D=<code>results.pdf</code>) String or Path object designating the name/path where the
+PDF of plots will be saved.</li>
+<li><code>show_plots</code> = (optional, D=<code>False</code>) Boolean denoting whether this function will make a <code>plt.show()</code> call
+immediately before the <code>return</code> statement.</li>
+</ul>
+<h2 id="outputs">Outputs</h2>
+<ul>
+<li><code>None</code> (and the saved file of plot(s) specified by <code>output_filename</code>)</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename=&#39;results.pdf&#39;,show_plots=False):
+    &#39;&#39;&#39;
+    Description:
+        Generates visualizations/plots of the data in the output Pandas DataFrames from the `parse_tally_output_file()` 
+        function in an automated fashion.  Note that this function only seeks to accomplish exactly this. 
+        It is not a function for generating customized plots; it exists to automate creating visualizations of PHITS 
+        output using sets of predetermined rules and settings, principally for initial checking of results. 
+        Generally, it does not respect plotting-relevant settings provided to PHITS tallies (e.g., `samepage`, `axis`, `angel`, etc.), 
+        though it will use the `title` parameter and the plot axis titles for ANGEL included in the .out files, which are
+        influenced by some tally parameters, such as `unit` and `y-txt`.
+        This function seeks to compile plots of results from one or multiple tallies into a single PDF file. 
+        It is primarily intended to be called by `parse_tally_output_file()` and `parse_all_tally_output_in_dir()`.
+        The [seaborn](https://seaborn.pydata.org/) package&#39;s [relplot](https://seaborn.pydata.org/generated/seaborn.relplot.html) function is used for generating these plots.
+
+    Dependencies:
+        - `import seaborn as sns`
+        - `import pandas as pd`
+        - `import matplotlib.pyplot as plt`
+        - `from matplotlib.colors import LogNorm, SymLogNorm, Normalize`
+        - `from matplotlib.backends.backend_pdf import PdfPages`
+
+    Inputs:
+        - `tally_output_list` = the `tally_output` output from the `parse_tally_output_file()` function, a string/Path
+                object pointing to the pickle file of such output, or a list of such outputs or pickle filepaths.
+        - `plot_errorbars` = (optional, D=`True`, requires `calculate_absolute_errors=True` to have been set in the 
+                `parse_tally_output_file()` call producing the `tally_output`) Boolean determining if errorbars will be 
+                displayed in plots.  Note that owing to shortcomings in the [seaborn](https://seaborn.pydata.org/) package&#39;s
+                handling of error bars (i.e., not supporting externally calculated error bars) that a workaround has 
+                instead been implemented but is only functional for &#34;line&#34;-type plots.
+        - `output_filename` = (optional, D=`results.pdf`) String or Path object designating the name/path where the 
+                PDF of plots will be saved.
+        - `show_plots` = (optional, D=`False`) Boolean denoting whether this function will make a `plt.show()` call
+                immediately before the `return` statement.
+
+    Outputs:
+        - `None` (and the saved file of plot(s) specified by `output_filename`)
+
+    &#39;&#39;&#39;
+    &#39;&#39;&#39;
+    Behavior of this function within PHITS Tools:
+        - The option to execute this function on each produced output should be available for both `parse_tally_output_file()`
+                and `parse_all_tally_output_in_dir()` (one PDF file per tally output file) 
+        - Also for `parse_all_tally_output_in_dir()` should be an option to execute this function on ALL tally outputs 
+                handled by the dir parsing function (combining all plots into a single PDF)
+        - By default, both of these options should be disabled (set False) by default when PHITS Tools is used as an imported module.
+        - For GUI/CLI usage, checkboxes/flags for these three options should appear
+        - For GUI/CLI usage of `parse_tally_output_file()`, use of this function should be enabled/disabled by default.
+        - For GUI/CLI usage of `parse_all_tally_output_in_dir()`, use of this function should be enabled/disabled by default 
+                only for combining all output in a directory; making individual PDFs of each handled tally output should
+                be disabled/disabled by default.
+                
+        CLI flag name ideas: --plot (-p), --plot_each (-pe) , --plot_all (-pa)
+    &#39;&#39;&#39;
+    
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    from matplotlib.colors import LogNorm, SymLogNorm, Normalize
+    from matplotlib.backends.backend_pdf import PdfPages
+    import pickle, lzma
+    import datetime
+    
+    fig_aspect_ratio = 1.414  # width / height
+    fig_height = 4  # inches
+    max_num_values_to_plot = 1e7  # if the number of data points to plot exceeds this, plotting is skipped for that tally
+    figi = 10000  # figure number
+    
+    # Convert provided input to a list of `tally_output` dictionary objects
+    if isinstance(tally_output_list, dict):  # single tally output, tally output object
+        tally_output_list = [tally_output_list]
+    elif not isinstance(tally_output_list, list):  # single tally output, pickle file of tally output object
+        p = Path(tally_output_list)
+        tally_output = pickle.load(lzma.open(p, &#39;rb&#39;) if p.name[-3:] == &#39;.xz&#39; else open(p, &#39;rb&#39;))
+        tally_output_list = [tally_output]
+    else:  # list of tally output objects and/or pickles
+        for i, to in enumerate(tally_output_list): # open any pickle files provided
+            if not isinstance(to, dict):
+                p = Path(to)
+                tally_output_list[i] = pickle.load(lzma.open(p, &#39;rb&#39;) if p.name[-3:] == &#39;.xz&#39; else open(p, &#39;rb&#39;))
+    
+    def are_bins_linearly_spaced(bin_mids):
+        &#39;&#39;&#39;
+        Return True/False designating whether bin centers appear to be linearly spaced or not
+        &#39;&#39;&#39;
+        diff = np.diff(bin_mids).round(decimals=8)
+        vals, counts = np.unique(diff, return_counts=True)
+        counts, vals = zip(*sorted(zip(counts, vals), reverse=True))
+        if 0 in vals:
+            izero = vals.index(0)
+            counts, vals = list(counts), list(vals)
+            counts.pop(izero)
+            vals.pop(izero)
+        if len(vals) &lt;= 1: # all diff values are the same
+            bins_are_lin_spaced = True 
+        else:
+            if counts[0]/sum(counts) &gt; 0.5: # most frequent difference is more than half of all differences
+                bins_are_lin_spaced = True 
+            else:
+                bins_are_lin_spaced = False
+        return bins_are_lin_spaced
+
+    with PdfPages(output_filename) as pdf:
+        for toi, tally_output in enumerate(tally_output_list):
+            tally_data, tally_metadata, tally_dataframe = [tally_output[k] for k in tally_output.keys()]
+            # determine number of plots necessary
+            ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max, ierr_max = np.shape(tally_data)
+            if ierr_max==2 or ierr_max==4: plot_errorbars = False
+            special_tcross_case = False
+            if ierr_max&gt;3: special_tcross_case = True
+            if special_tcross_case:
+                df_cols = tally_dataframe.columns.values.tolist()
+                #print(df_cols)
+                df1 = tally_dataframe.copy().drop([&#39;r_surf&#39;, &#39;z_mid&#39;, &#39;value2&#39;, &#39;rel.err.2&#39;, &#39;abs.err.2&#39;], axis=1)
+                df2 = tally_dataframe.copy().drop([&#39;r_mid&#39;, &#39;z_surf&#39;, &#39;value&#39;, &#39;rel.err.&#39;, &#39;abs.err.&#39;], axis=1).rename(columns={&#39;value2&#39;:&#39;value&#39;, &#39;rel.err.2&#39;:&#39;rel.err.&#39;, &#39;abs.err.2&#39;:&#39;abs.err.&#39;})
+                #print(df1.columns.values.tolist())
+                #print(df2.columns.values.tolist())
+                tally_df_list = [df1, df2]
+            else:
+                tally_df_list = [tally_dataframe]
+                
+            for tally_df in tally_df_list:
+                df_cols = tally_df.columns.values.tolist()
+                array_axes_lens = [ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max]
+                tot_plot_axes = sum(1 for i in array_axes_lens if i &gt; 1)
+                tot_num_values = np.prod(array_axes_lens)
+                
+                if tot_num_values &gt; max_num_values_to_plot:
+                    print(&#39;WARNING: Tally output for &#39;,tally_metadata[&#39;file&#39;],&#39; is VERY LARGE (&#39;,tot_num_values,&#39; elements), deemed too large for automatic plotting.&#39;)
+                    continue
+                
+                if tot_plot_axes==0: # case where the tally is only scoring a single value
+                    fig = plt.figure(figi,(fig_aspect_ratio*fig_height,fig_height))
+                    plt.errorbar(1,tally_data[0,0,0,0,0,0,0,0,0,0],yerr=tally_data[0,0,0,0,0,0,0,0,0,2],marker=&#39;o&#39;)
+                    plt.title(tally_metadata[&#39;tally_type&#39;] + &#39;, &#39; + tally_metadata[&#39;file&#39;] + &#39;\n&#39; + tally_metadata[&#39;title&#39;])
+                    plt.ylabel(&#39;value&#39;)
+                    plt.tight_layout()
+                    # add PHITS Tools info
+                    fontdict = {&#39;color&#39;: &#39;#666666&#39;, &#39;weight&#39;: &#39;normal&#39;, &#39;size&#39;: 8, &#39;style&#39;: &#39;italic&#39;}
+                    fig.text(0.005, 0.005, &#39;Figure generated by PHITS Tools, github.com/Lindt8/PHITS-Tools&#39;,
+                             fontdict=fontdict, ha=&#39;left&#39;, va=&#39;bottom&#39;, url=&#39;https://github.com/Lindt8/PHITS-Tools&#39;)
+                    pdf.savefig()
+                    if not show_plots: plt.close()
+                    figi += 1
+                    continue
+                
+                # We can divide axes into two categories:
+                # - categorical: &#39;reg&#39;, &#39;tet&#39;, &#39;point#&#39;, &#39;ring#&#39;, &#39;particle&#39;,&#39;nuclide&#39;, &#39;ZZZAAAM&#39;
+                # - numerical: &#39;r_mid&#39;, &#39;r_surf&#39;, &#39;x_mid&#39;, &#39;y_mid&#39;, &#39;z_surf&#39;, &#39;z_mid&#39;, &#39;e_mid&#39;, &#39;t_mid&#39;, &#39;a_mid&#39;, &#39;LET_mid&#39;, &#39;ic/Z/charge&#39;, &#39;ic/A/mass&#39;
+                plot_axes = []
+                plot_axes_lens = []
+                plot_axes_ivars = []
+                num_axes = []
+                cat_axes = []
+                # assign all possible dimensions a &#34;priority&#34; score to compare for tiebreakers (dimensions of equal length)
+                ax_priority_vals = {&#39;reg&#39;: 100, &#39;tet&#39;: 100, &#39;point#&#39;: 101, &#39;ring#&#39;: 101,
+                                    &#39;r_mid&#39;: 100, &#39;r_surf&#39;: 101, &#39;x_mid&#39;: 100,
+                                    &#39;y_mid&#39;: 90, &#39;z_mid&#39;: 80, &#39;z_surf&#39;: 81,
+                                    &#39;e_mid&#39;: 110, &#39;e1_mid&#39;: 111,
+                                    &#39;t_mid&#39;: 70,
+                                    &#39;a_mid&#39;: 60,
+                                    &#39;LET_mid&#39;: 109,
+                                    &#39;particle&#39;: 95,
+                                    &#39;nuclide&#39;: 20, &#39;ZZZAAAM&#39;: 19,
+                                    &#39;ic/Z/charge&#39;: 30, &#39;ic/A/mass&#39;: 30,
+                                    &#39;#Interactions&#39;: 10, &#39;e2_mid&#39;: 109
+                                    }
+                cat_ax_to_index = {&#39;reg&#39;: &#39;ir&#39;, &#39;tet&#39;: &#39;ir&#39;, &#39;point#&#39;: &#39;ir&#39;, &#39;ring#&#39;: &#39;ir&#39;,
+                                   &#39;particle&#39;: &#39;ip&#39;,
+                                   &#39;nuclide&#39;: &#39;ic&#39;, &#39;ZZZAAAM&#39;: &#39;ic&#39;
+                                   }
+                # For the sake of making the plot labels nicer, also determine appropriate label for each axis
+                a_units = &#39;Angle [degrees]&#39;
+                if &#39;a-type&#39; in tally_metadata:
+                    if tally_metadata[&#39;a-type&#39;]&gt;0:
+                        a_units = &#39;cos(Angle)&#39;
+                    elif tally_metadata[&#39;axis&#39;] == &#39;rad&#39;:
+                            a_units = &#39;Angle [radians]&#39;
+                value_label_from_phits = &#39;value&#39;
+                if tally_metadata[&#39;axis_dimensions&#39;] == 1:
+                    if tally_metadata[&#39;value_label&#39;] != &#39;&#39;:
+                        value_label_from_phits = tally_metadata[&#39;value_label&#39;] 
+                    elif tally_metadata[&#39;axis2_label&#39;] != &#39;&#39;:
+                        value_label_from_phits = tally_metadata[&#39;axis2_label&#39;] 
+                else:
+                    if tally_metadata[&#39;value_label&#39;] != &#39;&#39;:
+                        value_label_from_phits = tally_metadata[&#39;value_label&#39;] 
+                if value_label_from_phits != &#39;value&#39;:
+                    value_label_from_phits = r&#39;{}&#39;.format(value_label_from_phits.replace(&#39;^2&#39;,&#39;$^2$&#39;))
+                    value_label_from_phits = r&#39;{}&#39;.format(value_label_from_phits.replace(&#39;^3&#39;,&#39;$^3$&#39;))
+                ax_labels = {&#39;reg&#39;:&#39;Region #&#39;, &#39;tet&#39;:&#39;Tet #&#39;, &#39;point#&#39;:&#39;Point det #&#39;, &#39;ring#&#39;:&#39;Ring det #&#39;,
+                                    &#39;r_mid&#39;:&#39;r [cm]&#39;, &#39;r_surf&#39;:&#39;r_surface [cm]&#39;, &#39;x_mid&#39;:&#39;x [cm]&#39;,
+                                    &#39;y_mid&#39;:&#39;y [cm]&#39;, &#39;z_mid&#39;:&#39;z [cm]&#39;, &#39;z_surf&#39;:&#39;z_surface [cm]&#39;,
+                                    &#39;e_mid&#39;:&#39;Energy [MeV]&#39;, &#39;e1_mid&#39;:&#39;Energy 1 [MeV]&#39;,
+                                    &#39;t_mid&#39;:&#39;Time [ns]&#39;,
+                                    &#39;a_mid&#39;:a_units,
+                                    &#39;LET_mid&#39;:r&#39;LET [keV/$\mu$m]&#39;,
+                                    &#39;particle&#39;:&#39;Particle&#39;,
+                                    &#39;nuclide&#39;:&#39;Nuclide&#39;, &#39;ZZZAAAM&#39;:&#39;ZZZAAAM&#39;,
+                                    &#39;ic/Z/charge&#39;:&#39;Z (proton #)&#39;, &#39;ic/A/mass&#39;:&#39;A (mass #)&#39;, 
+                                    &#39;#Interactions&#39;:&#39;Number of interactions&#39;, &#39;e2_mid&#39;:&#39;Energy 2 [MeV]&#39;,
+                                    &#39;value&#39;:value_label_from_phits, &#39;value2&#39;:value_label_from_phits,
+                                    &#39;rel.err.&#39;:&#39;relative error&#39;, &#39;rel.err.2&#39;:&#39;relative error&#39;
+                                    }
+                # now determine what axes are getting plotted
+                for i, leni in enumerate(array_axes_lens):
+                    if leni==1: continue
+                    if i==0: # &#39;reg&#39;, &#39;tet&#39;, &#39;point#&#39;, &#39;ring#&#39;, &#39;r_mid&#39;, &#39;r_surf&#39;, &#39;x_mid&#39;
+                        if any(a in [&#39;reg&#39;, &#39;point#&#39;, &#39;ring#&#39;] for a in df_cols):  # categorical
+                            col = [a for a in [&#39;reg&#39;, &#39;point#&#39;, &#39;ring#&#39;] if a in df_cols][0]
+                            cat_axes.append(col)
+                        else:  # numerical 
+                            col = [a for a in [&#39;r_mid&#39;, &#39;r_surf&#39;, &#39;x_mid&#39;, &#39;tet&#39;] if a in df_cols][0]
+                            num_axes.append(col)
+                            if col==&#39;tet&#39;: # convert tet number from string to float
+                                tally_df[&#39;tet&#39;] = tally_df[&#39;tet&#39;].astype(float)
+                    elif i==1: # &#39;y_mid&#39;
+                        col = &#39;y_mid&#39;
+                        num_axes.append(col)
+                    elif i==2: # &#39;z_mid&#39;, &#39;z_surf&#39;
+                        col = [a for a in [&#39;z_mid&#39;, &#39;z_surf&#39;] if a in df_cols][0]
+                        num_axes.append(col)
+                    elif i==3: # &#39;e_mid&#39;
+                        col = [a for a in [&#39;e_mid&#39;, &#39;e1_mid&#39;] if a in df_cols][0]
+                        num_axes.append(col)
+                    elif i==4: # &#39;t_mid&#39;
+                        col = &#39;t_mid&#39;
+                        num_axes.append(col)
+                    elif i==5: # &#39;a_mid&#39;
+                        col = &#39;a_mid&#39;
+                        num_axes.append(col)
+                    elif i==6: # &#39;LET_mid&#39;
+                        col = &#39;LET_mid&#39;
+                        num_axes.append(col)
+                    elif i==7: # &#39;particle&#39;
+                        col = &#39;particle&#39;
+                        cat_axes.append(col)
+                    elif i==8: # &#39;nuclide&#39;, &#39;ZZZAAAM&#39;, &#39;ic/Z/charge&#39;, &#39;ic/A/mass&#39;, &#39;act&#39;
+                        if any(a in [&#39;nuclide&#39;, &#39;ZZZAAAM&#39;] for a in df_cols):  # categorical
+                            col = [a for a in [&#39;nuclide&#39;, &#39;ZZZAAAM&#39;] if a in df_cols][0]
+                            cat_axes.append(col)
+                        else:  # numerical
+                            col = [a for a in [&#39;ic/Z/charge&#39;, &#39;ic/A/mass&#39;, &#39;#Interactions&#39;, &#39;e2_mid&#39;] if a in df_cols][0]
+                            num_axes.append(col)
+                    plot_axes.append(col)
+                    plot_axes_lens.append(leni)
+                # sort the lists in order of descending lengths, with &#34;higher priority&#34; axes coming first when equal in length
+                plot_axes_sorted = []
+                plot_axes_lens_sorted = []
+                num_axes_sorted = []
+                num_lens_sorted = []
+                cat_axes_sorted = []
+                cat_lens_sorted = []
+                ax_props = [(plot_axes[i],plot_axes_lens[i],ax_priority_vals[plot_axes[i]]) for i in range(len(plot_axes))]
+                ax_props.sort(key=lambda x: (-x[1], -x[2])) # sort first by length then priority, both in descending order
+                for i,tup in enumerate(ax_props):
+                    plot_axes_sorted.append(tup[0])
+                    plot_axes_lens_sorted.append(tup[1])
+                    if tup[0] in cat_axes:
+                        cat_axes_sorted.append(tup[0])
+                        cat_lens_sorted.append(tup[1])
+                    else:
+                        num_axes_sorted.append(tup[0])
+                        num_lens_sorted.append(tup[1])
+                cat = cat_axes_sorted 
+                num = num_axes_sorted
+                
+                # Now determine how each axis will be represented in the plot
+                &#39;&#39;&#39;
+                How we represent the data will depend on:
+                - how many axes there are to represent
+                - the specific combination of A cat and B num
+                - whether the longest axes are cat or num
+                
+                For the total number axes variables (r, y, z, e, t, a, l, p, and c) with length &gt; 1:
+                [unless stated otherwise, y=&#39;value&#39; for all options]
+                [charts become difficult to read if length of axis passed to hue and (especially) style are too long;
+                 therefore, maxlen = 6 is set, meaning if this length is exceeded for an axis bound for hue/style, 
+                 instead it will be split in row/col and/or cause a shift from a 1D line plot to a 2D scatter plot.]
+                - 0 : set x to 1, y to &#39;value&#39;
+                - 1 : 1 cat + 0 num : scatter(line?) : x = i_cat1, hue=style=cat1
+                - 1 : 0 cat + 1 num : line : x = num1
+                - 2 : 2 cat + 0 num : scatter(line?) : x = i_cat1, hue=cat1, style=cat2
+                - 2 : 1 cat + 1 num : line : x = num1, hue=style=cat1
+                - 2 : 0 cat + 2 num : line : x = num1, hue=style=num2 (suitable if len(num2) &lt;= maxlen)
+                      OR            : scatter : x = num1, y = num2, hue=&#39;value&#39; (increase marker size for pseudo 2D plot)
+                - 3 : 3 cat + 0 num : scatter(line?) : x = i_cat1, hue=cat1, style=cat2, row=cat3 (note: this scenario is extremely unlikely to happen)
+                - 3 : 2 cat + 1 num : line : x = num1, hue=cat1, style=cat2
+                - 3 : 1 cat + 2 num : line : x = num1, hue=num2, row=cat1 (suitable if len(num2) &lt;= maxlen)
+                      OR            : scatter : x = num1, y = num2, hue=&#39;value&#39;, row=cat1
+                - 3 : 0 cat + 3 num : line : x = num1, hue=num2, row=num3 (suitable if len(num2) &lt;= maxlen)
+                      OR            : scatter : x = num1, y = num2, hue=&#39;value&#39;, row=num3
+                - 4 : 3 cat + 1 num : line : x = num1, hue=cat1, style=cat2, row=cat3
+                - 4 : 2 cat + 2 num : line : x = num1, hue=num2, style=cat1, row=cat2 (suitable if len(num2) &lt;= maxlen and len(cat1) &lt;= maxlen)
+                      OR            : line : x = num1, hue=num2, row=cat1, col=cat2 (if len(num2) &lt;= maxlen but len(cat1) &gt; maxlen)
+                      OR            : scatter : x = num1, y = num2, hue=&#39;value&#39;, row=cat1, col=cat2
+                - 4 : 1 cat + 3 num : line : x = num1, hue=num2, style=cat1, row=num3 (suitable if len(num2) &lt;= maxlen and len(cat1) &lt;= maxlen)
+                      OR            : line : x = num1, hue=num2, row=num3, col=cat1 (if len(num2) &lt;= maxlen but len(cat1) &gt; maxlen)
+                      OR            : scatter : x = num1, y = num2, hue=&#39;value&#39;, row=num3, col=cat1
+                - 4 : 0 cat + 4 num : line : x = num1, hue=num2, style=num3, row=num4 (suitable if len(num2) &lt;= maxlen and len(num3) &lt;= maxlen)
+                      OR            : line : x = num1, hue=num2, row=num3, col=num4 (if len(num2) &lt;= maxlen but len(num3) &gt; maxlen)
+                      OR            : scatter : x = num1, y = num2, hue=&#39;value&#39;, row=num3, col=num4
+                - 5 : any 5 cat/num : line : x = num1, hue=num2, style=num5, row=num3, col=num4
+                - 6 : any 6 cat/num : line : x = num1, hue=num2, style=num5, size=num6, row=num3, col=num4
+                - 7+ : no plot will be generated, output will be skipped. If you have a tally this complex, you already have usage ideas.
+                &#39;&#39;&#39;
+                maxlen = 6  # if an axis length exceeds this, it may need to be reassigned to row/col or the plot type changed
+                maxlines = 16 # will modify plotting strategy if combining two axes on a line plot results in more lines than this
+                
+                plot_kind = &#39;line&#39;  # &#39;line&#39; or &#39;scatter&#39;
+                y_var = &#39;value&#39;
+                x_var = None
+                hue_var = None
+                style_var = None
+                size_var = None
+                row_var = None
+                col_var = None
+                pseudo_2d_plot = False
+                xvar_original_label = None
+                yvar_original_label = &#39;value&#39;
+                
+                if tot_plot_axes==0:
+                    pass
+                elif tot_plot_axes==1:
+                    if len(cat)==1:  # 1 cat + 0 num
+                        plot_kind = &#39;scatter&#39;
+                        x_var = cat_ax_to_index[cat_axes_sorted[0]]
+                        xvar_original_label = cat_axes_sorted[0]
+                        cat.append(x_var)
+                        hue_var = cat[0]
+                        style_var = cat[0]
+                    else:  # 0 cat + 1 num
+                        plot_kind = &#39;line&#39;
+                        x_var = num[0]
+                elif tot_plot_axes==2:
+                    if len(cat)==2:  # 2 cat + 0 num
+                        plot_kind = &#39;scatter&#39;
+                        x_var = cat_ax_to_index[cat_axes_sorted[0]]
+                        xvar_original_label = cat_axes_sorted[0]
+                        cat.append(x_var)
+                        hue_var = cat[0]
+                        style_var = cat[1]
+                    elif len(cat)==1:  # 1 cat + 1 num
+                        plot_kind = &#39;line&#39;
+                        x_var = num[0]
+                        hue_var = cat[0]
+                        style_var = cat[0]
+                    elif len(num)==2:  # 0 cat + 2 num
+                        if num_lens_sorted[1] &lt;= maxlen:
+                            plot_kind = &#39;line&#39;
+                            x_var = num[0]
+                            hue_var = num[1]
+                            style_var = num[1]
+                        else:
+                            pseudo_2d_plot = True
+                            plot_kind = &#39;scatter&#39;
+                            x_var = num[0]
+                            y_var = num[1]
+                            hue_var = &#39;value&#39;
+                elif tot_plot_axes==3:
+                    if len(cat) == 3:  # 3 cat + 0 num
+                        plot_kind = &#39;scatter&#39;
+                        x_var = cat_ax_to_index[cat_axes_sorted[0]]
+                        xvar_original_label = cat_axes_sorted[0]
+                        cat.append(x_var)
+                        hue_var = cat[0]
+                        style_var = cat[1]
+                        row_var = cat[2]
+                    elif len(cat) == 2:  # 2 cat + 1 num
+                        plot_kind = &#39;line&#39;
+                        x_var = num[0]
+                        hue_var = cat[0]
+                        style_var = cat[1]
+                    elif len(cat) == 1:  # 1 cat + 2 num
+                        if num_lens_sorted[1] &lt;= maxlen:
+                            plot_kind = &#39;line&#39;
+                            x_var = num[0]
+                            hue_var = num[1]
+                            style_var = num[1]
+                            row_var = cat[0]
+                        else:
+                            pseudo_2d_plot = True 
+                            plot_kind = &#39;scatter&#39;
+                            x_var = num[0]
+                            y_var = num[1]
+                            hue_var = &#39;value&#39;
+                            row_var = cat[0]
+                    elif len(num) == 3:  # 0 cat + 3 num
+                        if num_lens_sorted[1] &lt;= maxlen:
+                            plot_kind = &#39;line&#39;
+                            x_var = num[0]
+                            hue_var = num[1]
+                            style_var = num[1]
+                            row_var = num[2]
+                        else:
+                            pseudo_2d_plot = True
+                            plot_kind = &#39;scatter&#39;
+                            x_var = num[0]
+                            y_var = num[1]
+                            hue_var = &#39;value&#39;
+                            row_var = num[2]
+                    &#39;&#39;&#39;
+                    if plot_axes_sorted[0] in num:
+                        x_var = plot_axes_sorted[0]
+                    else:
+                        x_var = plot_axes_sorted[0]
+                        #x_var = cat_ax_to_index[cat_axes_sorted[0]]
+                        #cat.append(x_var)
+                        style_var = plot_axes_sorted[0]
+                    if plot_axes_lens_sorted[1] &lt;= maxlen:
+                        plot_kind = &#39;line&#39;
+                        hue_var = plot_axes_sorted[1]
+                        if plot_axes_lens_sorted[1]*plot_axes_lens_sorted[2] &lt;= maxlines:
+                            style_var = plot_axes_sorted[2]
+                        else:
+                            if style_var==None: style_var = plot_axes_sorted[1]
+                            row_var = plot_axes_sorted[2]
+                    else:
+                        pseudo_2d_plot = True
+                        plot_kind = &#39;scatter&#39;
+                        if plot_axes_sorted[1] in num:
+                            y_var = plot_axes_sorted[1]
+                        else:
+                            y_var = cat_ax_to_index[cat_axes_sorted[1]]
+                            cat.append(y_var)
+                        hue_var = &#39;value&#39;
+                        row_var = plot_axes_sorted[2]
+                    &#39;&#39;&#39;
+                elif tot_plot_axes==4:
+                    if plot_axes_sorted[0] in num:
+                        x_var = plot_axes_sorted[0]
+                    else:
+                        x_var = cat_ax_to_index[cat_axes_sorted[0]]
+                        xvar_original_label = cat_axes_sorted[0]
+                        cat.append(x_var)
+                        style_var = plot_axes_sorted[0]
+                    if plot_axes_lens_sorted[1] &lt;= maxlen:
+                        plot_kind = &#39;line&#39;
+                        hue_var = plot_axes_sorted[1]
+                        if style_var==None: style_var = plot_axes_sorted[1]
+                        row_var = plot_axes_sorted[2]
+                        col_var = plot_axes_sorted[3]
+                    else:
+                        pseudo_2d_plot = True
+                        plot_kind = &#39;scatter&#39;
+                        if plot_axes_sorted[1] in num:
+                            y_var = plot_axes_sorted[1]
+                        else:
+                            y_var = cat_ax_to_index[cat_axes_sorted[1]]
+                            yvar_original_label = cat_axes_sorted[1]
+                            cat.append(y_var)
+                        hue_var = &#39;value&#39;
+                        row_var = plot_axes_sorted[2]
+                        col_var = plot_axes_sorted[3]
+                elif tot_plot_axes==5:
+                    plot_kind = &#39;line&#39;
+                    if plot_axes_sorted[0] in num:
+                        x_var = plot_axes_sorted[0]
+                    else:
+                        x_var = cat_ax_to_index[cat_axes_sorted[0]]
+                        xvar_original_label = cat_axes_sorted[0]
+                        cat.append(x_var)
+                    hue_var = plot_axes_sorted[1]
+                    row_var = plot_axes_sorted[2]
+                    col_var = plot_axes_sorted[3]
+                    style_var = plot_axes_sorted[4]
+                elif tot_plot_axes==6:
+                    plot_kind = &#39;line&#39;
+                    if plot_axes_sorted[0] in num:
+                        x_var = plot_axes_sorted[0]
+                    else:
+                        x_var = cat_ax_to_index[cat_axes_sorted[0]]
+                        xvar_original_label = cat_axes_sorted[0]
+                        cat.append(x_var)
+                    hue_var = plot_axes_sorted[1]
+                    row_var = plot_axes_sorted[2]
+                    col_var = plot_axes_sorted[3]
+                    style_var = plot_axes_sorted[4]
+                    size_var = plot_axes_sorted[5]
+                else:
+                    print(&#39;Cannot create plot with 7+ variables...&#39;)
+                    continue
+                &#39;&#39;&#39;
+                listed below are all possible column headers in the dataframe 
+                &#39;ir&#39;,&#39;reg&#39;,&#39;reg#&#39;, &#39;tet&#39;, &#39;point#&#39;, &#39;ring#&#39;
+                &#39;ip&#39;, &#39;particle&#39;, &#39;kf-code&#39;
+                &#39;ix&#39;, &#39;iy&#39;, &#39;iz&#39;, &#39;x_mid&#39;, &#39;y_mid&#39;, &#39;z_surf&#39;, &#39;z_mid&#39;
+                &#39;ir&#39;, &#39;r_mid&#39;, &#39;r_surf&#39;, 
+                &#39;ie&#39;,&#39;e_mid&#39;, &#39;it&#39;, &#39;t_mid&#39;, &#39;ia&#39;, &#39;a_mid&#39;, &#39;il&#39;, &#39;LET_mid&#39;, &#39;e1_mid&#39;
+                &#39;ic&#39;, &#39;nuclide&#39;, &#39;ZZZAAAM&#39;, &#39;ic/Z/charge&#39;, &#39;ic/A/mass&#39;, &#39;#Interactions&#39;, &#39;e2_mid&#39;
+                &#39;value&#39;, &#39;rel.err.&#39;, &#39;abs.err.&#39;
+                &#39;value2&#39;, &#39;rel.err.2&#39;, &#39;abs.err.2&#39;
+                &#39;&#39;&#39;
+                
+                for ierr in range(2): # for pseudo 2d plots, also make a rel.err. plot
+                    if ierr==1 and not pseudo_2d_plot: continue
+                    if ierr==0:
+                        hue_palette_name_str = &#34;mako_r&#34;  # &#34;cividis&#34; # &#34;rocket_r&#34;
+                    else:
+                        hue_palette_name_str = &#34;Reds&#34;  # &#34;cividis&#34; # &#34;rocket_r&#34;
+                        if hue_var==&#39;value&#39;:
+                            hue_var = &#39;rel.err.&#39;
+                        elif hue_var==&#39;value2&#39;:
+                            hue_var = &#39;rel.err.2&#39;
+                        else:
+                            continue
+                        
+                    if x_var in cat: plot_kind=&#39;scatter&#39;
+                    if plot_kind==&#39;scatter&#39;: plot_errorbars = False
+                    if plot_errorbars:
+                        # The following 3 lines are the &#34;hack&#34; to circumvent seaborn stupidly not supporting custom error values
+                        duplicates = 100
+                        df = tally_df.loc[tally_df.index.repeat(duplicates)].copy()
+                        df[&#39;value&#39;] = np.random.normal(df[&#39;value&#39;].values, df[&#39;abs.err.&#39;].values)
+                        errorbar_arg = &#39;sd&#39;
+                    else:
+                        df = tally_df.copy()
+                        errorbar_arg = None
+                        
+                    if ierr==1 and pseudo_2d_plot: df[hue_var] = df[hue_var].replace({&#39;0&#39;: &#39;1&#39;, 0: 1.0})
+            
+                    # Determine lin/log/symlog usage for axes, with the following rules:
+                    # - default to linear
+                    # - if axis is already evenly linearly binned, keep it linear
+                    # - otherwise, log scale if max/min &gt; maxratio, maxratio = 101
+                    # - if log but dataset contains is not of all same sign , use symlog
+                    x_norm, y_norm = &#39;linear&#39;, &#39;linear&#39;
+                    hue_norm, size_norm = None, None
+                    maxratio = 101
+                    if x_var not in cat:
+                        x_min, x_max = df[x_var].abs().replace(0, np.nan).min(), df[x_var].abs().replace(0, np.nan).max()
+                        bins_are_lin_spaced = are_bins_linearly_spaced(df[x_var].to_numpy())
+                        if not bins_are_lin_spaced and x_max/x_min&gt;maxratio:
+                            if len(np.sign(df[x_var]).unique())&gt;1:
+                                x_norm = &#39;log&#39; #&#39;symlog&#39;
+                            else:
+                                x_norm = &#39;log&#39;
+                    if y_var not in cat:
+                        y_min, y_max = df[y_var].abs().replace(0, np.nan).min(), df[y_var].abs().replace(0, np.nan).max()
+                        bins_are_lin_spaced = are_bins_linearly_spaced(df[y_var].to_numpy())
+                        if not bins_are_lin_spaced and y_max/y_min&gt;maxratio:
+                            if len(np.sign(df[y_var]).unique())&gt;1:
+                                y_norm = &#39;log&#39; # &#39;symlog&#39;
+                            else:
+                                y_norm = &#39;log&#39;
+                    use_colorbar = False
+                    if hue_var != None:
+                        if hue_var not in cat:
+                            hue_min, hue_max = df[hue_var].abs().replace(0, np.nan).min(), df[hue_var].abs().replace(0, np.nan).max()
+                            bins_are_lin_spaced = are_bins_linearly_spaced(df[hue_var].to_numpy())
+                            if not bins_are_lin_spaced and hue_max/hue_min&gt;maxratio:
+                                if len(np.sign(df[hue_var]).unique())&gt;1:
+                                    hue_norm = SymLogNorm(linthresh=hue_min)
+                                else:
+                                    hue_norm = LogNorm()
+                        if pseudo_2d_plot:
+                            use_colorbar = True
+                            if hue_norm == None: hue_norm = Normalize()
+                            if ierr == 1: hue_norm = Normalize(vmin=0, vmax=1)
+                            cmap = sns.color_palette(hue_palette_name_str, as_cmap=True)
+                            sm = plt.cm.ScalarMappable(cmap=cmap, norm=hue_norm)
+                    if size_var != None and size_var not in cat:
+                        size_min, size_max = df[size_var].abs().replace(0, np.nan).min(), df[size_var].abs().replace(0,np.nan).max()
+                        bins_are_lin_spaced = are_bins_linearly_spaced(df[size_var].to_numpy())
+                        if not bins_are_lin_spaced and size_max/size_min&gt;maxratio:
+                            if len(np.sign(df[size_var]).unique())&gt;1:
+                                size_norm = SymLogNorm(linthresh=size_min)
+                            else:
+                                size_norm = LogNorm()
+                    
+                    # Right before plotting, let&#39;s rename Pandas DF columns to be nicer on plots
+                    y_var_renamed = &#39;value&#39;
+                    x_var_renamed = None
+                    hue_var_renamed = None
+                    style_var_renamed = None
+                    size_var_renamed = None
+                    row_var_renamed = None
+                    col_var_renamed = None
+                    df_renamed = df.rename(columns=ax_labels)
+                    if xvar_original_label != None:
+                        x_var_new = ax_labels[xvar_original_label] + &#39; index&#39;
+                        df_renamed = df_renamed.rename(columns={x_var:x_var_new})
+                        x_var_renamed = x_var_new
+                    else:
+                        x_var_renamed = ax_labels[x_var]
+                    if yvar_original_label != &#39;value&#39;:
+                        y_var_new = ax_labels[yvar_original_label] + &#39; index&#39;
+                        df_renamed = df_renamed.rename(columns={y_var:y_var_new})
+                        y_var_renamed = y_var_new
+                    else:
+                        y_var_renamed = ax_labels[y_var]
+                    if hue_var != None: hue_var_renamed = ax_labels[hue_var]
+                    if style_var != None: style_var_renamed = ax_labels[style_var]
+                    if size_var != None: size_var_renamed = ax_labels[size_var]
+                    if row_var != None: row_var_renamed = ax_labels[row_var]
+                    if col_var != None: col_var_renamed = ax_labels[col_var]
+                    
+                    if in_debug_mode:
+                        print(&#39;plot_kind=&#39;, plot_kind, 
+                              &#39;\ny_var=&#39;, y_var, y_var_renamed, 
+                              &#39;\nx_var=&#39;, x_var, x_var_renamed, 
+                              &#39;\nhue_var=&#39;, hue_var, hue_var_renamed, &#39;\nhue_norm=&#39;, hue_norm, 
+                              &#39;\nstyle_var=&#39;, style_var, style_var_renamed, 
+                              &#39;\nsize_var=&#39;, size_var, size_var_renamed, 
+                              &#39;\nrow_var=&#39;, row_var, row_var_renamed, 
+                              &#39;\ncol_var=&#39;, col_var, col_var_renamed, 
+                              &#39;\npseudo_2d_plot=&#39;, pseudo_2d_plot)
+                        print(df_renamed.columns.values)
+
+                    if plot_kind == &#39;line&#39;:
+                        fg = sns.relplot(data=df_renamed, kind=plot_kind, #num=figi, 
+                                         height=fig_height, aspect=fig_aspect_ratio, 
+                                         x=x_var_renamed, y=y_var_renamed, 
+                                         hue=hue_var_renamed, style=style_var_renamed, size=size_var_renamed,
+                                         hue_norm=hue_norm, size_norm=size_norm,
+                                         row=row_var_renamed, col=col_var_renamed,
+                                         errorbar=errorbar_arg, legend=&#39;auto&#39;, # markers=False, 
+                                         facet_kws={&#34;legend_out&#34;: True, }
+                                         )
+                    else: # scatterplot
+                        if pseudo_2d_plot:
+                            num_cols = df_renamed[x_var_renamed].nunique()
+                            num_rows = df_renamed[y_var_renamed].nunique()
+                            # using horizontal direction
+                            #fig_size_inch = fig_height * fig_aspect_ratio
+                            #margin = 0.05  # 0.12
+                            #n_markers = num_cols
+                            #subplot_fraction = 0.7696385
+                            # for a normal plot w/o rows/cols, widths are: fig=624.475, ax=535.807 (pre adjust) / 480.62 (post adjust), leg=58.875
+                            if use_colorbar:
+                                leg_arg = False
+                                # using vertical direction
+                                # these values are decent but could perhaps use better optimization
+                                fig_size_inch = fig_height
+                                margin = 0.06  # 0.2
+                                n_markers = num_rows
+                                subplot_fraction = 1 - 2 * margin
+                                ar_ax_vs_fig_correction = 0.95
+                            else:
+                                leg_arg = &#39;auto&#39;
+                                # using vertical direction
+                                fig_size_inch = fig_height
+                                margin = 0.185  # 0.2
+                                n_markers = num_rows
+                                subplot_fraction = 1 - 2 * margin
+                                ar_ax_vs_fig_correction = 1.3
+                            ar_if_square = num_rows / num_cols
+                            mar = fig_aspect_ratio * ar_if_square * ar_ax_vs_fig_correction  # marker aspect ratio, width/height
+                            verts = [[-mar, -1], [mar, -1], [mar, 1], [-mar, 1], [-mar, -1]]
+                            fig_ppi = 72  # 300 is default save dpi, different from draw dpi
+                            marker_size = (subplot_fraction * fig_size_inch * fig_ppi / n_markers) ** 2 # Size of the marker, in points^2
+                            s = marker_size  # universal marker size for plot
+                            if num_rows &lt;= 15:  # adjust vertical label spacing in legend, if needed, before plotting
+                                sns.set(style=None, rc={&#39;legend.labelspacing&#39;: 1.2})  
+                                
+                            fg = sns.relplot(data=df_renamed, kind=plot_kind,  # num=figi, 
+                                             height=fig_height, aspect=fig_aspect_ratio,
+                                             x=x_var_renamed, y=y_var_renamed, s=s, linewidth=0, #edgecolor=None, 
+                                             hue=hue_var_renamed, style=style_var_renamed, size=size_var_renamed,
+                                             hue_norm=hue_norm, size_norm=size_norm,
+                                             row=row_var_renamed, col=col_var_renamed,
+                                             legend=leg_arg,
+                                             palette=hue_palette_name_str,
+                                             marker=verts, alpha=1,
+                                             #facet_kws={&#34;legend_out&#34;: True, }
+                                             )
+                            #fg.set(aspect=&#39;equal&#39;)
+                            #cbar = plt.colorbar(sm, ax=plt.gca())
+                            #cbar = fg.fig.colorbar(sm, ax=fg.axes[:, -1])
+                            for col in range(np.shape(fg.axes[:,:])[1]):
+                                for row in range(np.shape(fg.axes[:,:])[0]):
+                                    cbar = plt.colorbar(sm, ax=fg.axes[row,col])
+                                    cbar.set_label(hue_var_renamed)
+                        else:
+                            fg = sns.relplot(data=df_renamed, kind=plot_kind,  # num=figi, 
+                                             height=fig_height, aspect=fig_aspect_ratio,
+                                             x=x_var_renamed, y=y_var_renamed,
+                                             hue=hue_var_renamed, style=style_var_renamed, size=size_var_renamed,
+                                             hue_norm=hue_norm, size_norm=size_norm,
+                                             row=row_var_renamed, col=col_var_renamed,
+                                             legend=&#39;auto&#39;, s=100, alpha=1,
+                                             facet_kws={&#34;legend_out&#34;: True, }
+                                             )
+                    
+                    fig, axes = fg.fig, fg.axes
+                    legend_exists = not all(v is None for v in [hue_var, style_var, size_var, col_var, row_var])
+                    if legend_exists and not pseudo_2d_plot:
+                        leg = fg._legend
+                        leg.set_bbox_to_anchor([1, 0.5])  # Move legend to far right
+                        leg._loc = 5 # https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.legend.html#matplotlib.axes.Axes.legend
+                        # later figure will be rescaled to accommodate the legend
+                        
+                    title_str = tally_metadata[&#39;tally_type&#39;] + &#39;, &#39; + tally_metadata[&#39;file&#39;] + &#39;\n&#39; + tally_metadata[&#39;title&#39;]
+                    #xlabel_str = tally_metadata[&#39;axis1_label&#39;]
+                    #ylabel_str = tally_metadata[&#39;value_label&#39;]
+            
+                    st = fg.fig.suptitle(title_str, fontsize=16, va=&#39;top&#39;, y=0.995)
+                    #fg.fig.get_axes()[0].annotate(title_str, (0.5, 0.95), xycoords=&#39;figure fraction&#39;, ha=&#39;center&#39;, fontsize=16)
+                    #fg.set_axis_labels(xlabel_str, ylabel_str)
+                    for ax in fg.axes.flat:
+                        ax.set_xscale(x_norm)
+                        ax.set_yscale(y_norm)
+                        ax.grid(which=&#39;both&#39;, linewidth=1, color=&#39;#EEEEEE&#39;, alpha=0.5)
+                        #ax.set_facecolor((0, 0, 0, 0))
+                        #ax.tick_params(labelbottom=True, labelleft=True)
+                        #ax.set_xlabel(xlabel_str, visible=True)
+                        #ax.set_ylabel(ylabel_str, visible=True)
+                    
+                    #sns.move_legend(fg, &#34;upper left&#34;, bbox_to_anchor=(1, 1))
+                    # Issue 1: tight_layout is needed to not have stuff clipped off edge
+                    # Issue 2: tight_layout causes the legend, if placed outside the plot area, to be cut out
+                    # Soltion: draw canvas early, figure out their relative widths, then adjust the right edge of the figure
+                    plt.tight_layout() # pad=3.0
+                    if legend_exists and not pseudo_2d_plot:
+                        fig.canvas.draw()
+                        fig_width = fig.get_window_extent().width
+                        leg_width = leg.get_window_extent().width
+                        #print(fig_width,ax.get_window_extent().width,leg_width)
+                        fg.fig.subplots_adjust(right=0.98*(fig_width-leg_width)/fig_width)
+                        #print(fg.fig.get_window_extent().width, fg.ax.get_window_extent().width, leg.get_window_extent().width)
+                    #if pseudo_2d_plot:
+                    #    fig.canvas.draw()
+                    #    fig_width = fig.get_window_extent().width
+                    #    #cbar_width = fg.fig.get_window_extent().width - fg.axes.get_window_extent().width
+                    #    #fg.fig.subplots_adjust(right=0.98 * (fig_width - cbar_width) / fig_width)
+                    #    fg.fig.subplots_adjust(right=0.98 * 0.8)
+                        
+                    # add PHITS Tools info
+                    fontdict = {&#39;color&#39;:&#39;#666666&#39;, &#39;weight&#39;:&#39;normal&#39;, &#39;size&#39;: 8, &#39;style&#39;:&#39;italic&#39;}
+                    fig.text(0.005,0.005,&#39;Figure generated by PHITS Tools, github.com/Lindt8/PHITS-Tools&#39;,fontdict=fontdict,ha=&#39;left&#39;, va=&#39;bottom&#39;, url=&#39;https://github.com/Lindt8/PHITS-Tools&#39;)
+    
+                    pdf.savefig(bbox_extra_artists=[st])
+                    if not show_plots: plt.close()
+                    figi += 1
+            
+        d = pdf.infodict()
+        #d[&#39;Title&#39;] = &#39;Multipage PDF Example&#39;
+        d[&#39;Author&#39;] = &#39;PHITS Tools&#39;
+        d[&#39;Subject&#39;] = &#39;https://github.com/Lindt8/PHITS-Tools/&#39;
+        #d[&#39;Keywords&#39;] = &#39;PdfPages multipage keywords author title subject&#39;
+        d[&#39;CreationDate&#39;] = datetime.datetime.today()
+        d[&#39;ModDate&#39;] = datetime.datetime.today()
+
+    print(&#39;Plot PDF written:&#39;, output_filename, &#39;\n&#39;)
+    
+    if show_plots: 
+        plt.show()
+    return None</code></pre>
 </details>
 </dd>
 </dl>
@@ -10104,6 +11864,7 @@ note that tally_df.attrs returns values which are the same for all rows</li>
 <li><code><a title="PHITS_tools.data_row_to_num_list" href="#PHITS_tools.data_row_to_num_list">data_row_to_num_list</a></code></li>
 <li><code><a title="PHITS_tools.calculate_tally_absolute_errors" href="#PHITS_tools.calculate_tally_absolute_errors">calculate_tally_absolute_errors</a></code></li>
 <li><code><a title="PHITS_tools.build_tally_Pandas_dataframe" href="#PHITS_tools.build_tally_Pandas_dataframe">build_tally_Pandas_dataframe</a></code></li>
+<li><code><a title="PHITS_tools.autoplot_tally_results" href="#PHITS_tools.autoplot_tally_results">autoplot_tally_results</a></code></li>
 </ul>
 </li>
 </ul>

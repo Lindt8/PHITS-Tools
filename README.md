@@ -65,6 +65,7 @@ The CLI principally serves to interface with the core three functions of PHITS T
   - `-np` sets `make_PandasDF = False` (`True` if excluded)
   - `-na` sets `calculate_absolute_errors = False` (`True` if excluded)
   - `-lzma` sets `compress_pickle_with_lzma = True` (`False` if excluded)
+  - `-p` sets `autoplot_tally_output = True` (`False` if excluded)
 - [**`parse_tally_dump_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_dump_file) (and passed to it via [**`parse_all_tally_output_in_dir()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_all_tally_output_in_dir))
   - `-d` tells the CLI that `file` should be processed as a dump file (if it's not a directory)
   - `-dvals` passes the provided sequence of values to `dump_data_sequence` (`None` if excluded)
@@ -84,6 +85,7 @@ The CLI principally serves to interface with the core three functions of PHITS T
   - `-d` sets `include_dump_files = True` (`False` if excluded)
   - `-dnmmpi` sets `dump_merge_MPI_subdumps = False` (`True` if excluded)
   - `-dndmpi` sets `dump_delete_MPI_subdumps_post_merge = False` (`True` if excluded)
+  - `-pa` sets `autoplot_all_tally_output_in_dir = True` (`False` if excluded)
 
 Below is a picture of all of these options available for use within the CLI.  
 

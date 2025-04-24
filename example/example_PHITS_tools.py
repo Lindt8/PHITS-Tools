@@ -13,7 +13,8 @@ dump_output_file = Path(path_to_example_dir, 'product_dmp.out')
 # parse standard tally output file
 print('STANDARD TALLY OUTPUT')
 # run the output file through the main parsing function in PHITS Tools
-results_dict = PHITS_tools.parse_tally_output_file(standard_output_file)
+results_dict = PHITS_tools.parse_tally_output_file(standard_output_file, autoplot_tally_output=True)
+# setting autoplot_tally_output=True will cause a plot to be made automatically and saved to product.pdf
 
 # If you already have a pickle file from running PHITS Tools previously, you can skip re-parsing it and
 # just load in the pickle file with the `prefer_reading_existing_pickle=True` setting.  If set to True
