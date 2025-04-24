@@ -361,6 +361,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
     Dependencies:
         - `import numpy as np`
         - `import pandas as pd` (if `make_PandasDF = True`)
+        - `import seaborn as sns` (if `autoplot_tally_output=True`)
         - `from munch import Munch` (will still run if package not found)
 
     Inputs:
@@ -1259,6 +1260,7 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = &#3
     Dependencies:
         - `import numpy as np`
         - `import pandas as pd` (if `make_PandasDF = True`)
+        - `import seaborn as sns` (if `autoplot_tally_output=True` or `autoplot_all_tally_output_in_dir=True`)
         - `from munch import Munch` (will still run if package not found)
         - `from collections import namedtuple` (if processing tally dump files)
         - `from scipy.io import FortranFile` (if processing tally dump files)
@@ -5860,6 +5862,7 @@ DCHAIN output files, returning the output dictionary object and (optionally) sav
 <ul>
 <li><code>import numpy as np</code></li>
 <li><code>import pandas as pd</code> (if <code>make_PandasDF = True</code>)</li>
+<li><code>import seaborn as sns</code> (if <code>autoplot_tally_output=True</code>)</li>
 <li><code>from munch import Munch</code> (will still run if package not found)</li>
 </ul>
 <h2 id="inputs">Inputs</h2>
@@ -6104,6 +6107,7 @@ the yield results of production of carbon-14 (C-14), one would use the following
     Dependencies:
         - `import numpy as np`
         - `import pandas as pd` (if `make_PandasDF = True`)
+        - `import seaborn as sns` (if `autoplot_tally_output=True`)
         - `from munch import Munch` (will still run if package not found)
 
     Inputs:
@@ -7106,6 +7110,7 @@ The filenames of saved dump data will not be included in the returned list.</p>
 <ul>
 <li><code>import numpy as np</code></li>
 <li><code>import pandas as pd</code> (if <code>make_PandasDF = True</code>)</li>
+<li><code>import seaborn as sns</code> (if <code>autoplot_tally_output=True</code> or <code>autoplot_all_tally_output_in_dir=True</code>)</li>
 <li><code>from munch import Munch</code> (will still run if package not found)</li>
 <li><code>from collections import namedtuple</code> (if processing tally dump files)</li>
 <li><code>from scipy.io import FortranFile</code> (if processing tally dump files)</li>
@@ -7285,6 +7290,7 @@ file paths to pickle files containing <code>tally_output</code> dictionary objec
     Dependencies:
         - `import numpy as np`
         - `import pandas as pd` (if `make_PandasDF = True`)
+        - `import seaborn as sns` (if `autoplot_tally_output=True` or `autoplot_all_tally_output_in_dir=True`)
         - `from munch import Munch` (will still run if package not found)
         - `from collections import namedtuple` (if processing tally dump files)
         - `from scipy.io import FortranFile` (if processing tally dump files)
