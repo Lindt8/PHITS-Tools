@@ -58,6 +58,22 @@ plt.grid(which='both', linewidth=1, color='#EEEEEE')
 fig_path = Path(path_to_example_dir,'production_energy_spectrum_by_particle.png')
 plt.savefig(fig_path)
 
+# The PHITS Tools function for generating plots automatically can also return the seaborn FacetGrid objects, 
+# allowing for further customization if desired.
+customized_autoplot_pdf = Path(path_to_example_dir, 'product_customized.pdf')
+fg_list = PHITS_tools.autoplot_tally_results(results_dict, output_filename=customized_autoplot_pdf, return_fg_list=True)
+text_color, background_color = '#260F80', '#FCF6E3'
+fg_list[0].fig.set_facecolor(background_color)  # change background color of figure exterior
+fg_list[0].ax.set_facecolor(background_color)  # change background color of plot area
+fg_list[0].ax.tick_params(labelcolor=text_color)  # change font color of axis tick labels (the numbers)
+for spine in fg_list[0].ax.spines.values(): spine.set_edgecolor(text_color)  # change color of axes and ticks
+fg_list[0].fig._suptitle.set_color(text_color)  # change font color of title
+fg_list[0]._legend.get_title().set(color=text_color)  # change font color of legend title
+for text in fg_list[0]._legend.get_texts(): text.set(color=text_color)  # change font color of text entries in legend
+fg_list[0].ax.set_xlabel('Energy of produced particle [MeV]', color=text_color)  # change x-axis label text and color
+fg_list[0].ax.set_ylabel(fg_list[0].ax.get_ylabel(), color=text_color)  # change y-axis label color only
+fg_list[0].savefig(customized_autoplot_pdf)  # save the new customized plot
+
 # parse DUMP tally output file
 print('\n\nDUMP TALLY OUTPUT')
 # Given parsing dump files can take a bit longer owing to their size, I think it's generally preferable to only

@@ -187,6 +187,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
     Dependencies:
         - `import numpy as np`
         - `import pandas as pd` (if `make_PandasDF = True`)
+        - `import seaborn as sns` (if `autoplot_tally_output = True`)
         - `from munch import Munch` (will still run if package not found)
 
     Inputs:
@@ -1085,6 +1086,7 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
     Dependencies:
         - `import numpy as np`
         - `import pandas as pd` (if `make_PandasDF = True`)
+        - `import seaborn as sns` (if `autoplot_tally_output=True` or `autoplot_all_tally_output_in_dir=True`)
         - `from munch import Munch` (will still run if package not found)
         - `from collections import namedtuple` (if processing tally dump files)
         - `from scipy.io import FortranFile` (if processing tally dump files)
@@ -4181,7 +4183,7 @@ def build_tally_Pandas_dataframe(tdata,meta):
     return tally_df
 
 
-def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename='results.pdf',show_plots=False):
+def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename='results.pdf',show_plots=False,return_fg_list=False):
     '''
     Description:
         Generates visualizations/plots of the data in the output Pandas DataFrames from the `parse_tally_output_file()` 
@@ -4194,7 +4196,10 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
         This function seeks to compile plots of results from one or multiple tallies into a single PDF file. 
         It is primarily intended to be called by `parse_tally_output_file()` and `parse_all_tally_output_in_dir()`.
         The [seaborn](https://seaborn.pydata.org/) package's [relplot](https://seaborn.pydata.org/generated/seaborn.relplot.html) function is used for generating these plots.
-
+        If you wish to make modifications to the automatically generated figures, use the `return_fg_list=True` setting 
+        and apply your desired modifications to the returned FacetGrid objects.  (This is demonstrated in the 
+        [example](https://github.com/Lindt8/PHITS-Tools/tree/main/example) distributed with PHITS Tools.)
+        
     Dependencies:
         - `import seaborn as sns`
         - `import pandas as pd`
@@ -4214,9 +4219,14 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                 PDF of plots will be saved.
         - `show_plots` = (optional, D=`False`) Boolean denoting whether this function will make a `plt.show()` call
                 immediately before the `return` statement.
+        - `return_fg_list` = (optional, D=`False`) Boolean denoting whether a list of the generated seaborn FacetGrid 
+                objects returned by the sns.relplot() calls should be returned by this function, allowing modification 
+                of the automatically generated plots.  (Strictly speaking, the objects are copies of the FacetGrid objects 
+                made using the built-in [copy.deepcopy()](https://docs.python.org/3/library/copy.html#copy.deepcopy) function.)  If `False`, this function returns `None`.
 
     Outputs:
-        - `None` (and the saved file of plot(s) specified by `output_filename`)
+        - `None` if `return_fg_list=False` (default) or `fg_list` if `return_fg_list=True`; see description of the `return_fg_list` input argument
+        - (and the saved file of plot(s) specified by `output_filename`)
 
     '''
     '''
@@ -4231,8 +4241,6 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
         - For GUI/CLI usage of `parse_all_tally_output_in_dir()`, use of this function should be enabled/disabled by default 
                 only for combining all output in a directory; making individual PDFs of each handled tally output should
                 be disabled/disabled by default.
-                
-        CLI flag name ideas: --plot (-p), --plot_each (-pe) , --plot_all (-pa)
     '''
     
     import seaborn as sns
@@ -4241,11 +4249,13 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
     from matplotlib.backends.backend_pdf import PdfPages
     import pickle, lzma
     import datetime
+    import copy
     
     fig_aspect_ratio = 1.414  # width / height
     fig_height = 4  # inches
     max_num_values_to_plot = 1e7  # if the number of data points to plot exceeds this, plotting is skipped for that tally
     figi = 10000  # figure number
+    fg_list = []  # list of generated Seaborn FacetGrid objects returned by the sns.relplot() calls
     
     # Convert provided input to a list of `tally_output` dictionary objects
     if isinstance(tally_output_list, dict):  # single tally output, tally output object
@@ -4308,6 +4318,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                 
                 if tot_num_values > max_num_values_to_plot:
                     print('WARNING: Tally output for ',tally_metadata['file'],' is VERY LARGE (',tot_num_values,' elements), deemed too large for automatic plotting.')
+                    if return_fg_list: fg_list.append(None)
                     continue
                 
                 if tot_plot_axes==0: # case where the tally is only scoring a single value
@@ -4321,6 +4332,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                     fig.text(0.005, 0.005, 'Figure generated by PHITS Tools, github.com/Lindt8/PHITS-Tools',
                              fontdict=fontdict, ha='left', va='bottom', url='https://github.com/Lindt8/PHITS-Tools')
                     pdf.savefig()
+                    if return_fg_list: fg_list.append(copy.deepcopy(fig))
                     if not show_plots: plt.close()
                     figi += 1
                     continue
@@ -4911,7 +4923,8 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                     fig.text(0.005,0.005,'Figure generated by PHITS Tools, github.com/Lindt8/PHITS-Tools',fontdict=fontdict,ha='left', va='bottom', url='https://github.com/Lindt8/PHITS-Tools')
     
                     pdf.savefig(bbox_extra_artists=[st])
-                    if not show_plots: plt.close()
+                    if return_fg_list: fg_list.append(copy.deepcopy(fg))
+                    if not show_plots: plt.close(fg.fig)
                     figi += 1
             
         d = pdf.infodict()
@@ -4926,7 +4939,10 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
     
     if show_plots: 
         plt.show()
-    return None
+    if return_fg_list:
+        return fg_list 
+    else:
+        return None
 
 
 
@@ -5642,9 +5658,15 @@ elif test_explicit_files_dirs:
     tally_df = tally_output['tally_dataframe']
 
     pprint.pp(dict(tally_metadata))
-
-    autoplot_tally_results(tally_output)
-
+    
+    import matplotlib.pyplot as plt
+    
+    fg_list = autoplot_tally_results(tally_output, return_fg_list=True)
+    #fg = fg_list[0]
+    #for ax in fg.axes.flat:
+    #    ax.set_facecolor((0, 1, 0, 1))
+    #    ax.set_xlabel('TEST', visible=True)
+    #plt.show()
     
     
     sys.exit()
