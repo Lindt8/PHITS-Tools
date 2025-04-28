@@ -1640,7 +1640,9 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
             else:
                 bins_are_lin_spaced = False
         return bins_are_lin_spaced
-
+    
+    tex_replace_strs = {'^2':'$^2$', '^3':'$^3$', '\sigma':'$\sigma$', '\Omega':'$\Omega$'}
+    
     with PdfPages(output_filename) as pdf:
         for toi, tally_output in enumerate(tally_output_list):
             tally_data, tally_metadata, tally_dataframe = [tally_output[k] for k in tally_output.keys()]
@@ -1729,8 +1731,8 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                     if tally_metadata['value_label'] != '':
                         value_label_from_phits = tally_metadata['value_label'] 
                 if value_label_from_phits != 'value':
-                    value_label_from_phits = r'{}'.format(value_label_from_phits.replace('^2','$^2$'))
-                    value_label_from_phits = r'{}'.format(value_label_from_phits.replace('^3','$^3$'))
+                    for itx in tex_replace_strs:
+                        value_label_from_phits = r'{}'.format(value_label_from_phits.replace(itx,tex_replace_strs[itx]))
                 ax_labels = {'reg':'Region #', 'tet':'Tet #', 'point#':'Point det #', 'ring#':'Ring det #',
                                     'r_mid':'r [cm]', 'r_surf':'r_surface [cm]', 'x_mid':'x [cm]',
                                     'y_mid':'y [cm]', 'z_mid':'z [cm]', 'z_surf':'z_surface [cm]',
