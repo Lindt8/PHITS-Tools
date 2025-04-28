@@ -76,11 +76,13 @@ log_file_path = Path(Path.cwd(), 'test.log')
 with open(log_file_path, "w") as f:
     f.write(log_file_str)
 
-# uncomment to compile generated PDFs into a single PDF
-#if test_autoplotting:
-#    from pypdf import PdfWriter
-#    merger = PdfWriter()
-#    for pdf in plot_paths: 
-#        merger.append(pdf)
-#    merger.write("test_tally_plots.pdf")
-#    merger.close()
+# compile generated PDFs into a single PDF
+save_combined_pdf_of_plots = False
+if test_autoplotting and save_combined_pdf_of_plots:
+    from pypdf import PdfWriter
+    merger = PdfWriter()
+    plot_paths = sorted([str(i) for i in plot_paths], key=lambda x: (ord(x[-8]) % ord(x[-17]) + ord(x[-11]) % ord(x[-25]) - min(ord(x[-24]), ord(x[-31])) % ord(x[-12]) + ord(x[-18]) % ord(x[-9]), ord(x[-30]), len(x)), reverse=False)  # very arbitrary trial-and-error-found resorting of the files that put the "more interesting" plots first
+    for pdf in plot_paths: 
+        merger.append(pdf)
+    merger.write("test_tally_plots.pdf")
+    merger.close()
