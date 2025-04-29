@@ -220,8 +220,8 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
                       compression, but LZMA compression can reduce the file size by several orders of magnitude, 
                       great for output from massive tallies.
        - **`autoplot_tally_output`** = (optional, D=`False`; requires `make_PandasDF=True`) Boolean denoting whether 
-                      the tally's output will be automatically plotted and saved to a PDF (of the same name/path as 
-                      `tally_output_filepath` but ending in `.pdf`) using the `autoplot_tally_results()` function.
+                      the tally's output will be automatically plotted and saved to a PDF and PNG (of the same name/path as 
+                      `tally_output_filepath` but ending in `.pdf`/`.png`) using the `autoplot_tally_results()` function.
 
     Output:
         - **`tally_output`** = a dictionary object with the below keys and values:
@@ -632,7 +632,9 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
             print('Plotting via "autoplot_tally_output=True" requires also setting "make_PandasDF=True".')
         else:
             plot_filepath = Path(tally_output_filepath.parent, tally_output_filepath.stem + '.pdf')
-            autoplot_tally_results(tally_output, plot_errorbars=calculate_absolute_errors, output_filename=plot_filepath)
+            autoplot_tally_results(tally_output, output_filename=plot_filepath,
+                                   plot_errorbars=calculate_absolute_errors, 
+                                   additional_save_extensions=['.png'])
     
     return tally_output
 
@@ -1156,8 +1158,8 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
                       compression, but LZMA compression can reduce the file size by several orders of magnitude, 
                       great for output from massive tallies.
        - **`autoplot_tally_output`** = (optional, D=`False`; requires `make_PandasDF=True`) Boolean denoting whether, for each tally, 
-                      the tally's output will be automatically plotted and saved to a PDF (of the same name/path as 
-                      the tally's output file but ending in `.pdf`) using the `autoplot_tally_results()` function. 
+                      the tally's output will be automatically plotted and saved to a PDF and PNG (of the same name/path as 
+                      `tally_output_filepath` but ending in `.pdf`/`.png`) using the `autoplot_tally_results()` function. 
 
     Inputs:
        (optional, the same as in and directly passed to the `parse_tally_dump_file()` function)
@@ -1498,7 +1500,9 @@ def rebinner(output_xbins,input_xbins,input_ybins):
     return output_ybins
 
 
-def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename='results.pdf',show_plots=False,return_fg_list=False):
+def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename='results.pdf',
+                           additional_save_extensions=[],show_plots=False,return_fg_list=False,
+                           max_num_values_to_plot=1e7,rasterizesize_threshold=5e4,rasterize_dpi=300):
     '''
     Description:
         Generates visualizations/plots of the data in the output Pandas DataFrames from the `parse_tally_output_file()` 
@@ -1508,10 +1512,10 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
         Generally, it does not respect plotting-relevant settings provided to PHITS tallies (e.g., `samepage`, `axis`, `angel`, etc.), 
         though it will use the `title` parameter and the plot axis titles for ANGEL included in the .out files, which are
         influenced by some tally parameters, such as `unit` and `y-txt`.
-        This function seeks to compile plots of results from one or multiple tallies into a single PDF file. 
-        It is primarily intended to be called by `parse_tally_output_file()` and `parse_all_tally_output_in_dir()`.
+        This function seeks to compile plots of results from one or multiple tallies into a single PDF file (and individual files in other image formats). 
         The [seaborn](https://seaborn.pydata.org/) package's [relplot](https://seaborn.pydata.org/generated/seaborn.relplot.html) function is used for generating these plots.
-        If you wish to make modifications to the automatically generated figures, use the `return_fg_list=True` setting 
+        This function is primarily intended to be called by `parse_tally_output_file()` and `parse_all_tally_output_in_dir()`. 
+        However, if you wish to make modifications to the automatically generated figures, you can use the `return_fg_list=True` setting 
         and apply your desired modifications to the returned FacetGrid objects.  (This is demonstrated in the 
         [example](https://github.com/Lindt8/PHITS-Tools/tree/main/example) distributed with PHITS Tools.)
         
@@ -1532,16 +1536,34 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                 instead been implemented but is only functional for "line"-type and "2D"-type plots.
         - `output_filename` = (optional, D=`results.pdf`) String or Path object designating the name/path where the 
                 PDF of plots will be saved.
+        - `additional_save_extensions` = (optional, D=`[]`) a list of strings of file extensions, e.g., 
+                `['.png', '.svg']` compatible with [matplotlib.savefig](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html) 
+                to also save the plots as.
+                (options include '.eps', '.jpg', '.jpeg', '.pdf', '.pgf', '.png', '.ps', '.raw', '.rgba', '.svg', '.svgz', '.tif', '.tiff', and '.webp'; 
+                see `plt.gcf().canvas.get_supported_filetypes()`) 
         - `show_plots` = (optional, D=`False`) Boolean denoting whether this function will make a `plt.show()` call
                 immediately before the `return` statement.
         - `return_fg_list` = (optional, D=`False`) Boolean denoting whether a list of the generated seaborn FacetGrid 
                 objects returned by the sns.relplot() calls should be returned by this function, allowing modification 
                 of the automatically generated plots.  (Strictly speaking, the objects are copies of the FacetGrid objects 
                 made using the built-in [copy.deepcopy()](https://docs.python.org/3/library/copy.html#copy.deepcopy) function.)  If `False`, this function returns `None`.
-
+        - `max_num_values_to_plot` = (optional, D=`1e7`) integer denoting the maximum number of data points to be 
+                plotted by this function for a single tally output, which, when exceeded, will cause the function to 
+                skip creating the plot&dagger;. 
+                The number of data points to be plotted is calculated as the product of the axis lengths of the 
+                `tally_output['tally_data']` Numpy array (excluding the final axis for values/errors).
+        - `rasterizesize_threshold` = (optional, D=`5e4`) integer denoting the maximum number of data points to be 
+                plotted by this function for a single tally output before setting `rasterized=True` to the `sns.relplot()` 
+                calls generating plots&Dagger;. 
+                The number of data points to be plotted is calculated as the product of the axis lengths of the 
+                `tally_output['tally_data']` Numpy array (excluding the final axis for values/errors).
+        - `rasterize_dpi` = (optional, D=`300`) integer denoting the DPI to be used in the `savefig()` calls when 
+                the `rasterizesize_threshold` is exceeded or when `additional_save_extensions` is used to save a plot 
+                in a non-vectorized format.
+        
     Outputs:
         - `None` if `return_fg_list=False` (default) or `fg_list` if `return_fg_list=True`; see description of the `return_fg_list` input argument
-        - (and the saved file of plot(s) specified by `output_filename`)
+        - (and the saved file(s) of plot(s) specified by `output_filename`)
     
     --------
     
@@ -1572,11 +1594,15 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
         functionality to make markers of the correct aspect ratio to tile together nicely when scaled up (or down) 
         sufficiently in size `s` to form the illusion of a 2D colormap plot, hence the "pseudo" in the name.
         
-        This function also calculates the total number of values (bins) in the tally output to be plotted, the product 
+        &dagger;This function also calculates the total number of values (bins) in the tally output to be plotted, the product 
         of the axis lengths of the `tally_output['tally_data']` Numpy array (excluding the final axis for values/errors). 
-        If this value exceeds 10 million (controlled by the `max_num_values_to_plot = 1e7` variable in this function), 
+        If this value exceeds 10 million (controlled by the `max_num_values_to_plot` input in this function), 
         this function will skip attempting to make the plot.  This limit is set to avoid potential crashes from 
-        insufficient memory in scenarios where these plots are unlikely to actually be desired anyways.
+        insufficient memory in scenarios where these plots are unlikely to actually be desired anyways. 
+        
+        &Dagger;Furthermore, if the total number of values exceeds 50 thousand (controlled by the `rasterizesize_threshold` input 
+        in this function), rasterization will be employed in the plotting area (passing `rasterized = True` to 
+        the `sns.relplot()` call) using a default DPI of 300 (controlled by the `rasterize_dpi` input in this function).
     
     '''
     '''
@@ -1601,11 +1627,15 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
     import datetime
     import copy
     
+    #max_num_values_to_plot = 1e7  # if the number of data points to plot exceeds this, plotting is skipped for that tally
+    #rasterizesize_threshold = 5e4  # use "rasterize" option if the number of data points to be plotted exceeds this 
+    #rasterize_dpi = 300  # if using rasterization, use this DPI
+    
     fig_aspect_ratio = 1.414  # width / height
     fig_height = 4  # inches
-    max_num_values_to_plot = 1e7  # if the number of data points to plot exceeds this, plotting is skipped for that tally
     figi = 10000  # figure number
     fg_list = []  # list of generated Seaborn FacetGrid objects returned by the sns.relplot() calls
+    output_filename = Path(output_filename)
     
     # Convert provided input to a list of `tally_output` dictionary objects
     if isinstance(tally_output_list, dict):  # single tally output, tally output object
@@ -1659,10 +1689,11 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                 #print(df1.columns.values.tolist())
                 #print(df2.columns.values.tolist())
                 tally_df_list = [df1, df2]
+                extra_df_fname_text = ['_rsurf-zmid', '_rmid-zsurf']
             else:
                 tally_df_list = [tally_dataframe]
-                
-            for tally_df in tally_df_list:
+                extra_df_fname_text = ['']
+            for tdfi, tally_df in enumerate(tally_df_list):
                 df_cols = tally_df.columns.values.tolist()
                 array_axes_lens = [ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max]
                 tot_plot_axes = sum(1 for i in array_axes_lens if i > 1)
@@ -1673,6 +1704,11 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                     if return_fg_list: fg_list.append(None)
                     continue
                 
+                if tot_num_values > rasterizesize_threshold:
+                    use_rasterization = True
+                else:
+                    use_rasterization = False
+
                 if tot_plot_axes==0: # case where the tally is only scoring a single value
                     fig = plt.figure(figi,(fig_aspect_ratio*fig_height,fig_height))
                     plt.errorbar(1,tally_data[0,0,0,0,0,0,0,0,0,0],yerr=tally_data[0,0,0,0,0,0,0,0,0,2],marker='o')
@@ -2039,6 +2075,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                 
                 for ierr in range(2): # for pseudo 2d plots, also make a rel.err. plot
                     if ierr==1 and not pseudo_2d_plot: continue
+                    extra_fname_text = extra_df_fname_text[tdfi] + ['','_err'][ierr]
                     if ierr==0:
                         hue_palette_name_str = "mako_r"  # "cividis" # "rocket_r"
                     else:
@@ -2160,6 +2197,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                                          hue_norm=hue_norm, size_norm=size_norm,
                                          row=row_var_renamed, col=col_var_renamed,
                                          errorbar=errorbar_arg, legend='auto', # markers=False, 
+                                         rasterized = use_rasterization,
                                          facet_kws={"legend_out": True, }
                                          )
                     else: # scatterplot
@@ -2207,6 +2245,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                                              legend=leg_arg,
                                              palette=hue_palette_name_str,
                                              marker=verts, alpha=1,
+                                             rasterized = use_rasterization,
                                              #facet_kws={"legend_out": True, }
                                              )
                             #fg.set(aspect='equal')
@@ -2224,6 +2263,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                                              hue_norm=hue_norm, size_norm=size_norm,
                                              row=row_var_renamed, col=col_var_renamed,
                                              legend='auto', s=100, alpha=1,
+                                             rasterized = use_rasterization,
                                              facet_kws={"legend_out": True, }
                                              )
                     
@@ -2274,8 +2314,16 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                     fontdict = {'color':'#666666', 'weight':'normal', 'size': 8, 'style':'italic'}
                     fig.text(0.005,0.005,'Figure generated by PHITS Tools, github.com/Lindt8/PHITS-Tools',fontdict=fontdict,ha='left', va='bottom', url='https://github.com/Lindt8/PHITS-Tools')
     
-                    pdf.savefig(bbox_extra_artists=[st])
+                    if use_rasterization:
+                        pdf.savefig(bbox_extra_artists=[st], dpi=rasterize_dpi)
+                    else:
+                        pdf.savefig(bbox_extra_artists=[st])
                     if return_fg_list: fg_list.append(copy.deepcopy(fg))
+                    for ext in additional_save_extensions:
+                        if '.' not in ext: ext = '.'+ext  # assume user provides only the extension in event the . is missing
+                        if ext.lower()=='.pdf': ext = '_.pdf'
+                        img_save_path = Path(output_filename.parent, output_filename.stem + extra_fname_text + ext)
+                        plt.savefig(img_save_path, bbox_extra_artists=[st], dpi=rasterize_dpi)
                     if not show_plots: plt.close(fg.fig)
                     figi += 1
             
@@ -5009,7 +5057,7 @@ if run_with_CLI_inputs:
     parser.add_argument("-np", "--disable_PandasDF", help="[standard output] disable automatic creation of Pandas DataFrame of PHITS output", action="store_true")
     parser.add_argument("-na", "--disable_abs_err_calc", help="[standard output] disable automatic calculation of absolute errors", action="store_true")
     parser.add_argument("-lzma", "--use_lzma_compression", help="[standard output] compress tally output pickle with LZMA", action="store_true")
-    parser.add_argument("-p", "--plot", help="[standard output] save a plot of the tally's output to a PDF", action="store_true")
+    parser.add_argument("-p", "--plot", help="[standard output] save a plot of the tally's output to a PDF and PNG", action="store_true")
     parser.add_argument("-skip", "--skip_existing_pickles", help="[all output] skip files where output pickle already exists", action="store_true")
     # Not going to add below option. Why would you ever run this in CLI if not trying to generate the pickle file?
     # parser.add_argument("-ns", "--disable_saving_pickle", help="disable saving of pickle of of PHITS output", action="store_true")
@@ -5263,7 +5311,7 @@ elif launch_GUI:
             common_widgets[-1].select()  # This makes the checkbox be ticked by default
             common_widgets.append(tk.Checkbutton(secondary_gui, text="Also calculate absolute uncertainties", variable=cb2_var, anchor=tk.W))
             common_widgets[-1].select()  # This makes the checkbox be ticked by default
-            common_widgets.append(tk.Checkbutton(secondary_gui, text="Also make a plot of the tally's output and save it as a PDF", variable=cb3_var, anchor=tk.W))
+            common_widgets.append(tk.Checkbutton(secondary_gui, text="Also make a plot of the tally's output and save it as a PDF and PNG", variable=cb3_var, anchor=tk.W))
             common_widgets[-1].select()  # This makes the checkbox be ticked by default
 
         elif option == 2:
@@ -5369,7 +5417,7 @@ elif launch_GUI:
             cb4obj = tk.Checkbutton(secondary_gui, text="Also calculate absolute uncertainties", variable=cb4_var, anchor=tk.W)
             cb4obj.select() # This makes the checkbox be ticked by default
             cb4obj.pack(anchor=tk.W, padx=10, pady=2)
-            cb5obj = tk.Checkbutton(secondary_gui, text="Also make a plot of each tally's output and save it as a PDF", variable=cb5_var, anchor=tk.W)
+            cb5obj = tk.Checkbutton(secondary_gui, text="Also make a plot of each tally's output and save it as a PDF and PNG", variable=cb5_var, anchor=tk.W)
             cb5obj.select()  # This makes the checkbox be ticked by default
             cb5obj.pack(anchor=tk.W, padx=10, pady=2)
 
@@ -5554,7 +5602,7 @@ elif test_explicit_files_dirs:
     #output_file_path = Path(base_path + 't-deposit\deposit_reg.out')
     #output_file_path = Path(base_path + 't-deposit\deposit_eng_sp-reg.out')
     output_file_path = Path(base_path + 't-track\\track_reg.out')
-    output_file_path = Path(base_path + 't-track\\track_r-z.out')
+    #output_file_path = Path(base_path + 't-track\\track_r-z.out')
     #output_file_path = Path(base_path + 't-track\\track_xyz-xy.out')
     #output_file_path = Path(base_path + r't-track\track_r-z_axis-rad.out')
     #output_file_path = Path(base_path + r't-track\track_r-z_axis-deg.out')
@@ -5610,7 +5658,7 @@ elif test_explicit_files_dirs:
     #output_file_path = Path(base_path + r't-yield\yield_reg_axis-chart.out')
     #output_file_path = Path(base_path + r't-yield\yield_xyz_axis-chart.out')
 
-    base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\\'
+    #base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\\'
     #output_file_path = Path(base_path + r'tally\t-deposit\deposit_reg_spec-all.out')
     #output_file_path = Path(base_path + r'sample\icrp\mrcp\External\result\Dose_MRCP-AF_reg.out')
     #output_file_path = Path(base_path + r'sample\misc\batch_source\track_yz_001.out')
@@ -5626,7 +5674,7 @@ elif test_explicit_files_dirs:
     #output_file_path = Path(base_path + r'recommendation\CosmicRay\track.out') 
     #output_file_path = Path(base_path + r'sample\source\Cosmicray\Airshower\depthdose.out') 
     #output_file_path = Path(base_path + r'sample\misc\history_counter\track_yz_ch1.out')
-    output_file_path = Path(base_path + r'recommendation\Counter\track.out')
+    #output_file_path = Path(base_path + r'recommendation\Counter\track.out')
 
 
     test_parsing_of_dir = False #True
@@ -5701,7 +5749,7 @@ elif test_explicit_files_dirs:
     
     import matplotlib.pyplot as plt
     
-    fg_list = autoplot_tally_results(tally_output, return_fg_list=True)
+    fg_list = autoplot_tally_results(tally_output, return_fg_list=True) #, additional_save_extensions=['.png','jpeg'])
     #fg = fg_list[0]
     #for ax in fg.axes.flat:
     #    ax.set_facecolor((0, 1, 0, 1))
