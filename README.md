@@ -50,9 +50,9 @@ The CLI and GUI options result in the parsed file's contents being saved to a [p
 
 Pictured below is the main PHITS Tools GUI window followed by the `[DIRECTORY mode]` GUI menu which shows all the options available not only for DIRECTORY mode but also for standard and dump tally output files, with the default options selected/populated.
 
-![](/docs/PHITS_tools_GUI_main.png?raw=true "PHITS Tools GUI main window")
+![](https://github.com/Lindt8/PHITS-Tools/blob/main/docs/PHITS_tools_GUI_main.png?raw=true "PHITS Tools GUI main window")
 
-![](/docs/PHITS_tools_GUI_directory-mode.png?raw=true "PHITS Tools GUI 'DIRECTORY mode' window")
+![](https://github.com/Lindt8/PHITS-Tools/blob/main/docs/PHITS_tools_GUI_directory-mode.png?raw=true "PHITS Tools GUI 'DIRECTORY mode' window")
 
 ## CLI options
 
@@ -90,7 +90,7 @@ The CLI principally serves to interface with the core three functions of PHITS T
 
 Below is a picture of all of these options available for use within the CLI.  
 
-![](/docs/PHITS_tools_CLI.png?raw=true "PHITS Tools CLI options")
+![](https://github.com/Lindt8/PHITS-Tools/blob/main/docs/PHITS_tools_CLI.png?raw=true "PHITS Tools CLI options")
 
 ## Testing, reporting issues, and contributing
 
