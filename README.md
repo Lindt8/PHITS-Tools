@@ -66,6 +66,7 @@ The CLI principally serves to interface with the core three functions of PHITS T
   - `-np` sets `make_PandasDF = False` (`True` if excluded)
   - `-na` sets `calculate_absolute_errors = False` (`True` if excluded)
   - `-lzma` sets `compress_pickle_with_lzma = True` (`False` if excluded)
+  - `-po` sets `include_phitsout_in_metadata = True` (`False` if excluded)
   - `-p` sets `autoplot_tally_output = True` (`False` if excluded)
 - [**`parse_tally_dump_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_dump_file) (and passed to it via [**`parse_all_tally_output_in_dir()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_all_tally_output_in_dir))
   - `-d` tells the CLI that `file` should be processed as a dump file (if it's not a directory)
@@ -86,11 +87,74 @@ The CLI principally serves to interface with the core three functions of PHITS T
   - `-d` sets `include_dump_files = True` (`False` if excluded)
   - `-dnmmpi` sets `dump_merge_MPI_subdumps = False` (`True` if excluded)
   - `-dndmpi` sets `dump_delete_MPI_subdumps_post_merge = False` (`True` if excluded)
+  - `-m` sets `merge_tally_outputs = True` (`False` if excluded)
+  - `-smo` sets `merge_tally_outputs = True` (`False` if excluded), `save_output_pickle = False` (`True` if excluded), and `save_pickle_of_merged_tally_outputs = True` (`None` if excluded)
   - `-pa` sets `autoplot_all_tally_output_in_dir = True` (`False` if excluded)
 
 Below is a picture of all of these options available for use within the CLI.  
 
 ![](https://github.com/Lindt8/PHITS-Tools/blob/main/docs/PHITS_tools_CLI.png?raw=true "PHITS Tools CLI options")
+
+## **Automatic processing at PHITS runtime**
+
+PHITS Tools can be used to automatically process the output of every PHITS run executed with the "phits.bat" and "phits.sh" 
+scripts found in the "phits/bin/" directory of your PHITS distribution.  To do this, first you must identify the location 
+of your "PHITS_tools.py" file.  If using the file directly downloaded from GitHub, this should be in a location of your choosing.
+If you installed PHITS Tools via `pip install PHITS-Tools`, you can find its location with `pip show PHITS-Tools -f`. 
+Once you have identified the location of PHITS_tools.py, for example "/path/locating/PHITS_Tools/PHITS_tools.py", you can
+add the following line to your PHITS execution script:
+
+On Windows, using "phits/bin/phits.bat":
+
+- Scroll down toward the bottom of the script, to the section with the line `rem - Your file processing starts here.`
+- After the if statement (right before the `rem - Your file processing ends here` line), insert a new line with the following command:
+- `python "C:\path\locating\PHITS_Tools\PHITS_tools.py" "%%~nxF" -po -m -d -ddir -ddeg -lzma -p -pa`
+
+On Linux/Mac, using "phits/bin/phits.sh":
+
+- Scroll down toward the bottom of the script, to the section titled `# Run PHITS`
+- On the line after the end of the if statement `fi`, add the following command:
+- `python "/path/locating/PHITS_Tools/PHITS_tools.py" $1 -po -m -d -ddir -ddeg -lzma -p -pa`
+
+(Of course, if necessary, replace "`python`" with however you typically call python in your environment, e.g. `py`, `python3`, etc.)
+
+Adding this line causes the following to happen:
+
+- After PHITS finishes running normally, the PHITS input file is passed to PHITS Tools.
+- Since it is a PHITS input file, the CLI will have [**`parse_all_tally_output_in_dir()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_all_tally_output_in_dir) handle it, in *[INPUT_FILE mode]*
+- The input file (and its produced "phits.out"-type file) is scanned for output files from active tallies (using [**`extract_tally_outputs_from_phits_input()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.extract_tally_outputs_from_phits_input) and [**`parse_phitsout_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_phitsout_file)). 
+   - This will include any dump files (**`-d`**) if present.
+   - When the "phits.out" file (`file(6)` in the PHITS input [Parameters]) is parsed, its metadata&mdash;including the PHITS input echo&mdash;will be saved to a .pickle file, compressed with LZMA (**`-lzma`**) and with the extra ".xz" extension.
+- Then, the standard tally outputs are processed.  For each standard tally output:
+   - The [**`parse_tally_output_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file) function processes the tally output, producing a `tally_output` dictionary with keys for the produced NumPy array, Pandas DataFrame, and metadata dictionary.
+   - The `tally_output['tally_metadata']` dictionary will have the phits.out metadata dictionary added to it (**`-po`**) under the `'phitsout'` key.
+   - This `tally_output` dictionary object is saved to a .pickle file, compressed with LZMA (**`-lzma`**) and with the extra ".xz" extension.
+   - A plot, saved in PDF and PNG formats, of the tally's output is generated (**`-p`**) by [**`autoplot_tally_results()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.autoplot_tally_results).
+   - These files will share the same name as the tally output file, just with different extensions.
+- Then, any encountered tally dump files are processed (**`-d`**).  For each tally dump output file:
+   - The [**`parse_tally_dump_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_dump_file) function processes the dump file, automatically extracting the dump parameters from its parent tally's output file.
+   - Provided direction vector information (u,v,w) is present, extra directional information is calculated (**`-ddir`**), using degrees for the unit of calculated angles (**`-ddeg`**)
+   - The produced named tuple list and Pandas DataFrame are saved as two separate LZMA-compressed pickle files.
+- Then, a merged (**`-m`**) dictionary object containing all of the `tally_output` dictionaries for each standard tally output processed is produced.
+   - The dictionary is keyed with the `file` parameter of each tally in the PHITS input, with the values being the corresponding `tally_output` dictionaries.
+   - This merged dictionary object is saved to a pickle file sharing the same name as the PHITS input file but ending in "_ALL_TALLY_OUTPUTS.pickle", compressed with LZMA (**`-lzma`**) and with the extra ".xz" extension.
+- Then, a PDF containing plots from all standard tally outputs (**`-pa`**) is generated with [**`autoplot_tally_results()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.autoplot_tally_results).
+   - This PDF of plots is saved to a file sharing the same name as the PHITS input file but ending in "_ALL_TALLY_OUTPUTS_PLOTTED.pdf"
+
+
+You can edit the flags provided to the CLI for your desired default behavior.  For instance, to only save the pickle file of 
+the merged output (rather than for every tally output too), replace `-m` with `-smo`. And to not bother with creating a merged output
+and only save the outputs for each individual tally, just omit `-m`.  Given that the plotting is easily the slowest part of 
+the execution of PHITS Tools in most cases, it may be desirable to omit the `-p` and/or `-pa` flags to not save plots of the tally 
+outputs individually or all together in a single PDF, respectively.  Since dump files can be very large and sometimes solely 
+created for reusage by PHITS (e.g., with a `s-type=17` [Source] section), it may also be desirable to exclude dump files from 
+automatic processing by omitting `-d`.  As an example, a more "minimal" automatic processing would result from:
+
+- Windows: `python "C:\path\locating\PHITS_Tools\PHITS_tools.py" "%%~nxF" -po -smo -lzma -pa`
+- Linux/Mac: `python "/path/locating/PHITS_Tools/PHITS_tools.py" $1 -po -smo -lzma -pa`
+
+This would only create the ".pickle.xz" file of the merged standard tally outputs and the PDF containing all of their 
+plots together, skipping any processing of dump files.
 
 ## Testing, reporting issues, and contributing
 
