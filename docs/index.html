@@ -41,15 +41,17 @@ which are listed in the next section below, or any of its other functions docume
 </li>
 <li>As a <strong>command line interface (CLI)</strong><ul>
 <li>This module can be ran on the command line with the individual PHITS output file to be parsed (or a directory
-containing multiple files to be parsed) as the required argument.
+or PHITS input/phits.out file containing multiple files to be parsed) as the required argument.
 Execute <code>python PHITS_tools.py --help</code> to see all of the different options that can be used with this module
 to parse standard or dump PHITS output files (individually and directories containing them) via the CLI.
-How the CLI options explicity translate to the functions documented here is covered further below.</li>
+This functionality can be used to automatically process all PHITS output whenever PHITS is ran;
+see the <strong>"Automatic processing at PHITS runtime"</strong> section further below.
+How the CLI options explicitly translate to the functions documented here is also covered further below.</li>
 </ul>
 </li>
 <li>As a <strong>graphical user interface (GUI)</strong><ul>
 <li>When the module is executed without any additional arguments, <code>python PHITS_tools.py</code>, (or with the <code>--GUI</code> or <code>-g</code> flag in the CLI)
-a GUI will be launched to step you through selecting what "mode" you would like to run PHITS Tools in (<code>STANDARD</code>, <code>DUMP</code>, or <code>DIRECTORY</code>),
+a GUI will be launched to step you through selecting what "mode" you would like to run PHITS Tools in (<code>STANDARD</code>, <code>DUMP</code>, <code>DIRECTORY</code>, or <code>INPUT_FILE</code>),
 selecting a file to be parsed (or a directory containing multiple files to be parsed), and the various options for each mode.</li>
 </ul>
 </li>
@@ -278,13 +280,15 @@ There are three main ways one can use this Python module:
          which are listed in the next section below, or any of its other functions documented here.
  2. As a **command line interface (CLI)**
       - This module can be ran on the command line with the individual PHITS output file to be parsed (or a directory
-          containing multiple files to be parsed) as the required argument.
+          or PHITS input/phits.out file containing multiple files to be parsed) as the required argument.
           Execute `python PHITS_tools.py --help` to see all of the different options that can be used with this module
           to parse standard or dump PHITS output files (individually and directories containing them) via the CLI.
-          How the CLI options explicity translate to the functions documented here is covered further below.
+          This functionality can be used to automatically process all PHITS output whenever PHITS is ran; 
+          see the **&#34;Automatic processing at PHITS runtime&#34;** section further below.
+          How the CLI options explicitly translate to the functions documented here is also covered further below.
  3. As a **graphical user interface (GUI)**
       - When the module is executed without any additional arguments, `python PHITS_tools.py`, (or with the `--GUI` or `-g` flag in the CLI)
-          a GUI will be launched to step you through selecting what &#34;mode&#34; you would like to run PHITS Tools in (`STANDARD`, `DUMP`, or `DIRECTORY`),
+          a GUI will be launched to step you through selecting what &#34;mode&#34; you would like to run PHITS Tools in (`STANDARD`, `DUMP`, `DIRECTORY`, or `INPUT_FILE`),
           selecting a file to be parsed (or a directory containing multiple files to be parsed), and the various options for each mode.
 
 The CLI and GUI options result in the parsed file&#39;s contents being saved to a pickle file, which can be reopened
