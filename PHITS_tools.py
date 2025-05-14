@@ -40,6 +40,7 @@ functions return the data objects they produce for your own further analyses.
 - `parse_tally_output_file`         : general parser for standard output files for all PHITS tallies
 - `parse_tally_dump_file`           : parser for dump files from "dump" flag in PHITS [T-Cross], [T-Time], and [T-Track] tallies
 - `parse_all_tally_output_in_dir`   : run `parse_tally_output_file()` over all standard output files in a directory (and, optionally, `parse_tally_dump_file()` over all dump files too)
+- `parse_phitsout_file`             : creates a metadata dictionary of a PHITS run from its "phits.out" file
 
 ### General Purpose Functions
 
@@ -72,7 +73,7 @@ functions return the data objects they produce for your own further analyses.
 - `data_row_to_num_list`            : extract numeric values from a line in the tally content section
 - `calculate_tally_absolute_errors` : calculate absolute uncertainties from read values and relative errors
 - `build_tally_Pandas_dataframe`    : make Pandas dataframe from the main results NumPy array and the metadata
-
+- `extract_tally_outputs_from_phits_input` : extract a dictionary of files produced by a PHITS run
 
 ### **CLI options**
 
@@ -90,6 +91,7 @@ Essentially, the CLI serves to interface with the core three functions of PHITS 
       - `-np` sets `make_PandasDF = False` (`True` if excluded)
       - `-na` sets `calculate_absolute_errors = False` (`True` if excluded)
       - `-lzma` sets `compress_pickle_with_lzma = True` (`False` if excluded)
+      - `-po` sets `include_phitsout_in_metadata = True` (`False` if excluded)
       - `-p` sets `autoplot_tally_output = True` (`False` if excluded)
 - `parse_tally_dump_file` (and passed to it via `parse_all_tally_output_in_dir`)
       - `-d` tells the CLI that `file` should be processed as a dump file (if it's not a directory)
@@ -110,8 +112,74 @@ Essentially, the CLI serves to interface with the core three functions of PHITS 
       - `-d` sets `include_dump_files = True` (`False` if excluded)
       - `-dnmmpi` sets `dump_merge_MPI_subdumps = False` (`True` if excluded)
       - `-dndmpi` sets `dump_delete_MPI_subdumps_post_merge = False` (`True` if excluded)
+      - `-m` sets `merge_tally_outputs = True` (`False` if excluded)
+      - `-smo` sets `merge_tally_outputs = True` (`False` if excluded), `save_output_pickle = False` (`True` if excluded), and `save_pickle_of_merged_tally_outputs = True` (`None` if excluded)
       - `-pa` sets `autoplot_all_tally_output_in_dir = True` (`False` if excluded)
 
+Below is a picture of all of these options available for use within the CLI and their descriptions.  
+
+![](https://github.com/Lindt8/PHITS-Tools/blob/main/docs/PHITS_tools_CLI.png?raw=true "PHITS Tools CLI options")
+
+### **Automatic processing at PHITS runtime**
+
+PHITS Tools can be used to automatically process the output of every PHITS run executed with the "phits.bat" and "phits.sh" 
+scripts found in the "phits/bin/" directory of your PHITS distribution.  To do this, first you must identify the location 
+of your "PHITS_tools.py" file.  If using the file directly downloaded from GitHub, this should be in a location of your choosing.
+If you installed PHITS Tools via `pip install PHITS-Tools`, you can find its location with `pip show PHITS-Tools -f`. 
+Once you have identified the location of PHITS_tools.py, for example "/path/locating/PHITS_Tools/PHITS_tools.py", you can
+add the following line to your PHITS execution script:
+
+On Windows, using "phits/bin/phits.bat":
+
+- Scroll down toward the bottom of the script, to the section with the line `rem - Your file processing starts here.`
+- After the if statement (right before the `rem - Your file processing ends here` line), insert a new line with the following command:
+- `python "C:\path\locating\PHITS_Tools\PHITS_tools.py" "%%~nxF" -po -m -d -ddir -ddeg -lzma -p -pa`
+
+On Linux/Mac, using "phits/bin/phits.sh":
+
+- Scroll down toward the bottom of the script, to the section titled `# Run PHITS`
+- On the line after the end of the if statement `fi`, add the following command:
+- `python "/path/locating/PHITS_Tools/PHITS_tools.py" $1 -po -m -d -ddir -ddeg -lzma -p -pa`
+
+(Of course, if necessary, replace "`python`" with however you typically call python in your environment, e.g. `py`, `python3`, etc.)
+
+Adding this line causes the following to happen:
+
+- After PHITS finishes running normally, the PHITS input file is passed to PHITS Tools.
+- Since it is a PHITS input file, the CLI will have `parse_all_tally_output_in_dir()` handle it, in *[INPUT_FILE mode]*
+- The input file (and its produced "phits.out"-type file) is scanned for output files from active tallies (using `extract_tally_outputs_from_phits_input()` and `parse_phitsout_file()`). 
+      - This will include any dump files (**`-d`**) if present.
+      - When the "phits.out" file (`file(6)` in the PHITS input [Parameters]) is parsed, its metadata&mdash;including the PHITS input echo&mdash;will be saved to a .pickle file, compressed with LZMA (**`-lzma`**) and with the extra ".xz" extension.
+- Then, the standard tally outputs are processed.  For each standard tally output:
+      - The `parse_tally_output_file()` function processes the tally output, producing a `tally_output` dictionary with keys for the produced NumPy array, Pandas DataFrame, and metadata dictionary.
+      - The `tally_output['tally_metadata']` dictionary will have the phits.out metadata dictionary added to it (**`-po`**) under the `'phitsout'` key.
+      - This `tally_output` dictionary object is saved to a .pickle file, compressed with LZMA (**`-lzma`**) and with the extra ".xz" extension.
+      - A plot, saved in PDF and PNG formats, of the tally's output is generated (**`-p`**) by `autoplot_tally_results()`.
+      - These files will share the same name as the tally output file, just with different extensions.
+- Then, any encountered tally dump files are processed (**`-d`**).  For each tally dump output file:
+      - The `parse_tally_dump_file()` function processes the dump file, automatically extracting the dump parameters from its parent tally's output file.
+      - Provided direction vector information (u,v,w) is present, extra directional information is calculated (**`-ddir`**), using degrees for the unit of calculated angles (**`-ddeg`**)
+      - The produced named tuple list and Pandas DataFrame are saved as two separate LZMA-compressed pickle files.
+- Then, a merged (**`-m`**) dictionary object containing all of the `tally_output` dictionaries for each standard tally output processed is produced.
+      - The dictionary is keyed with the `file` parameter of each tally in the PHITS input, with the values being the corresponding `tally_output` dictionaries.
+      - This merged dictionary object is saved to a pickle file sharing the same name as the PHITS input file but ending in "_ALL_TALLY_OUTPUTS.pickle", compressed with LZMA (**`-lzma`**) and with the extra ".xz" extension.
+- Then, a PDF containing plots from all standard tally outputs (**`-pa`**) is generated with `autoplot_tally_results()`.
+      - This PDF of plots is saved to a file sharing the same name as the PHITS input file but ending in "_ALL_TALLY_OUTPUTS_PLOTTED.pdf"
+
+
+You can edit the flags provided to the CLI for your desired default behavior.  For instance, to only save the pickle file of 
+the merged output (rather than for every tally output too), replace `-m` with `-smo`. And to not bother with creating a merged output
+and only save the outputs for each individual tally, just omit `-m`.  Given that the plotting is easily the slowest part of 
+the execution of PHITS Tools in most cases, it may be desirable to omit the `-p` and/or `-pa` flags to not save plots of the tally 
+outputs individually or all together in a single PDF, respectively.  Since dump files can be very large and sometimes solely 
+created for reusage by PHITS (e.g., with a `s-type=17` [Source] section), it may also be desirable to exclude dump files from 
+automatic processing by omitting `-d`.  As an example, a more "minimal" automatic processing would result from:
+
+- Windows: `python "C:\path\locating\PHITS_Tools\PHITS_tools.py" "%%~nxF" -po -smo -lzma -pa`
+- Linux/Mac: `python "/path/locating/PHITS_Tools/PHITS_tools.py" $1 -po -smo -lzma -pa`
+
+This would only create the ".pickle.xz" file of the merged standard tally outputs and the PDF containing all of their 
+plots together, skipping any processing of dump files.
 
 '''
 '''
@@ -136,7 +204,6 @@ import os
 import numpy as np
 from pathlib import Path
 
-
 # default program settings
 launch_GUI = False
 run_with_CLI_inputs = False
@@ -144,6 +211,7 @@ in_debug_mode = False # toggles printing of debug messages throughout the code
 #in_debug_mode = True # toggles printing of debug messages throughout the code
 test_explicit_files_dirs = False # used for testing specific files at the bottom of this file
 #test_explicit_files_dirs = True
+
 
 if __name__ == "__main__":
     #in_debug_mode = True
@@ -174,7 +242,8 @@ if in_debug_mode:
 
 
 def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calculate_absolute_errors = True,
-                            save_output_pickle=True, prefer_reading_existing_pickle=False, compress_pickle_with_lzma=False, 
+                            save_output_pickle=True, include_phitsout_in_metadata=False, 
+                            prefer_reading_existing_pickle=False, compress_pickle_with_lzma=False, 
                             autoplot_tally_output=False):
     '''
     Description:
@@ -198,18 +267,30 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
     Inputs:
        (optional)
 
-       - **`make_PandasDF`** = A Boolean denoting whether a Pandas dataframe of the tally data array will be made (D=`True`)
-       - **`calculate_absolute_errors`** = A Boolean determining whether the absolute uncertainty of each tally output value
+       - **`make_PandasDF`** = (D=`True`) A Boolean denoting whether a Pandas dataframe of the tally data array will be made 
+       - **`calculate_absolute_errors`** = (D=`True`) A Boolean determining whether the absolute uncertainty of each tally output value
                       is to be calculated (simply as the product of the value and relative error); if `False`, the final
-                      dimension of `tally_data`, `ierr`, will be of length-2 rather than length-3 (D=`True`)
-       - **`save_output_pickle`** = A Boolean determining whether the `tally_output` dictionary object is saved as a pickle file;
+                      dimension of `tally_data`, `ierr`, will be of length-2 rather than length-3 
+       - **`save_output_pickle`** = (D=`True`) A Boolean determining whether the `tally_output` dictionary object is saved as a pickle file;
                       if `True`, the file will be saved with the same path and name as the provided PHITS tally output file
-                      but with the .pickle extension. (D=`True`)
-       - **`prefer_reading_existing_pickle`** = A Boolean determining what this function does if the pickle file this function
+                      but with the .pickle extension. 
+       - **`include_phitsout_in_metadata`** = (D=`False`) A Boolean determining whether the "phits.out" file 
+                      (`file(6)` in the [Parameters] section of a PHITS input file) in the same directory as `tally_output_filepath`, 
+                      if found, should be processed via `parse_phitsout_file()` and have its informational dictionary 
+                      about the PHITS run added to the `'tally_metadata'` dictionary under the key `'phitsout'`.
+                      If `True`, this function assumes `file(6) = phits.out` (the default setting) in the PHITS input.
+            -         If, instead of a Boolean, a dictionary-type object is provided, no search will be conducted and the provided
+                      dictionary will be taken as that to be added as the `'phitsout'` key in the `'tally_metadata'` dictionary.
+            -         Otherwise, if a string or [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) object 
+                      is provided, this will be taken as the path to the "phits.out"-type file to be processed and have its 
+                      informational dictionary added to the `'tally_metadata'` dictionary.
+            -         Setting `include_phitsout_in_metadata = None` functions the same as `include_phitsout_in_metadata = True` 
+                      but sets `include_input_echo = False` in the `parse_phitsout_file()` call.
+       - **`prefer_reading_existing_pickle`** = (D=`False`) A Boolean determining what this function does if the pickle file this function
                       seeks to generate already exists.  If `False` (default behavior), this function will parse the PHITS
                       output files as usual and overwrite the existing pickle file.  If `True`, this function will instead
-                      simply just read the existing found pickle file and return its stored `tally_output` contents. (D=`False`)
-       - **`compress_pickle_with_lzma`** = (optional, D=`False`; requires `save_output_pickle=True`) Boolean designating 
+                      simply just read the existing found pickle file and return its stored `tally_output` contents. 
+       - **`compress_pickle_with_lzma`** = (D=`False`; requires `save_output_pickle=True`) Boolean designating 
                       whether the pickle file to be saved will be compressed with 
                       [LZMA compression](https://docs.python.org/3/library/lzma.html) (included in
                       the baseline [Python standard library](https://docs.python.org/3/library/index.html)); if so, the 
@@ -219,7 +300,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
                       For most "normal" tallies, the pickle file sizes are likely to be small enough to not warrant 
                       compression, but LZMA compression can reduce the file size by several orders of magnitude, 
                       great for output from massive tallies.
-       - **`autoplot_tally_output`** = (optional, D=`False`; requires `make_PandasDF=True`) Boolean denoting whether 
+       - **`autoplot_tally_output`** = (D=`False`; requires `make_PandasDF=True`) Boolean denoting whether 
                       the tally's output will be automatically plotted and saved to a PDF and PNG (of the same name/path as 
                       `tally_output_filepath` but ending in `.pdf`/`.png`) using the `autoplot_tally_results()` function.
 
@@ -337,6 +418,10 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        Note that for some tallies there may be additional special entries (like for [T-Point]) or that some of the key 
        names may differ slightly from those stated here (such as for [T-Deposit2]).
        
+       If the `include_phitsout_in_metadata` setting is enabled, `parse_phitsout_file()` will be called to provide a 
+       dictionary containing metadata about the PHITS run itself&mdash;by default also including the PHITS run's input 
+       echo&mdash;added to this metadata dictionary under the `'phitsout'` key. 
+       See the `parse_phitsout_file()` function's description for more details about the structure of this dictionary.
        
        -----
        
@@ -461,6 +546,20 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
             import lzma
             with lzma.open(picklexz_filepath, 'rb') as handle:
                 tally_output = pickle.load(handle)
+        if autoplot_tally_output:
+            if tally_output['tally_dataframe'] is not None:
+                plot_filepath = Path(tally_output_filepath.parent, tally_output_filepath.stem + '.pdf')
+                if not plot_filepath.is_file():  # only make plot if file doesn't already exist
+                    from inspect import signature
+                    max_num_values_to_plot = signature(autoplot_tally_results).parameters['max_num_values_to_plot'].default  # 1e7
+                    tot_num_values = np.prod(np.shape(tally_output['tally_data'])[:-1])
+                    if tot_num_values > max_num_values_to_plot:
+                        print('WARNING: Tally output for ', tally_output['tally_metadata']['file'], ' is VERY LARGE (', tot_num_values,
+                              ' elements), deemed too large for automatic plotting (default max of', max_num_values_to_plot, 'elements).')
+                    else:
+                        autoplot_tally_results(tally_output, output_filename=plot_filepath,
+                                               plot_errorbars=calculate_absolute_errors,
+                                               additional_save_extensions=['.png'])
         return tally_output
 
     # main toggled settings
@@ -603,6 +702,23 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
     else:
         tally_Pandas_df = None
 
+    phitsout_dict = {}
+    include_input_echo = True
+    if include_phitsout_in_metadata is None:
+        include_input_echo = False
+        include_phitsout_in_metadata = True
+    if type(include_phitsout_in_metadata) == bool:  # True or False
+        if include_phitsout_in_metadata: # True provided, need to search for phits.out
+            phitsout_file = Path(tally_output_filepath.parent, 'phits.out')
+            if phitsout_file.exists():
+                phitsout_dict = parse_phitsout_file(phitsout_file,  save_phitsout_pickle=save_output_pickle, compress_pickle_with_lzma=compress_pickle_with_lzma, include_input_echo=include_input_echo)
+    elif isinstance(include_phitsout_in_metadata, dict): # dictionary provided for phitsout
+        phitsout_dict = include_phitsout_in_metadata
+    else:  # assume path string/object pointing to phits.out is provided
+        phitsout_dict = parse_phitsout_file(include_phitsout_in_metadata, save_phitsout_pickle=save_output_pickle, compress_pickle_with_lzma=compress_pickle_with_lzma)
+    if phitsout_dict != {}:
+        tally_metadata['phitsout'] = phitsout_dict
+    
     tally_output = {
         'tally_data': tally_data,
         'tally_metadata': tally_metadata,
@@ -631,10 +747,17 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
         if not make_PandasDF:
             print('Plotting via "autoplot_tally_output=True" requires also setting "make_PandasDF=True".')
         else:
-            plot_filepath = Path(tally_output_filepath.parent, tally_output_filepath.stem + '.pdf')
-            autoplot_tally_results(tally_output, output_filename=plot_filepath,
-                                   plot_errorbars=calculate_absolute_errors, 
-                                   additional_save_extensions=['.png'])
+            from inspect import signature
+            max_num_values_to_plot = signature(autoplot_tally_results).parameters['max_num_values_to_plot'].default  # 1e7
+            tot_num_values = np.prod(np.shape(tally_output['tally_data'])[:-1])
+            if tot_num_values > max_num_values_to_plot:
+                print('WARNING: Tally output for ', tally_output['tally_metadata']['file'], ' is VERY LARGE (', tot_num_values,
+                      ' elements), deemed too large for automatic plotting (default max of',max_num_values_to_plot,'elements).')
+            else:
+                plot_filepath = Path(tally_output_filepath.parent, tally_output_filepath.stem + '.pdf')
+                autoplot_tally_results(tally_output, output_filename=plot_filepath,
+                                       plot_errorbars=calculate_absolute_errors, 
+                                       additional_save_extensions=['.png'])
     
     return tally_output
 
@@ -671,26 +794,26 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
     Inputs:
        (optional)
 
-        - **`return_directional_info`** = (optional, D=`False`) Boolean designating whether extra directional information
+        - **`return_directional_info`** = (D=`False`) Boolean designating whether extra directional information
                  should be calculated and returned; these include: radial distance `r` from the origin in cm,
                  radial distance `rho` from the z-axis in cm,
                  polar angle `theta` between the direction vector and z-axis in radians [0,pi] (or degrees), and
                  azimuthal angle `phi` of the direction vector in radians [-pi,pi] (or degrees).
                  Note: This option requires all position and direction values [x,y,z,u,v,w] to be included in the dump file.
-        - **`use_degrees`** = (optional, D=`False`) Boolean designating whether angles `theta` and `phi` are returned
+        - **`use_degrees`** = (D=`False`) Boolean designating whether angles `theta` and `phi` are returned
                  in units of degrees. Default setting is to return angles in radians.
-        - **`max_entries_read`** = (optional, D=`None`) integer number specifying the maximum number of entries/records
+        - **`max_entries_read`** = (D=`None`) integer number specifying the maximum number of entries/records
                  of the dump file to be read.  By default, all records in the dump file are read.
-        - **`return_namedtuple_list`** = (optional, D=`True`) Boolean designating whether `dump_data_list` is returned.
-        - **`return_Pandas_dataframe`** = (optional, D=`True`) Boolean designating whether `dump_data_frame` is returned.
-        - **`prefer_reading_existing_pickle`** = (optional, D=`False`) A Boolean determining what this function does if the 
+        - **`return_namedtuple_list`** = (D=`True`) Boolean designating whether `dump_data_list` is returned.
+        - **`return_Pandas_dataframe`** = (D=`True`) Boolean designating whether `dump_data_frame` is returned.
+        - **`prefer_reading_existing_pickle`** = (D=`False`) A Boolean determining what this function does if the 
                  pickle file(s) this function seeks to generate already exist.  If `False` (default behavior), 
                  this function will parse the PHITS dump files as usual and overwrite the existing pickle file(s). 
                  If `True`, this function will instead simply just read the existing found pickle file(s) and return the stored contents. 
                  Note that it can also be used for creating LZMA compressed/decompressed versions of the pickle file(s) 
                  if the file is set to be saved and the found existing file's compression (or lack thereof) contrasts
                  with the current setting of `compress_pickles_with_lzma`.
-        - **`compress_pickles_with_lzma`** = (optional, D=`True`) Boolean designating whether the pickle files to be saved of
+        - **`compress_pickles_with_lzma`** = (D=`True`) Boolean designating whether the pickle files to be saved of
                  the namedtuple list (if `save_namedtuple_list = True`) and/or the Pandas DataFrame (if `save_Pandas_dataframe = True`)
                  will be compressed with [LZMA compression](https://docs.python.org/3/library/lzma.html) (included within
                  the baseline [Python standard library](https://docs.python.org/3/library/index.html)); if so, the file
@@ -699,7 +822,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
                  `with lzma.open(path_to_picklexz_file, 'rb') as file: dump_data_list = pickle.load(file)`.
                  While compression will notably slow down the file-saving process, owing to the often large size of
                  PHITS dump files the additional reduction in file size (often around a factor of 5) is generally preferred.
-        - **`save_namedtuple_list`** = (optional, D=`False`) Boolean designating whether `dump_data_list` is saved to a pickle file,
+        - **`save_namedtuple_list`** = (D=`False`) Boolean designating whether `dump_data_list` is saved to a pickle file,
                 which will by default be compressed with LZMA (built-in with Python; see the `compress_pickles_with_lzma` option).
                 For complicated reasons&dagger;, the namedtuple list is converted to a [NumPy recarray](https://numpy.org/doc/stable/reference/generated/numpy.recarray.html) before being saved,
                 which is nearly functionally identical to the list of namedtuples.  When viewing individual entries,
@@ -711,13 +834,13 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
                 adding the extra external dependency was undesirable. Furthermore, the time performance of saving the
                 NumPy recarray was substantially superior, approximately a factor of 2, relative to just using dill to
                 save the list of namedtuples, also using the LZMA compression in both cases._
-        - **`save_Pandas_dataframe`** = (optional, D=`False`) Boolean designating whether `dump_data_frame` is saved to a pickle
+        - **`save_Pandas_dataframe`** = (D=`False`) Boolean designating whether `dump_data_frame` is saved to a pickle
                 file (via the Pandas `.to_pickle()` method), which will by default
                 be compressed with LZMA (built-in with Python; see the `compress_pickles_with_lzma` option). This pickle 
                 can then be accessed via the [`pandas.read_pickle(path_to_DF_pickle)`](https://pandas.pydata.org/docs/reference/api/pandas.read_pickle.html) function.
-        - **`split_binary_dumps_over_X_GB`** = (optional, D=`20` GB) an integer/float specifying the number of gigabytes over 
+        - **`split_binary_dumps_over_X_GB`** = (D=`20` GB) an integer/float specifying the number of gigabytes over 
                 which a _binary_ dump file will be split into chunks of this size for processing&Dagger;.
-        - **`merge_split_dump_handling`** = (optional, D=`0`) For instances where binary dump files are to be split, 
+        - **`merge_split_dump_handling`** = (D=`0`) For instances where binary dump files are to be split, 
                 described above for `split_binary_dumps_over_X_GB` and the the note below&Dagger;, input one of the following 
                 numbers to determine what will happen to the intermediate pickle files created from each split chunk:  
            - `0` = Merge the intermediate pickle files (via `merge_dump_file_pickles()`), then, if successful, delete them.  
@@ -1057,10 +1180,12 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
 
 
 
-def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.out', output_file_prefix = '',
+def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = None, output_file_prefix = '',
                                   output_file_required_string='', include_subdirectories=False,  return_tally_output=False,
                                   make_PandasDF=True, calculate_absolute_errors=True,
-                                  save_output_pickle=True, prefer_reading_existing_pickle=False, compress_pickle_with_lzma=False,
+                                  save_output_pickle=True, include_phitsout_in_metadata=False,
+                                  prefer_reading_existing_pickle=False, compress_pickle_with_lzma=False,
+                                  merge_tally_outputs=False, save_pickle_of_merged_tally_outputs=None,
                                   include_dump_files=False,
                                   dump_data_number=None , dump_data_sequence=None,
                                   dump_return_directional_info=False, dump_use_degrees=False,
@@ -1072,15 +1197,20 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
                                   ):
     '''
     Description:
-        Parse all standard PHITS tally output files in a directory, returning either a list of dictionaries containing
+        Parse all standard PHITS tally output files in a directory *[DIRECTORY mode]*, returning either a list of dictionaries containing
         tally metadata and an array of values from each tally output (and optionally this data inside of a Pandas dataframe too)
         or a list of filepaths to pickle files containing these dictionaries, as created with the `parse_tally_output_file()` function.
+        Alternatively, if provided a PHITS input file or its produced "phits.out" file instead of a directory *[INPUT_FILE mode]*, 
+        this function will instead scan 
+        the provided file for all tally output that should have been produced by the PHITS run and parse all of those files instead.
+        
         This function allows selective processing of files in the directory by specification of strings which must
         appear at the start, end, and/or anywhere within each filename.
-        Even if a file satisfies all of these naming criteria, the function will also check the first line of the file
-        to determine if it is a valid tally output file (meaning, it will skip files such as phits.out and batch.out).
+        Even if a file satisfies all of these naming criteria, the function will also use `determine_PHITS_output_file_type()`
+        to check if it is a valid tally output file or phits.out file (meaning, it will skip files like batch.out).
         It will also skip over "_err" uncertainty files as these are automatically found by the `parse_tally_output_file()`
         function after it processes that tally's main output file.
+        
         This function will mainly process standard tally output files, but it can optionally process tally "dump" files too,
         though it can only save the dump outputs to its pickle files and not return the (quite large) dump data objects.
         The filenames of saved dump data will not be included in the returned list.
@@ -1096,58 +1226,108 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
     Inputs:
        (required)
 
-        - **`tally_output_dirpath`** = Path (string or path object) to the tally output directory to be searched and parsed
+        - **`tally_output_dirpath`** = Path (string or [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) object) to the tally output directory to be searched and parsed 
+                      or to a PHITS input file or its "phits.out" file (`file(6)` in the [Parameters] section of a PHITS input file) 
+                      whose produced outputs are to be parsed.  If provided a directory, this function will operate in *[DIRECTORY mode]*; 
+                      otherwise, if provided a PHITS input or phits.out file, it will operate in *[INPUT_FILE mode]*.
+                      Both of these modes are nearly identical in their function, but their differences are highlighted 
+                      here in this function's documentation.
 
     Inputs:
        (optional)
 
-       - **`output_file_suffix`** = A string specifying what characters processed filenames (including the file extension)
-                      must end in to be included.  This condition is not enforced if set to an empty string `''`. (D=`'.out'`)
+       - **`output_file_suffix`** = (*[DIRECTORY mode]* D=`'.out'` / *[INPUT_FILE mode]* D=`''`) 
+                      A string specifying what characters processed filenames (including the file extension)
+                      must end in to be included.  This condition is not enforced if set to an empty string `''`. 
                       Note that if the filename contains "_dmp" and has a final extension of the form ".###" (where "###" 
                       is an arbitrarily long numeric string of digits 0-9), as is the case for dump files from PHITS 
                       ran in MPI parallelization, this ".###" final extension is pretended not to exist when enforcing 
                       this `output_file_suffix` parameter, allowing these dump files to be found and processed the same 
                       regardless of whether MPI was used or not when running PHITS.
-       - **`output_file_prefix`** = A string specifying what characters processed filenames (including the file extension)
-                      must begin with to be included.  This condition is not enforced if set to an empty string `''`. (D=`''`)
-       - **`output_file_required_string`** = A string which must be present anywhere within processed filenames (including the
-                      file extension) to be included.  This condition is not enforced if set to an empty string `''`. (D=`''`)
-       - **`include_subdirectories`** = A Boolean determining whether this function searches and processes all included
+       - **`output_file_prefix`** = (D=`''`) A string specifying what characters processed filenames (including the file extension)
+                      must begin with to be included.  This condition is not enforced if set to an empty string `''`. 
+       - **`output_file_required_string`** = (D=`''`) A string which must be present anywhere within processed filenames (including the
+                      file extension) to be included.  This condition is not enforced if set to an empty string `''`. 
+       - **`include_subdirectories`** = (D=`False`) A Boolean determining whether this function searches and processes all included
                       tally output files in this directory AND deeper subdirectories if set to `True`
-                      or only the files directly within the provided directory `tally_output_dirpath` if set to `False` (D=`False`)
-       - **`return_tally_output`** = A Boolean determining whether this function returns a list of `tally_output` dictionaries
-                      if set to `True` or just a list of filepaths to the pickle files containing these dictionaries
-                      if set to `False` (D=`False`)
-       - **`include_dump_files`** = A Boolean determining whether dump files will be processed too or skipped. (D=`False`)
+                      or only the files directly within the provided directory `tally_output_dirpath` if set to `False`
+       - **`return_tally_output`** = (D=`False`) A Boolean determining whether this function returns (if `True`) a list of `tally_output` dictionaries
+                      or (if `False`) just a list of filepaths to the pickle files containing these dictionaries
+       - **`include_dump_files`** = (D=`False`) A Boolean determining whether dump files will be processed too or skipped.
                       Settings to be applied to all encountered dump files can be specified per the optional inputs
                       detailed below which are simply passed to the `parse_tally_dump_file()` function.  Note that parameters
                       `return_namedtuple_list` and `return_Pandas_dataframe` will always be `False` when dump files are
                       processed in a directory with this function; instead, `save_namedtuple_list` and `save_Pandas_dataframe`
                       are by default set to `True` when parsing dump files in a directory with this function.  (Be warned,
                       if the dump file is large, the produced files from parsing them will be too.)  
-       - **`prefer_reading_existing_pickle`** = A Boolean determining what this function does if the pickle file this function
+       - **`prefer_reading_existing_pickle`** = (D=`False`) A Boolean determining what this function does if the pickle file this function
                       seeks to generate already exists.  If `False` (default behavior), this function will parse the PHITS
                       output files as usual and overwrite the existing pickle file.  If `True`, this function will instead
                       simply just read the existing found pickle file, extracting its stored `tally_output` contents 
-                      (and, if for dump file pickles, they'll simply be skipped and not reprocessed). (D=`False`)
-       - **`autoplot_all_tally_output_in_dir`** = (optional, D=`False`; requires `make_PandasDF=True`) Boolean denoting, 
+                      (and, if for dump file pickles, they'll simply be skipped and not reprocessed). 
+       - **`merge_tally_outputs`** = (D=`False`) A Boolean determining whether this function will merge all 
+                      of the produced `tally_output` dictionaries (and "phitsout" dictionaries if `include_phitsout_in_metadata=True`) 
+                      into a single larger dictionary object.  The output filenames are used as the keys in this dictionary. 
+                      In *[DIRECTORY mode]*, this is the relative filepath (from the provided dirctory) of each output file, converted to a string; 
+                      in *[INPUT_FILE mode]*, this is the string provided to each tally's `file` parameter in the PHITS input.
+                      This dictionary will respect the `save_pickle_of_merged_tally_outputs` and `compress_pickle_with_lzma` input arguments 
+                      for saving and compression, with path/name "`tally_output_dirpath`/ALL_TALLY_OUTPUTS.pickle[.xz]" by default.
+                      If in *[INPUT_FILE mode]*, the default filename of this file will be prefixed by either the PHITS 
+                      input filename or "phitsout_", depending on which type of file is provided to this function.
+                      If a string is provided instead of a Boolean, this setting will be set to `True` and the string 
+                      will be used as the saved pickle file's filename, with 
+                      the file name and path as "`tally_output_dirpath`/`merge_tally_outputs`.pickle[.xz]".
+                      If `return_tally_output` is set to `True`, 
+                      this single dictionary will be returned instead of a list of produced `tally_output` dictionaries.
+       - **`save_pickle_of_merged_tally_outputs`** = (D=`None`; requires `merge_tally_outputs=True`) Boolean denoting whether
+                      the merged dictionary containing all PHITS tally output created when `merge_tally_outputs=True` should 
+                      be saved as a pickle file, allowing independent control of saving this pickle file versus those of the 
+                      constituent tallies.  If left at its default value of `None`, this option will be set to match 
+                      the `save_output_pickle` (D=`True`) option. If set to `True` and `return_tally_output=False` and 
+                      `save_output_pickle=False`, this function will return the path to this saved pickle file.
+       - **`autoplot_all_tally_output_in_dir`** = (D=`False`; requires `make_PandasDF=True`) Boolean denoting, 
                       for all tally outputs included in this function's call, whether the tallies' outputs will be automatically 
                       plotted and saved to a single PDF, with path/name "`tally_output_dirpath`/ALL_TALLY_OUTPUTS_PLOTTED.pdf" by default, 
                       using the `autoplot_tally_results()` function.  If a string is provided instead of a Boolean, 
                       this setting will be set to `True` and the string will be used as the plot PDF's filename, with 
                       the file name and path as "`tally_output_dirpath`/`autoplot_all_tally_output_in_dir`.pdf".
+                      If in *[INPUT_FILE mode]*, the default filename of this PDF will be prefixed by either the PHITS 
+                      input filename or "phitsout_", depending on which is provided to this function.
+       
+                      
+                      
 
     Inputs:
        (optional, the same as in and directly passed to the `parse_tally_output_file()` function)
 
-       - **`make_PandasDF`** = A Boolean determining whether a Pandas dataframe of the tally data array will be made (D=`True`)
-       - **`calculate_absolute_errors`** = A Boolean determining whether the absolute uncertainty of each tally output value
+       - **`make_PandasDF`** = (D=`True`) A Boolean determining whether a Pandas dataframe of the tally data array will be made 
+       - **`calculate_absolute_errors`** = (D=`True`) A Boolean determining whether the absolute uncertainty of each tally output value
                       is to be calculated (simply as the product of the value and relative error); if `False`, the final
-                      dimension of `tally_data`, `ierr`, will be of length-2 rather than length-3 (D=`True`)
-       - **`save_output_pickle`** = A Boolean determining whether the `tally_output` dictionary object is saved as a pickle file;
+                      dimension of `tally_data`, `ierr`, will be of length-2 rather than length-3 
+       - **`save_output_pickle`** = (D=`True`) A Boolean determining whether the `tally_output` dictionary object is saved as a pickle file;
                       if `True`, the file will be saved with the same path and name as the provided PHITS tally output file
-                      but with the .pickle extension. (D=`True`)
-       - **`compress_pickle_with_lzma`** = (optional, D=`False`; requires `save_output_pickle=True`) Boolean designating 
+                      but with the .pickle extension. 
+       - **`include_phitsout_in_metadata`** = (D=`False`) A Boolean determining whether the "phits.out" file 
+                      (`file(6)` in the [Parameters] section of a PHITS input file) in the same directory as `tally_output_dirpath`, 
+                      if found, should be processed via `parse_phitsout_file()` and have its informational dictionary 
+                      about the PHITS run added to the `'tally_metadata'` dictionary under the key `'phitsout'`. 
+            -         This only works if a single "phits.out"-type file is found; if multiple are encountered (as determined by `determine_PHITS_output_file_type()`), 
+                      they will still be processed with `parse_phitsout_file()` (if `save_output_pickle=True` or `merge_tally_outputs=True`) but not added to 
+                      any tally output metadata dictionaries. In this circumstance and if `merge_tally_outputs=True`, 
+                      the multiple phits.out dictionaries will be added to the merged dictionary.
+            -         If, instead of a Boolean, a dictionary-type object is provided, no search will be conducted and the provided
+                      dictionary will be taken as that to be added as the `'phitsout'` key in the `'tally_metadata'` dictionary.
+            -         Otherwise, if a string or [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) object 
+                      is provided, this will be taken as the path to the "phits.out"-type file to be processed and have its 
+                      informational dictionary added to the `'tally_metadata'` dictionary. 
+            -         Note that this is automatically set to `True` if in *[INPUT_FILE mode]* (if `tally_output_dirpath` 
+                      is a file, rather than a directory, and deemed to be a PHITS input file or "phits.out"-type file, 
+                      as determined by `determine_PHITS_output_file_type()`);
+                      to override this automatic behavior (i.e., to behave as if set to `False` even when provided a PHITS 
+                      input or phits.out file), set `include_phitsout_in_metadata = {}`.
+            -         Setting `include_phitsout_in_metadata = None` functions the same as `include_phitsout_in_metadata = True` 
+                      but sets `include_input_echo = False` in the `parse_phitsout_file()` call.
+       - **`compress_pickle_with_lzma`** = (D=`False`; requires `save_output_pickle=True`) Boolean designating 
                       whether the pickle file to be saved will be compressed with 
                       [LZMA compression](https://docs.python.org/3/library/lzma.html) (included in
                       the baseline [Python standard library](https://docs.python.org/3/library/index.html)); if so, the 
@@ -1157,82 +1337,140 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
                       For most "normal" tallies, the pickle file sizes are likely to be small enough to not warrant 
                       compression, but LZMA compression can reduce the file size by several orders of magnitude, 
                       great for output from massive tallies.
-       - **`autoplot_tally_output`** = (optional, D=`False`; requires `make_PandasDF=True`) Boolean denoting whether, for each tally, 
+       - **`autoplot_tally_output`** = (D=`False`; requires `make_PandasDF=True`) Boolean denoting whether, for each tally, 
                       the tally's output will be automatically plotted and saved to a PDF and PNG (of the same name/path as 
                       `tally_output_filepath` but ending in `.pdf`/`.png`) using the `autoplot_tally_results()` function. 
 
     Inputs:
        (optional, the same as in and directly passed to the `parse_tally_dump_file()` function)
 
-       - **`dump_data_number`** = integer number of data per row in dump file, binary if >0 and ASCII if <0.
-                This should match the value following `dump=` in the tally creating the dump file. (D=`None`)
+       - **`dump_data_number`** = (D=`None`) integer number of data per row in dump file, binary if >0 and ASCII if <0.
+                This should match the value following `dump=` in the tally creating the dump file. 
                 If not specified, the search_for_dump_parameters() function will attempt to find it automatically.
-       - **`dump_data_sequence`** = string or list of integers with the same number of entries as `dump_data_number`,
-                mapping each column in the dump file to their physical quantities.  (D=`None`)
+       - **`dump_data_sequence`** = (D=`None`) string or list of integers with the same number of entries as `dump_data_number`,
+                mapping each column in the dump file to their physical quantities. 
                 This should match the line following the `dump=` line in the tally creating the dump file.
                 See PHITS manual section "6.7.22 dump parameter" for further explanations of these values.
                 If not specified, the search_for_dump_parameters() function will attempt to find it automatically.
-       - **`dump_return_directional_info`** = (optional, D=`False`) Boolean designating whether extra directional information
+       - **`dump_return_directional_info`** = (D=`False`) Boolean designating whether extra directional information
                 should be calculated and returned; these include: radial distance `r` from the origin in cm,
                 radial distance `rho` from the z-axis in cm,
                 polar angle `theta` between the direction vector and z-axis in radians [0,pi] (or degrees), and
                 azimuthal angle `phi` of the direction vector in radians [-pi,pi] (or degrees).
                 Note: This option requires all position and direction values [x,y,z,u,v,w] to be included in the dump file.
-       - **`dump_use_degrees`** = (optional, D=`False`) Boolean designating whether angles `theta` and `phi` are returned
+       - **`dump_use_degrees`** = (D=`False`) Boolean designating whether angles `theta` and `phi` are returned
                 in units of degrees. Default setting is to return angles in radians.
-       - **`dump_max_entries_read`** = (optional, D=`None`) integer number specifying the maximum number of entries/records
+       - **`dump_max_entries_read`** = (D=`None`) integer number specifying the maximum number of entries/records
                 of the dump file to be read.  By default, all records in the dump file are read.
-       - **`dump_save_namedtuple_list`** = (optional, D=`True`) Boolean designating whether `dump_data_list` is saved to a pickle file
+       - **`dump_save_namedtuple_list`** = (D=`True`) Boolean designating whether `dump_data_list` is saved to a pickle file
                (for complicated reasons, the namedtuple list is converted to a [NumPy recarray](https://numpy.org/doc/stable/reference/generated/numpy.recarray.html) before being saved,
                which is nearly functionally identical to the list of namedtuples.
                For more info and the full explanation, see the documentation for the `parse_tally_dump_file()` function's
                `save_namedtuple_list` argument, which is what this argument is passed to anyways).
-       - **`dump_save_Pandas_dataframe`** = (optional, D=`True`) Boolean designating whether `dump_data_frame` is saved to a pickle
+       - **`dump_save_Pandas_dataframe`** = (D=`True`) Boolean designating whether `dump_data_frame` is saved to a pickle
                file (via Pandas .to_pickle()).
-       - **`split_binary_dumps_over_X_GB`** = (optional, D=`20` GB) an integer/float specifying the number of gigabytes over 
+       - **`split_binary_dumps_over_X_GB`** = (D=`20` GB) an integer/float specifying the number of gigabytes over 
                which a _binary_ dump file will be split into chunks of this size for processing.
-       - **`merge_split_dump_handling`** = (optional, D=`0`) For instances where binary dump files are to be split, 
+       - **`merge_split_dump_handling`** = (D=`0`) For instances where binary dump files are to be split, 
                as determined by the `split_binary_dumps_over_X_GB` setting, input one of the following 
                numbers to determine what will happen to the intermediate pickle files created from each split chunk:  
            - `0` = Merge the intermediate pickle files (via `merge_dump_file_pickles()`), then, if successful, delete them.  
            - `1` = Do not merge the intermediate pickle files.  
            - `2` = Merge the intermediate pickle files but do not delete them afterward.
-       - **`dump_merge_MPI_subdumps`** = (optional, D=`True`) Boolean designating whether the pickled namedtuple lists and/or
+       - **`dump_merge_MPI_subdumps`** = (D=`True`) Boolean designating whether the pickled namedtuple lists and/or
                Pandas DataFrames for all "sub-dumps" from an MPI run of PHITS should be merged into single namedtuple 
                list and/or Pandas DataFrame pickle file(s) (with `merge_dump_file_pickles()`). When a dump file is written in an MPI execution of PHITS, 
                it is split into N "sub dump" files, one per MPI process, and given an extra final extension of the 
                form ".###" (where "###" is an arbitrarily long numeric string of digits 0-9 designating the MPI process).
                This option is only active when such files are encountered.
-       - **`dump_delete_MPI_subdumps_post_merge`** = (optional, D=`True`) Requires `dump_merge_MPI_subdumps=True`, Boolean 
+       - **`dump_delete_MPI_subdumps_post_merge`** = (D=`True`) Requires `dump_merge_MPI_subdumps=True`, Boolean 
                designating whether the numerous "sub dump" pickle files merged when `dump_merge_MPI_subdumps=True` 
                (and MPI dump files are found) are deleted after the merged version combining all of them is saved.
 
     Output:
-        - **`tally_output_list`** = a list of `tally_output` dictionary objects with the below keys and values / a list of
-             file paths to pickle files containing `tally_output` dictionary objects:
+        - **`tally_output_list`** = a list of `tally_output` dictionary objects (if `return_tally_output=True`) with the 
+             below keys and values / a list of file paths to pickle files containing `tally_output` dictionary objects:
             - `'tally_data'` = a 10-dimensional NumPy array containing all tally results, explained in more detail below
-            - `'tally_metadata'` = a dictionary/Munch object with various data extracted from the tally output file, such as axis binning and units
+            - `'tally_metadata'` = a dictionary/Munch&dagger; object with various data extracted from the tally output file, such as axis binning and units
             - `'tally_dataframe'` = (optionally included if setting `make_PandasDF = True`) a Pandas dataframe version of `tally_data`
-
+        - This list of `tally_output` dictionary objects will be returned as a larger merged dictionary/Munch&dagger; object, 
+               keyed using the tally output file names, instead if `merge_tally_outputs=True` and `return_tally_output=True`.  
+               If `merge_tally_outputs=True`, `return_tally_output=False`, `save_output_pickle=False`, and `save_pickle_of_merged_tally_outputs=True`, 
+               the path to this saved merged tally output dictionary pickle file will be returned instead. 
+    
+    &dagger;_If you have the [Munch package](https://github.com/Infinidat/munch) installed, the `tally_metadata` dictionary
+       and merged tally output dictionary will instead be Munch objects, which are identical to a dictionary but additionally 
+       allows attribute-style access (e.g., `tally_metadata.mesh` instead of only `tally_metadata['mesh']`). 
+       If you do not have Munch, then these will just be standard dictionary objects. 
+       If, for whatever reason, you have Munch installed but do not wish for these to be Munch objects, 
+       then in the first line of code for both this and the `parse_tally_header()` function, set 
+       `prefer_to_munch_merged_dict = False` and `prefer_to_munch_meta_dict = False`, respectively._
+    
     '''
+    prefer_to_munch_merged_dict = True
     import os
+    from inspect import signature
+    if prefer_to_munch_merged_dict:
+        try:
+            from munch import Munch
+            merged_outputs_dict = Munch({})
+        except:
+            merged_outputs_dict = {}
+    else:
+        merged_outputs_dict = {}
+    if save_pickle_of_merged_tally_outputs is None:
+        save_pickle_of_merged_tally_outputs = save_output_pickle
+    
+    operating_in_directory_mode = True # otherwise, if False, assume INPUT_FILE mode
 
+    is_file6_phitsout_file, is_PHITS_input_file = False, False
+    include_THIS_phitsout_dict_in_metadata = False
+    include_input_echo = True 
+    if include_phitsout_in_metadata is None: include_input_echo = False
     if not os.path.isdir(tally_output_dirpath):
-        print('The provided path to "tally_output_dir" is not a directory:',tally_output_dirpath)
-        if os.path.isfile(tally_output_dirpath):
+        #print('The provided path to "tally_output_dir" is not a directory:', tally_output_dirpath)
+        PHITS_file_type = determine_PHITS_output_file_type(tally_output_dirpath)
+        if PHITS_file_type['is_file6_phitsout_file'] or PHITS_file_type['is_PHITS_input_file']:
+            is_file6_phitsout_file, is_PHITS_input_file = PHITS_file_type['is_file6_phitsout_file'], PHITS_file_type['is_PHITS_input_file']
+            file_type_str = 'PHITS input' if is_PHITS_input_file else 'phits.out'
+            #print('However, it is a valid '+file_type_str+' file, thus the tally outputs from this PHITS run will be processed.')
+            operating_in_directory_mode = False
+            original_input_path = tally_output_dirpath
+            head, tail = os.path.split(tally_output_dirpath)
+            tally_output_dirpath = head
+        elif os.path.isfile(tally_output_dirpath):
+            print('The provided path to "tally_output_dir" is not a directory:', tally_output_dirpath)
             head, tail = os.path.split(tally_output_dirpath)
             tally_output_dirpath = head
             print('However, it is a valid path to a file; thus, its parent directory will be used:',tally_output_dirpath)
         else:
+            print('The provided path to "tally_output_dir" is not a directory:', tally_output_dirpath)
             print('Nor is it a valid path to a file. ERROR! Aborting...')
             return None
 
-    autoplot_dir_filename = "ALL_TALLY_OUTPUTS_PLOTTED.pdf"
-    if isinstance(autoplot_all_tally_output_in_dir, str):
-        autoplot_dir_filename = autoplot_all_tally_output_in_dir + '.pdf'
-        autoplot_all_tally_output_in_dir = True
-
-    if include_subdirectories:
+    if output_file_suffix is None:
+        if operating_in_directory_mode:
+            output_file_suffix = '.out'
+        else:
+            output_file_suffix = ''
+        
+    if is_file6_phitsout_file or is_PHITS_input_file: 
+        # Only list out files produced by this PHITS run
+        if is_PHITS_input_file:
+            files_dict = extract_tally_outputs_from_phits_input(original_input_path)
+            phitsout_dict = parse_phitsout_file(files_dict['phitsout'],  save_phitsout_pickle=save_output_pickle, compress_pickle_with_lzma=compress_pickle_with_lzma, include_input_echo=include_input_echo)
+            if not (isinstance(include_phitsout_in_metadata, dict) and include_phitsout_in_metadata=={}): include_THIS_phitsout_dict_in_metadata = True
+            if files_dict['active_infl_found']: 
+                print('An active "infl:{}" section was found in the PHITS input; therefore its phits.out file will be used for obtaining the complete list of generated output files.')
+                files_dict = phitsout_dict['produced_files']
+        else:
+            phitsout_file = Path(original_input_path)
+            phitsout_dict = parse_phitsout_file(phitsout_file,  save_phitsout_pickle=save_output_pickle, compress_pickle_with_lzma=compress_pickle_with_lzma, include_input_echo=include_input_echo)
+            if not (isinstance(include_phitsout_in_metadata, dict) and include_phitsout_in_metadata=={}): include_THIS_phitsout_dict_in_metadata = True
+            files_dict = phitsout_dict['produced_files']
+        files_in_dir = files_dict['standard_output']
+        if include_dump_files: files_in_dir += files_dict['dump_output']
+    elif include_subdirectories:
         # Get paths to all files in this dir and subdirs
         files_in_dir = []
         for path, subdirs, files in os.walk(tally_output_dirpath):
@@ -1242,9 +1480,27 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
         # Just get paths to files in this dir
         files_in_dir = [os.path.join(tally_output_dirpath, f) for f in os.listdir(tally_output_dirpath) if os.path.isfile(os.path.join(tally_output_dirpath, f))]
 
+    if is_PHITS_input_file:
+        autoplot_dir_filename = Path(original_input_path).stem + "_ALL_TALLY_OUTPUTS_PLOTTED.pdf"
+        merged_output_pickle_filename = Path(original_input_path).stem + "_ALL_TALLY_OUTPUTS.pickle"
+    elif is_file6_phitsout_file:
+        autoplot_dir_filename = "phitsout_ALL_TALLY_OUTPUTS_PLOTTED.pdf"
+        merged_output_pickle_filename = "phitsout_ALL_TALLY_OUTPUTS.pickle"
+    else:
+        autoplot_dir_filename = "ALL_TALLY_OUTPUTS_PLOTTED.pdf"
+        merged_output_pickle_filename = "ALL_TALLY_OUTPUTS.pickle"
+    if isinstance(autoplot_all_tally_output_in_dir, str):
+        autoplot_dir_filename = autoplot_all_tally_output_in_dir + '.pdf'
+        autoplot_all_tally_output_in_dir = True
+    if isinstance(merge_tally_outputs, str):
+        merged_output_pickle_filename = merge_tally_outputs + '.pickle'
+        merge_tally_outputs = True
+        
+    
     # Determine which files should be parsed
     filepaths_to_process = []
     dump_filepaths_to_process = []
+    phitsout_files_to_process = []
     len_suffix = len(output_file_suffix)
     len_prefix = len(output_file_prefix)
     len_reqstr = len(output_file_required_string)
@@ -1261,34 +1517,83 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
         if len_prefix > 0 and tail[:len_prefix] != output_file_prefix: continue
         if len_reqstr > 0 and output_file_required_string not in tail: continue
         if tail[(-4-len_suffix):] == '_err' + output_file_suffix: continue
-        with open(f) as ff:
-            try:
-                first_line = ff.readline().strip()
-            except: # triggered if encountering binary / non ASCII or UTF-8 file
-                if include_dump_files and tail[(-4-len_suffix):] == '_dmp' + output_file_suffix:
-                    dump_filepaths_to_process.append(f)
-                continue
-            if len(first_line) == 0: continue
-            if first_line[0] != '[' :
-                if include_dump_files and tail[(-4-len_suffix):] == '_dmp' + output_file_suffix:
-                    dump_filepaths_to_process.append(f)
-                continue
-        filepaths_to_process.append(f)
+        this_file_type = determine_PHITS_output_file_type(f)
+        if this_file_type['is_standard_tally_output']:
+            filepaths_to_process.append(f)
+        elif include_dump_files and tail[(-4 - len_suffix):] == '_dmp' + output_file_suffix and (
+                this_file_type['is_binary_tally_dump'] or this_file_type['is_binary_tally_dump']):
+            dump_filepaths_to_process.append(f)
+        elif this_file_type['is_file6_phitsout_file']:
+            phitsout_files_to_process.append(f)
+        else:
+            continue
+        # with open(f) as ff:
+        #     try:
+        #         first_line = ff.readline().strip()
+        #     except: # triggered if encountering binary / non ASCII or UTF-8 file
+        #         if include_dump_files and tail[(-4-len_suffix):] == '_dmp' + output_file_suffix:
+        #             dump_filepaths_to_process.append(f)
+        #         continue
+        #     if len(first_line) == 0: continue
+        #     if first_line[0] != '[' :
+        #         if '_________________________________________________________' in first_line: # phits.out file
+        #             phitsout_files_to_process.append(f)
+        #         if include_dump_files and tail[(-4-len_suffix):] == '_dmp' + output_file_suffix:
+        #             dump_filepaths_to_process.append(f)
+        #         continue
+        # filepaths_to_process.append(f)
+    
+    # If there is only one phits.out file, we can safely assume it belongs to all other processed output
+    if len(phitsout_files_to_process) == 1 and (save_output_pickle or (include_phitsout_in_metadata is None or (type(include_phitsout_in_metadata) == bool and include_phitsout_in_metadata))):
+        phitsout_dict = parse_phitsout_file(phitsout_files_to_process[0], include_input_echo=include_input_echo, save_phitsout_pickle=save_output_pickle)
+        if include_phitsout_in_metadata is None or (type(include_phitsout_in_metadata) == bool and include_phitsout_in_metadata): 
+            include_THIS_phitsout_dict_in_metadata = True
+        # if merge_tally_outputs:
+        #     key = str(f.relative_to(tally_output_dirpath))
+        #     merged_outputs_dict[key] = phitsout_dict
+    elif len(phitsout_files_to_process) > 1 and (save_output_pickle or merge_tally_outputs): # Otherwise, if more, only process if pickles are to be saved
+        for f in phitsout_files_to_process:
+            temp_phitsout_dict = parse_phitsout_file(f, save_phitsout_pickle=save_output_pickle, compress_pickle_with_lzma=compress_pickle_with_lzma)
+            if merge_tally_outputs:
+                key = str(Path(f).relative_to(tally_output_dirpath))
+                merged_outputs_dict[key] = temp_phitsout_dict
+    if include_THIS_phitsout_dict_in_metadata:  # provide a phitsout dictionary created in THIS function to parse_tally_output_file, otherwise pass provided include_phitsout_in_metadata argument 
+        include_phitsout_in_metadata = phitsout_dict
+    
     tally_output_pickle_path_list = []
     tally_output_list = []
+    tally_include_in_plotting_list = []
+    max_num_values_to_plot = signature(autoplot_tally_results).parameters['max_num_values_to_plot'].default  # 1e7
     for f in filepaths_to_process:
         f = Path(f)
-        path_to_pickle_file = Path(f.parent, f.stem + '.pickle')
+        xz_text = ''
+        if compress_pickle_with_lzma: xz_text = '.xz'
+        path_to_pickle_file = Path(f.parent, f.stem + '.pickle' + xz_text)
         tally_output = parse_tally_output_file(f, make_PandasDF=make_PandasDF,
                                                calculate_absolute_errors=calculate_absolute_errors,
                                                save_output_pickle=save_output_pickle,
+                                               include_phitsout_in_metadata=include_phitsout_in_metadata,
                                                prefer_reading_existing_pickle=prefer_reading_existing_pickle,
                                                compress_pickle_with_lzma=compress_pickle_with_lzma,
                                                autoplot_tally_output=autoplot_tally_output)
-        if tally_output != None:
+        if tally_output is not None:
             tally_output_pickle_path_list.append(path_to_pickle_file)
-        if return_tally_output: 
+            tot_num_values = np.prod(np.shape(tally_output['tally_data'])[:-1])
+            if tot_num_values > max_num_values_to_plot:
+                tally_include_in_plotting_list.append(False)
+                if autoplot_all_tally_output_in_dir and not autoplot_tally_output:  # only print this message if not already printed
+                    print('WARNING: Tally output for ', tally_output['tally_metadata']['file'], ' is VERY LARGE (', tot_num_values,
+                          ' elements), deemed too large for automatic plotting (default max of', max_num_values_to_plot, 'elements).')
+            else:
+                tally_include_in_plotting_list.append(True)
+        if return_tally_output or (merge_tally_outputs and not save_output_pickle and autoplot_all_tally_output_in_dir): 
             tally_output_list.append(tally_output)
+        if merge_tally_outputs:
+            if operating_in_directory_mode:
+                key = str(Path(f).relative_to(tally_output_dirpath))
+            else:
+                key = tally_output['tally_metadata']['file']
+            merged_outputs_dict[key] = tally_output
 
     if include_dump_files:
         for f in dump_filepaths_to_process:
@@ -1315,22 +1620,326 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = '.o
                 merge_succeeded = merge_dump_file_pickles(dumps_to_merge, merged_dump_base_filepath=merged_fp, 
                                                           delete_pre_merge_pickles=dump_delete_MPI_subdumps_post_merge)
                 
+    if merge_tally_outputs and save_pickle_of_merged_tally_outputs:
+        # created dictionary of merged tally outputs
+        import pickle, lzma
+        merged_pickle_path = Path(tally_output_dirpath, merged_output_pickle_filename)
+        if compress_pickle_with_lzma:
+            merged_pickle_path = Path(merged_pickle_path.parent, merged_pickle_path.name + '.xz')
+            with lzma.open(merged_pickle_path, 'wb') as handle:
+                pickle.dump(merged_outputs_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        else:
+            with open(merged_pickle_path, 'wb') as handle:
+                pickle.dump(merged_outputs_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        print('Pickle file written:', merged_pickle_path, '\n')
+        if not return_tally_output:
+            del merged_outputs_dict  # In the event this is huge in memory, best to delete it here before the Pandas DF is made
+    
+    
     if autoplot_all_tally_output_in_dir:
         if not make_PandasDF:
             print('Plotting via "autoplot_tally_output=True" or "autoplot_all_tally_output_in_dir=True" requires also setting "make_PandasDF=True".')
         else:
+            print('Compiling PDF of plots...')
             plot_filepath = Path(tally_output_dirpath, autoplot_dir_filename)
-            if return_tally_output:
-                plot_list = tally_output_list
-            else:
-                plot_list = tally_output_pickle_path_list
+            plot_list = []
+            for i in range(len(tally_include_in_plotting_list)):
+                if tally_include_in_plotting_list[i]:
+                    if return_tally_output or (merge_tally_outputs and not save_output_pickle):
+                        plot_list.append(tally_output_list[i])
+                    else:
+                        plot_list.append(tally_output_pickle_path_list[i])
             autoplot_tally_results(plot_list, plot_errorbars=calculate_absolute_errors, output_filename=plot_filepath)
 
     if return_tally_output:
-        return tally_output_list
+        if merge_tally_outputs:
+            return merged_outputs_dict
+        else:
+            return tally_output_list
+    elif merge_tally_outputs and save_pickle_of_merged_tally_outputs and not save_output_pickle:
+        return merged_pickle_path
     else:
         return tally_output_pickle_path_list
 
+
+def parse_phitsout_file(phitsout_filepath, include_input_echo=True, save_phitsout_pickle=False, compress_pickle_with_lzma=False):
+    '''
+    Description:
+        Extracts useful information from the "phits.out" file (`file(6)` in the PHITS [Parameters] section) 
+        into a dictionary object, including the PHITS version number, time data (start/stop time, CPU time, MPI info, etc.), 
+        event and particle details, papers to cite, and more.  Sections taking the approximate form of a table are 
+        converted to Pandas DataFrames before being stored in the dictionary object.
+
+    Dependencies:
+        - `import pandas as pd`
+        - `from munch import Munch` (will still run if package not found)
+
+    Inputs:
+        - `phitsout_filepath` = string or Path object denoting the path to the "phits.out" file to be parsed
+        - `include_input_echo` = (optional, D=`True`) Boolean indicating whether the "Input Echo" block of text 
+                should be included in the output dictionary.
+        - `save_phitsout_pickle` = (optional, D=`False`) Boolean indicating whether a pickle file of the returned `phitsout_dict` 
+                dictionary should be saved, named "phits_out.pickle[.xz]" and in the same directory as `phitsout_filepath`. 
+                More specifically, the filename will be that of the "phits.out"-type file (`file(6)`) with "_out.pickle[.xz]" appended to it.
+        - `compress_pickle_with_lzma` = (optional, D=`False`; requires `save_phitsout_pickle=True`) Boolean designating 
+                whether the pickle file to be saved will be compressed with 
+                [LZMA compression](https://docs.python.org/3/library/lzma.html) (included in
+                the baseline [Python standard library](https://docs.python.org/3/library/index.html)); if so, the 
+                pickle file's extension will be `'.pickle.xz'` instead of just `'.pickle'`.
+                A *.pickle.xz file can then be opened (after importing `pickle` and `lzma`) as:  
+                `with lzma.open(path_to_picklexz_file, 'rb') as file: tally_output = pickle.load(file)`.  
+                For most "normal" PHITS runs, the pickle file sizes are likely to be small enough to not warrant 
+                compression, but LZMA compression can reduce the file size by several orders of magnitude, 
+                great for instances with very large geometry, materials, tally, etc. sections.
+
+    Outputs:
+        - `phitsout_dict` = a dictionary/Munch&dagger; object with various information/data extracted from the "phits.out" file. 
+            It is organized with the following keys:
+            - `'job'` : a dictionary of information about the run (PHITS version, start/end time, CPU time, MPI info, etc.)
+            - `'summary'` : a dictionary of the various text tables in the "Summary for the end of job" section of the 
+                    phits.out file. The sections clearly formatted as tables are generally converted into Pandas DataFrames.
+            - `'memory'` : a string of the section of text in phits.out containing memory usage information
+            - `'batch'` : a string of the section of text in phits.out containing information on each batch
+            - `'input_echo'` : a string of the "Input Echo" text section of phits.out
+            - `'produced_files'` : a dictionary of the output files produced by this PHITS run's tallies, catergorized 
+                    with keys `'standard_output'` (list of [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) objects), 
+                    `'dump_output'` (list of [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) objects), and 
+                    `'phitsout'` (a single [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) object); 
+                    this is the `files_dict` output returned by the `extract_tally_outputs_from_phits_input()` function. 
+            - `'citation_request'` : a string of the "Citation Request" text section of phits.out listing additional papers 
+                    beyond the main PHITS reference paper that should be cited in any publications using results from
+                    this simulation owing to using dependent models, codes, etc.
+            - `'extra_lines'` : a list of strings of any lines parsed by this function not classified as belonging to 
+                    any other section (and clearly containing information; i.e., not just blank or delimiter lines)
+        
+       To conveniently view the contents of `phitsout_dict`, one can import the built-in
+       pprint library `import pprint` and then use `pprint.pp(dict(phitsout_dict))`.
+        
+       &dagger;_If you have the [Munch package](https://github.com/Infinidat/munch) installed, the `phitsout_dict` dictionary
+       will instead be a Munch object, which is identical to a dictionary but additionally allows attribute-style access. 
+       If you do not have Munch, then `phitsout_dict` will just be a standard dictionary object. 
+       If, for whatever reason, you have Munch installed but do not wish for 
+       `phitsout_dict` to be a Munch object, then in the first line of code for the `parse_phitsout_file()` function, 
+       set `prefer_to_munch_meta_dict = False`._
+        
+    '''
+    prefer_to_munch_meta_dict = True
+    import datetime
+    import io
+    import pandas as pd
+    phitsout_filepath = Path(phitsout_filepath)
+    starting_dict = {'job':{},'summary':{},'memory':{},'batch':{}}
+    if prefer_to_munch_meta_dict:
+        try:
+            from munch import Munch
+            meta = Munch(starting_dict)
+        except:
+            meta = starting_dict
+    else:
+        meta = starting_dict
+    in_header = True 
+    in_input_echo = False 
+    in_footer = False
+    header_lines = []
+    input_echo = ''
+    footer_lines = []
+    # First, extract text from phits.out by section
+    with open(phitsout_filepath, mode='r', encoding="utf-8") as f:
+        for line in f:
+            if ">>> Input Echo >>>=============================================================" in line:
+                in_header = False
+                in_input_echo = True 
+                continue
+            if "[END] of Input Echo <<<========================================================" in line:
+                in_input_echo = False
+                in_footer = True
+                continue
+            if in_header:
+                header_lines.append(line)
+            elif in_input_echo:
+                input_echo += line
+            elif in_footer:
+                footer_lines.append(line)
+    # Extract info from header
+    for li, line in enumerate(header_lines):
+        if 'Version =' in line:
+            key, value = extract_data_from_header_line(line.replace('|','').strip())
+            meta['job']['PHITS_version'] = value
+        elif '[ Job Title ]' in line:
+            meta['job']['title'] = header_lines[li+2].replace('|','').strip()
+        elif 'Starting Date' in line:
+            key, date = extract_data_from_header_line(line.replace('|', '').strip())
+            year, month, day = [int(i) for i in date.split('-')]
+            key, time = extract_data_from_header_line(header_lines[li+1].replace('|', '').strip())
+            hour, minute, second = [int(i) for i in time.replace('h ',':').replace('m ',':').split(':')]
+            meta['job']['datetime_start'] = datetime.datetime(year, month, day, hour, minute, second)
+            meta['job']['datetime_start_ISO_str'] = meta['job']['datetime_start'].isoformat()
+        elif 'Total PE =' in line:
+            key, pe = extract_data_from_header_line(line.replace('|', '').strip())
+            meta['job']['MPI_total_num_PE'] = pe
+            meta['job']['MPI_executable_num_PE'] = pe - 1
+    # input echo
+    if include_input_echo:
+        meta['input_echo'] = input_echo
+    # produced files 
+    meta['produced_files'] = extract_tally_outputs_from_phits_input({'sim_base_dir_path':phitsout_filepath.parent,
+                                                                     'input_echo':input_echo}, 
+                                                                    use_path_and_string_mode=True)
+    # Extract info from footer
+    extra_lines = []  # extra footer lines not added to any specific dictionary entry
+    skip_lines = 0
+    memory_report = ''
+    batch_report = ''
+    citation_request = ''
+    line_of_dashes = '-------------------------------------------------------------------------------'
+    for li, line in enumerate(footer_lines):
+        if skip_lines>0:
+            skip_lines -= 1
+            continue
+        if '<<< Report of' in line and 'memory' in line:
+            for eli in range(5):
+                memory_report += footer_lines[li + eli]
+            skip_lines = 4
+        elif line[:4] == 'bat[':
+            for eli in range(5):
+                batch_report += footer_lines[li + eli]
+            skip_lines = 4
+        elif line[:-1] == line_of_dashes and footer_lines[li + 2][:-1] == line_of_dashes: # encountered table
+            in_special_events_table, in_special_MPI_table = False, False
+            if "CPU time and number of event called in PHITS" in footer_lines[li + 1][:-1]:
+                in_special_events_table = True
+                # get CPU time
+                total_cpu_time_sec = float(footer_lines[li + 5][:-1].split('=')[1].strip())
+                meta['job']['CPU_time_sec_int'] = total_cpu_time_sec
+                meta['job']['CPU_time_datetime_object'] = datetime.timedelta(seconds=total_cpu_time_sec)
+                meta['job']['CPU_time_str'] = str(meta['job']['CPU_time_datetime_object'])
+            elif "Final Parallel Status:" in footer_lines[li + 1][:-1]:
+                in_special_MPI_table = True
+            table_text = ''
+            table_title = footer_lines[li + 1][:-1]
+            column_header_line = table_title
+            nsl = 0 # number of lines to skip in table content
+            table_keyname = table_title.strip().replace(' ','_')
+            if "number of analyz call vs ncol" in table_title:
+                column_header_line = footer_lines[li + 3][:-1] # + '     description'
+                nsl = 1
+                table_keyname = 'analyz_calls_per_ncol'
+            elif "List of transport particles" in table_title:
+                column_header_line = footer_lines[li + 3][:-1]
+                nsl = 1
+                table_keyname = 'transport_particles'
+            elif "CPU time and number of event called in PHITS" in table_title:
+                column_header_line = '         event             count'
+                nsl = 6
+                table_keyname = 'events_and_models'
+            reassign_key_to_first_col_name = False
+            if column_header_line == table_title:
+                reassign_key_to_first_col_name = True 
+            column_header_line = column_header_line.replace('. p','._p')
+            column_header_line = column_header_line.replace('source:','')
+            col_headers_with_spaces = ['weight per source', 'average weight', 'total source']
+            for x in col_headers_with_spaces:
+                column_header_line = column_header_line.replace(x,x.replace(' ','_'))
+            line_len = len(line)
+            tesli = 3 + nsl
+            eli = 0
+            next_line = footer_lines[li + tesli + eli + 1]
+            while len(next_line)>1 or eli==0:
+                this_line = footer_lines[li + tesli + eli]
+                next_line = footer_lines[li + tesli + eli + 1]
+                if len(this_line)>1:
+                    if in_special_events_table: 
+                        this_line = this_line.replace('=',' ')
+                        this_line = this_line.replace('photonucl lib', 'photonucl_lib')
+                        this_line = this_line.replace('frag data', 'frag_data')
+                    table_text += this_line  #.rstrip() + '\n'  #.replace(':','')
+                eli += 1
+                if in_special_events_table:
+                    if len(next_line)<2 and '>>>' not in next_line and '---' not in next_line and '===' not in next_line:
+                        this_line = footer_lines[li + tesli + eli]
+                        next_line = footer_lines[li + tesli + eli + 1]
+                        eli += 1
+                    if '>>>' in next_line or '---' in next_line or '===' in next_line:
+                        eli -= 1
+                        break
+            if in_special_MPI_table:
+                # also grab final MPI stats 
+                eli += 1
+                while len(footer_lines[li + tesli + eli]) > 1:
+                    key, value = extract_data_from_header_line(footer_lines[li + tesli + eli])
+                    key = 'MPI_' + key.strip().replace(' ','_').replace('time','time_sec')
+                    meta['job'][key] = value
+                    eli += 1
+            skip_lines = tesli + eli
+            if '=' not in table_text:
+                table_text = column_header_line + '\n' + table_text
+                table_df = pd.read_csv(io.StringIO(table_text.replace(',','.')), comment=':', sep='\s+', on_bad_lines='skip')
+                if ':' in table_text:
+                    descriptions = [x.split(':', 1)[-1] for x in table_text.split('\n')[1:-1]]
+                    table_df['description'] = descriptions
+                if reassign_key_to_first_col_name:
+                    if 'source: maxcas' in table_title:
+                        table_keyname = 'source'
+                    else:
+                        table_keyname = table_df.columns[0]
+                #print(table_text)
+                #print(table_df.to_string())
+                meta['summary'][table_keyname + '_df'] = table_df
+                meta['summary'][table_keyname + '_text'] = table_text
+            else:
+                table_text = column_header_line + '\n' + table_text
+                meta['summary'][table_keyname + '_text'] = table_text
+        else:
+            if 'job termination date' in line:
+                date = line.split(':')[1].strip()
+                year, month, day = [int(i) for i in date.split('/')]
+                time = footer_lines[li + 1].split(':',1)[1].strip()
+                hour, minute, second = [int(i) for i in time.split(':')]
+                meta['job']['datetime_end'] = datetime.datetime(year, month, day, hour, minute, second)
+                meta['job']['datetime_end_ISO_str'] = meta['job']['datetime_start'].isoformat()
+                skip_lines = 1
+            elif '>>> Citation Request >>>' in line:
+                citation_request += line 
+                in_citation_request = True 
+                eli = 1
+                while in_citation_request:
+                    this_line = footer_lines[li + eli]
+                    if this_line.strip() == line_of_dashes or this_line.strip() == 'END':
+                        break
+                    citation_request += this_line
+                    eli += 1
+                skip_lines = eli - 1
+                meta['citation_request'] = citation_request
+            elif 'initial random seed:' in line:
+                meta['job']['initial_random_seed_bitrseed'] = footer_lines[li + 1].replace('bitrseed =','').strip()
+                meta['job']['next_initial_random_seed_bitrseed'] = footer_lines[li + 3].replace('bitrseed =', '').strip()
+                skip_lines = 4
+            else:
+                extra_lines.append(line)
+    meta['memory']['report_text'] = memory_report
+    meta['batch']['report_text'] = batch_report
+    # Clean up extra lines
+    extra_lines_cleaned = []
+    for line in extra_lines:
+        if len(line.strip()) == 0: continue 
+        if line.strip() == line_of_dashes: continue 
+        if 'Summary for the end of job' in line: continue
+        if line.strip() == 'END': continue
+        extra_lines_cleaned.append(line)
+    meta['extra_lines'] = extra_lines_cleaned
+    phitsout_dict = meta
+    if save_phitsout_pickle:
+        import pickle, lzma
+        pickle_path = Path(phitsout_filepath.parent, phitsout_filepath.stem + '_out.pickle')
+        if compress_pickle_with_lzma:
+            pickle_path = Path(pickle_path.parent, pickle_path.name + '.xz')
+            with lzma.open(pickle_path, 'wb') as handle:
+                pickle.dump(phitsout_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        else:
+            with open(pickle_path, 'wb') as handle:
+                pickle.dump(phitsout_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        print('Pickle file written:', pickle_path, '\n')
+    return phitsout_dict
 
 
 def tally(data, bin_edges=[], min_bin_left_edge=None, max_bin_right_edge=None, nbins=None, bin_width=None, divide_by_bin_width=False, normalization=None, scaling_factor=1, place_overflow_at_ends=True, return_uncertainties=False, return_event_indices_histogram=False):
@@ -1647,8 +2256,12 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
     else:  # list of tally output objects and/or pickles
         for i, to in enumerate(tally_output_list): # open any pickle files provided
             if not isinstance(to, dict):
+                if to is None:
+                    print("WARNING: 'None' tally output encountered in tally_output_list in autoplot_tally_results()!")
+                    continue
                 p = Path(to)
                 tally_output_list[i] = pickle.load(lzma.open(p, 'rb') if p.name[-3:] == '.xz' else open(p, 'rb'))
+    plotting_multiple_tallies = len(tally_output_list) > 1
     
     def are_bins_linearly_spaced(bin_mids):
         '''
@@ -1671,7 +2284,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                 bins_are_lin_spaced = False
         return bins_are_lin_spaced
     
-    tex_replace_strs = {'^2':'$^2$', '^3':'$^3$', '\sigma':'$\sigma$', '\Omega':'$\Omega$'}
+    tex_replace_strs = {'^2':'$^2$', '^3':'$^3$', r'\sigma':r'$\sigma$', r'\Omega':r'$\Omega$'}
     
     with PdfPages(output_filename) as pdf:
         for toi, tally_output in enumerate(tally_output_list):
@@ -2076,6 +2689,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                 for ierr in range(2): # for pseudo 2d plots, also make a rel.err. plot
                     if ierr==1 and not pseudo_2d_plot: continue
                     extra_fname_text = extra_df_fname_text[tdfi] + ['','_err'][ierr]
+                    if plotting_multiple_tallies: print('\tplotting:',tally_metadata['file'], extra_fname_text)
                     if ierr==0:
                         hue_palette_name_str = "mako_r"  # "cividis" # "rocket_r"
                     else:
@@ -3187,12 +3801,25 @@ def determine_PHITS_output_file_type(output_file):
         - `PHITS_file_type` = a dictionary of Booleans detailing what kind of file `output_file` is (and isn't) with
             the following keys (each with a value set to `True` or `False`):
             `'is_standard_tally_output'`, `'is_binary_tally_dump'`, `'is_ASCII_tally_dump'`,
+            `'is_PHITS_input_file'`, `'is_file6_phitsout_file'`,
             `'is_unknown_file_type'`, and `'file_does_not_exist'`.  By default, all are set to `False` except for
             `'is_unknown_file_type'` which is `True` by default.
+
+    Notes:
+        - Dump files are identified with the presence of '_dmp' in their filename. Whether it is ASCII or binary is
+             simply determined by attempting to read the first line of the file in a try/except statement.
+        - Standard tally output files are identified by `[` being the very first character in the first line.
+        - PHITS input files are identified by having a file extension in the following list (case insensitive): `['.inp','.in','.input','.i']`
+        - 'phits.out' files (`file(6)` in the PHITS [Parameters] section) are identified by its first line consisting of
+             11 spaces followed by 57 underscores.
+
     '''
+    import re
     PHITS_file_type = {'is_standard_tally_output': False,
                        'is_binary_tally_dump': False,
                        'is_ASCII_tally_dump': False,
+                       'is_PHITS_input_file': False,
+                       'is_file6_phitsout_file': False,
                        'is_unknown_file_type': True,
                        'file_does_not_exist': False
                        }
@@ -3202,19 +3829,26 @@ def determine_PHITS_output_file_type(output_file):
         PHITS_file_type['is_unknown_file_type'] = False
         PHITS_file_type['file_does_not_exist'] = True
         return PHITS_file_type
-    with open(output_file) as f:
+    with open(output_file, 'r', encoding='utf-8') as f:
         try:
             first_line = f.readline().strip()
+            first_line_lower_no_spaces = re.sub(r"\s+", "", first_line, flags=re.UNICODE).lower()
         except:  # triggered if encountering binary / non ASCII or UTF-8 file
             if '_dmp' in output_file.stem:
                 PHITS_file_type['is_binary_tally_dump'] = True
                 PHITS_file_type['is_unknown_file_type'] = False
                 return PHITS_file_type
-        if first_line[0] == '[':
+        if first_line_lower_no_spaces[:3] == '[t-':
             PHITS_file_type['is_standard_tally_output'] = True
             PHITS_file_type['is_unknown_file_type'] = False
         elif '_dmp' in output_file.stem:
             PHITS_file_type['is_ASCII_tally_dump'] = True
+            PHITS_file_type['is_unknown_file_type'] = False
+        elif output_file.suffix.lower() in ['.inp','.in','.input','.i']:
+            PHITS_file_type['is_PHITS_input_file'] = True
+            PHITS_file_type['is_unknown_file_type'] = False
+        elif '_________________________________________________________' in first_line:
+            PHITS_file_type['is_file6_phitsout_file'] = True
             PHITS_file_type['is_unknown_file_type'] = False
     return PHITS_file_type
 
@@ -5035,6 +5669,128 @@ def build_tally_Pandas_dataframe(tdata,meta):
 
 
 
+def extract_tally_outputs_from_phits_input(phits_input, use_path_and_string_mode=False, only_seek_phitsout=False):
+    '''
+    Description:
+        Extract a list of output files produced from a PHITS input file (or its "phits.out" file, using its input echo). 
+        In cases where the PHITS `infl:{*}` function is used to insert text files of PHITS input (namely input for 
+        tallies), it is strongly recommended to pass this function the "phits.out" file (`file(6)` in the PHITS 
+        [Parameters] section) to have access to the complete input echo including all inserted files.  Note that this 
+        function's output will only include files that actually exist.
+
+    Inputs:
+        - `phits_input` = string or Path object denoting the path to the PHITS input file to be parsed (or the 
+                "phits.out" file, which should be located in the same directory as the PHITS input producing it)
+        - `use_path_and_string_mode` = (optional, D=`False`) Boolean for special use case by `parse_phitsout_file()`. 
+                If `True`, `phits_input` should instead be a dictionary with the following keys:
+               - `'sim_base_dir_path'` : a [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+                   object pointing to the directory containing the PHITS input file and phits.out file
+               - `'input_echo'` : a string of the input echo as generated by `parse_phitsout_file()`
+        - `only_seek_phitsout` = (optional, D=`False`) Boolean designating if this function should _only_ search for
+                the phits.out file and no other outputs.
+
+    Outputs:
+        - `files_dict` = a dictionary organizing and listing files that were to be produced by the PHITS input and were 
+                found to exist, with the following keys:
+            - `'standard_output'` : a list of [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+                    objects pointing to the locations of all of the standard tally output files found.
+            - `'dump_output'` : a list of [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+                    objects pointing to the locations of all of the dump tally output files found.
+            - `'phitsout'` : a single [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+                    object pointing to the location of the "phits.out" file.
+            - `'active_infl_found'` : a Boolean denoting whether an active `infl:{*}` insert file function was found 
+                    in the PHITS input.  If `True`, it is possible this files dictionary is missing some produced 
+                    output files from tallies / tally portions included in the input file via `infl:{*}`.
+                    This should always be `False` when provided a "phits.out" file since it includes inserted file contents. 
+        
+        To conveniently view the contents of `files_dict`, one can import the built-in
+        pprint library `import pprint` and then use `pprint.pp(dict(files_dict))`.
+    '''
+    '''
+    Basically, look for "file =", accounting for presence of "dump =" in the tally and whether "off" is present in the
+    tally's first line.  Off tallies should be excluded from the list.  
+    Once an initial list of files is formed, search for them actually existing (including dump files / MPI splits) and 
+    return a list of the existing files.
+    '''
+    import io
+    def merge_paths_if_not_absolute(known_directory,path_segment):
+        if not Path(path_segment).is_absolute():
+            path = Path(known_directory,path_segment)
+        else:
+            path = Path(path_segment)
+        if not path.exists():
+            path = None
+        return path
+    if use_path_and_string_mode:
+        sim_base_dir_path = phits_input['sim_base_dir_path']
+        file = io.StringIO(phits_input['input_echo'])
+    else:
+        sim_base_dir_path = Path(phits_input).parent
+        PHITS_file_type = determine_PHITS_output_file_type(phits_input)
+        if PHITS_file_type['is_file6_phitsout_file']:  # if determined to be a phits.out-type file
+            file = io.StringIO(parse_phitsout_file(phits_input['input_echo']))
+        else:  # otherwise, assume an input file was passed
+            file = open(Path(phits_input), 'r', encoding="utf-8")
+    files_dict = {'standard_output':[], 'dump_output':[], 'phitsout':None}
+    in_valid_tally = False
+    in_parameters_section = False
+    phitsout_file = None
+    tally_out_files = []
+    tally_has_dump = []
+    # scan tally input for files produced by PHITS
+    active_infl_found = False
+    if only_seek_phitsout:
+        for line in file:
+            if len(line.strip())==0: continue
+            if line.strip()[0] == '[' and ']' in line: # in a section header block
+                in_parameters_section = False
+                line_section_title_slug = line.lower().replace(' ', '')
+                if '[parameters]' in line_section_title_slug and ']off' not in line_section_title_slug: 
+                    in_parameters_section = True
+            if in_parameters_section and line.strip()[:7] == 'file(6)':
+                    phitsout_file = extract_data_from_header_line(line)[1]
+    else:
+        for line in file:
+            if len(line.strip()) == 0: continue
+            if line.strip()[0] in ['$', '#']: continue  # comment line
+            if line.lstrip()[0] == 'c' and 'c ' in line[:min(6,len(line))]: continue  # comment line
+            if line.strip()[0] == '[' and ']' in line:  # in a section header block
+                line_section_title_slug = line.lower().replace(' ', '')
+                in_valid_tally = False
+                in_parameters_section = False
+                if '[t-' in line_section_title_slug and ']off' not in line_section_title_slug:
+                    in_valid_tally = True
+                    tally_has_dump.append(False)
+                elif '[parameters]' in line_section_title_slug and ']off' not in line_section_title_slug:
+                    in_parameters_section = True
+            elif 'infl:' in line:
+                active_infl_found = True
+            if in_valid_tally:
+                if line.strip()[0] == '#': continue
+                if line.strip()[:4]=='file':
+                    key, value = extract_data_from_header_line(line)
+                    tally_out_files.append(value)
+                if line.strip()[:4] == 'dump': 
+                    tally_has_dump[-1] = True
+            elif in_parameters_section:
+                if line.strip()[:7] == 'file(6)':
+                    key, value = extract_data_from_header_line(line)
+                    phitsout_file = value
+    file.close()
+    files_dict['active_infl_found'] = active_infl_found
+    if phitsout_file is None:
+        phitsout_file = 'phits.out'
+    files_dict['phitsout'] = merge_paths_if_not_absolute(sim_base_dir_path, phitsout_file)
+    if not only_seek_phitsout:
+        for i, file in enumerate(tally_out_files):
+            file_path = merge_paths_if_not_absolute(sim_base_dir_path, file)
+            if file_path is not None:
+                files_dict['standard_output'].append(file_path)
+                if tally_has_dump[i]:
+                    dump_files_for_this_tally = list(set(file_path.parent.glob(file_path.stem+"_dmp*"))-set(file_path.parent.glob(file_path.stem+"*.pickle*")))
+                    files_dict['dump_output'] += dump_files_for_this_tally
+    return files_dict
+
 
 
 
@@ -5051,18 +5807,19 @@ if run_with_CLI_inputs:
             else:
                 raise FileNotFoundError(arg)
     parser = argparse.ArgumentParser()
-    parser.add_argument("file", type=validate_file, help="path to PHITS output file to parse or directory containing files to parse (relative or absolute path)")
+    parser.add_argument("file", type=validate_file, help="path to PHITS output file to parse or directory (or PHITS input or phits.out file) containing files to parse (relative or absolute path)")
     # Flags for standard output files
     parser.add_argument("-g", "--GUI", help="Launch the PHITS Tools GUI and ignore all other command line inputs", action="store_true")
     parser.add_argument("-np", "--disable_PandasDF", help="[standard output] disable automatic creation of Pandas DataFrame of PHITS output", action="store_true")
     parser.add_argument("-na", "--disable_abs_err_calc", help="[standard output] disable automatic calculation of absolute errors", action="store_true")
     parser.add_argument("-lzma", "--use_lzma_compression", help="[standard output] compress tally output pickle with LZMA", action="store_true")
+    parser.add_argument("-po", "--parse_phitsout", help="[standard output] parse the phits.out file and add it to the metadata dictionary", action="store_true")
     parser.add_argument("-p", "--plot", help="[standard output] save a plot of the tally's output to a PDF and PNG", action="store_true")
     parser.add_argument("-skip", "--skip_existing_pickles", help="[all output] skip files where output pickle already exists", action="store_true")
     # Not going to add below option. Why would you ever run this in CLI if not trying to generate the pickle file?
     # parser.add_argument("-ns", "--disable_saving_pickle", help="disable saving of pickle of of PHITS output", action="store_true")
     # Flags for dump files
-    parser.add_argument("-d", "--is_dump_file", action="store_true", help="add this flag if the file is a dump file, omit if standard PHITS tally output; if inputting a directory path to 'file', this flag specifies that dump files will be read too (by default, they will be skipped), and if so the below flags will be applied to the settings used when parsing them")
+    parser.add_argument("-d", "--is_dump_file", action="store_true", help="add this flag if the file is a dump file, omit if standard PHITS tally output; if inputting a directory path to 'file' (or a PHITS input or phits.out file), this flag specifies that dump files will be read too (by default, they will be skipped), and if so the below flags will be applied to the settings used when parsing them")
     parser.add_argument('-dvals', '--dump_data_sequence', nargs='+', type=int, help='[dump output] provide a series of integers separated by spaces that match the line after "dump = " in the tally whose dump file is being parsed, detailing how the columns of the dump file are to be interpreted. (REQUIRED for dump files, but an attempt to assign automatically will be made first if left unspecified)')
     parser.add_argument("-dbin", "--dump_file_is_binary", action="store_true", help="[dump output] specify that the provided dump file is binary; otherwise it is assumed to be ASCII (REQUIRED for dump files, but an attempt to assign automatically will be made first if left unspecified)")
     parser.add_argument("-dnmax", "--dump_max_entries_read", type=int, help="[dump output] specify maximum integer number of entries to read (read all by default)")
@@ -5077,8 +5834,10 @@ if run_with_CLI_inputs:
     parser.add_argument("-dndmpi", "--dump_no_delete_MPI_subpickles", action="store_true", help="[directory with dump output] do NOT delete the individual dump namedtuple list / Pandas DataFrame pickle files for dump files from the same tally split up by MPI after they have been merged (ignored if -dnmmpi is used)")
     parser.add_argument("-r", "--recursive_search", action="store_true", help="[directory parsing] If the provided 'file' is a directory, also recursively search subdirectories for files to process.")
     parser.add_argument("-fpre", "--file_prefix", default='', help="[directory parsing] A string specifying what characters processed filenames (including the file extension) must begin with to be included. This condition is not enforced if set to an empty string (default).")
-    parser.add_argument("-fsuf", "--file_suffix", default='.out', help="[directory parsing] A string specifying what characters processed filenames (including the file extension) must end in to be included. This condition is not enforced if set to an empty string. This is '.out' by deault.")
+    parser.add_argument("-fsuf", "--file_suffix", type=str, default=None, help="[directory parsing] A string specifying what characters processed filenames (including the file extension) must end in to be included. This condition is not enforced if set to an empty string. This is '.out' by deault unless `file` is a PHITS input or phits.out file, in which case it defaults to an empty string.")
     parser.add_argument("-fstr", "--file_required_string", default='', help="[directory parsing] A string which must be present anywhere within processed filenames (including the file extension) to be included. This condition is not enforced if set to an empty string (default).")
+    parser.add_argument("-m", "--merge_tally_outputs", help="[directory parsing] merge all tally outputs into a single pickled dictionary object", action="store_true")
+    parser.add_argument("-smo", "--save_merged_only", help="[directory parsing] same as -m but saves ONLY this merged pickle file; do not save pickles for each tally output", action="store_true")
     parser.add_argument("-pa", "--plot_all", help="[directory parsing] save plots of all tally outputs to a single PDF", action="store_true")
     
     args = parser.parse_args()
@@ -5088,6 +5847,12 @@ if run_with_CLI_inputs:
 
     is_path_a_dir = output_file_path.is_dir()
     is_path_a_file = output_file_path.is_file()
+    
+    if is_path_a_file:
+        PHITS_output_file_type = determine_PHITS_output_file_type(output_file_path)
+        if PHITS_output_file_type['is_PHITS_input_file'] or PHITS_output_file_type['is_file6_phitsout_file']:
+            is_path_a_dir = True
+            is_path_a_file = False
 
     if not is_path_a_file and not is_path_a_dir:
         raise ValueError("ERROR! The inputted filepath is neither a recognized file nor directory.")
@@ -5125,6 +5890,9 @@ if run_with_CLI_inputs:
     dump_split_handling = args.dump_split_handling
     autoplot_tally_output = args.plot
     autoplot_all_tally_output_in_dir = args.plot_all
+    include_phitsout_in_metadata = args.parse_phitsout
+    merge_tally_outputs = args.merge_tally_outputs
+    save_merged_only = args.save_merged_only
     
     save_namedtuple_list = not no_save_namedtuple_list
     save_Pandas_dataframe = not no_save_Pandas_dataframe
@@ -5134,15 +5902,23 @@ if run_with_CLI_inputs:
     prefer_reading_existing_pickle = skip_existing_pickles
     split_binary_dumps_over_X_GB = dump_max_GB_per_chunk
     merge_split_dump_handling = dump_split_handling
+    
+    dir_mode_save_output_pickle=True
+    save_pickle_of_merged_tally_outputs=None
+    if save_merged_only:
+        dir_mode_save_output_pickle = False
+        merge_tally_outputs = True
+        save_pickle_of_merged_tally_outputs = True
 
     if is_path_a_dir:
         parse_all_tally_output_in_dir(output_file_path, output_file_suffix=file_suffix, output_file_prefix=file_prefix,
                                       output_file_required_string=file_reqstr, include_subdirectories=recursive_search,
                                       return_tally_output=False,
                                       make_PandasDF=make_PandasDF, calculate_absolute_errors=calculate_absolute_errors,
-                                      save_output_pickle=True, 
+                                      save_output_pickle=dir_mode_save_output_pickle, 
                                       prefer_reading_existing_pickle=prefer_reading_existing_pickle,
                                       compress_pickle_with_lzma=compress_pickle_with_lzma,
+                                      autoplot_tally_output=autoplot_tally_output,
                                       include_dump_files=is_dump_file,
                                       dump_data_number=dump_data_number, dump_data_sequence=dump_data_sequence,
                                       dump_return_directional_info=return_directional_info, dump_use_degrees=use_degrees,
@@ -5153,7 +5929,10 @@ if run_with_CLI_inputs:
                                       dump_delete_MPI_subdumps_post_merge=dump_delete_MPI_subdumps_post_merge,
                                       split_binary_dumps_over_X_GB=split_binary_dumps_over_X_GB, 
                                       merge_split_dump_handling=merge_split_dump_handling,
-                                      autoplot_all_tally_output_in_dir=autoplot_all_tally_output_in_dir
+                                      autoplot_all_tally_output_in_dir=autoplot_all_tally_output_in_dir,
+                                      include_phitsout_in_metadata=include_phitsout_in_metadata,
+                                      merge_tally_outputs=merge_tally_outputs,
+                                      save_pickle_of_merged_tally_outputs=save_pickle_of_merged_tally_outputs
                                       )
     else: # if is_path_a_file
         if is_dump_file:
@@ -5179,7 +5958,8 @@ if run_with_CLI_inputs:
         else:
             parse_tally_output_file(output_file_path, make_PandasDF=make_PandasDF,
                                     calculate_absolute_errors=calculate_absolute_errors,
-                                    save_output_pickle=True, 
+                                    save_output_pickle=True,
+                                    include_phitsout_in_metadata=include_phitsout_in_metadata,
                                     prefer_reading_existing_pickle=prefer_reading_existing_pickle,
                                     compress_pickle_with_lzma=compress_pickle_with_lzma,
                                     autoplot_tally_output=autoplot_tally_output)
@@ -5199,6 +5979,7 @@ elif launch_GUI:
         warnings.warn("Window closed unexpectedly", UserWarning)
         sys.exit()
 
+    opt3_def_pady = 0
 
     # Initialize the settings dictionary
     settings = {}
@@ -5206,10 +5987,12 @@ elif launch_GUI:
     standard_mode_short_text = "[STANDARD mode]"
     dump_mode_short_text = "[DUMP mode]"
     directory_mode_short_text = "[DIRECTORY mode]"
+    input_file_mode_short_text = "[INPUT_FILE mode]"
 
     standard_mode_full_text = standard_mode_short_text + " for processing a single standard PHITS tally output file"
     dump_mode_full_text = dump_mode_short_text + " for processing a single PHITS tally dump output file (*_dmp.out)"
     directory_mode_full_text = directory_mode_short_text + " for processing all PHITS output files in a directory"
+    input_file_mode_full_text = input_file_mode_short_text + " for processing all PHITS output files generated by \na single PHITS run (as identified in the PHITS input or its phits.out file)"
 
 
     def on_option_selected():
@@ -5220,16 +6003,21 @@ elif launch_GUI:
             if option in [1, 2]:
                 if option == 1:
                     window_name_str = 'Select standard PHITS tally output file'
-                else:
+                else:  #  option == 2
                     window_name_str = 'Select PHITS tally dump output file'
                 file_chosen = filedialog.askopenfilename(title=window_name_str)
                 if not file_chosen:
                     raise ValueError("File selection is required")
                 settings['file'] = file_chosen
-            elif option == 3:
-                directory_chosen = filedialog.askdirectory(title="Select Directory of PHITS outputs to parse")
-                if not directory_chosen:
-                    raise ValueError("Directory selection is required")
+            elif option in [3, 4]:
+                if option == 3:
+                    directory_chosen = filedialog.askdirectory(title="Select Directory of PHITS outputs to parse")
+                    if not directory_chosen:
+                        raise ValueError("Directory selection is required")
+                else:   # option == 4
+                    directory_chosen = filedialog.askopenfilename(title='Select PHITS input file or its "phits.out" file')
+                    if not directory_chosen:
+                        raise ValueError("File selection is required")
                 settings['directory'] = directory_chosen
         except:
             raise ValueError("User closed the file/directory dialog")
@@ -5240,7 +6028,7 @@ elif launch_GUI:
 
     def create_secondary_gui(option):
         secondary_gui = tk.Toplevel(root)
-        if option == 3: # This window tends to be tall and should be placed at top of screen
+        if option in [3, 4]: # This window tends to be tall and should be placed at top of screen
             x = root.winfo_x()
             # y = root.winfo_y()
             secondary_gui.geometry("+%d+%d" % (x + 10, 10))
@@ -5260,6 +6048,7 @@ elif launch_GUI:
                 'Input 1 (str)', 'Input 2 (int)', 'Input 3 (int)', 'Input 4 (str)', 'Input 5 (str)', 'Input 6 (str)',
                 'Extra Checkbox 1', 'Extra Checkbox 2']
         }
+        inputs[4] = inputs[3]
 
         def save_settings():
             settings.update({
@@ -5269,7 +6058,8 @@ elif launch_GUI:
                 settings.update({
                     'option_1_cb1': cb1_var.get(),
                     'option_1_cb2': cb2_var.get(),
-                    'option_1_cb3': cb3_var.get()
+                    'option_1_cb3': cb3_var.get(),
+                    'option_1_cb4': cb4_var.get()
                 })
             elif option == 2:
                 settings.update({
@@ -5280,11 +6070,12 @@ elif launch_GUI:
                     'input_int1': entry_int1.get() or None,
                     'input_int2': entry_int2.get() or None,
                 })
-            elif option == 3:
+            elif option in [3, 4]:
                 settings.update({
                     'option_3_cb1': cb1_var.get(), 'option_3_cb2': cb2_var.get(),
                     'option_3_cb3': cb3_var.get(), 'option_3_cb4': cb4_var.get(),
                     'option_3_cb5': cb5_var.get(), 'option_3_cb6': cb6_var.get(),
+                    'option_3_cb7': cb7_var.get(), 'option_3_cb8': cb8_var.get(),
                     'radio': radio_var.get(),
                     'input_str_1': secondary_entry_str1.get() or None,
                     'input_int_1': secondary_entry_int1.get() or None,
@@ -5307,9 +6098,12 @@ elif launch_GUI:
             cb1_var = tk.BooleanVar()
             cb2_var = tk.BooleanVar()
             cb3_var = tk.BooleanVar()
+            cb4_var = tk.BooleanVar()
             common_widgets.append(tk.Checkbutton(secondary_gui, text="Also make and save Pandas DataFrame object of results (in addition to default NumPy array)", variable=cb1_var, anchor=tk.W))
             common_widgets[-1].select()  # This makes the checkbox be ticked by default
             common_widgets.append(tk.Checkbutton(secondary_gui, text="Also calculate absolute uncertainties", variable=cb2_var, anchor=tk.W))
+            common_widgets[-1].select()  # This makes the checkbox be ticked by default
+            common_widgets.append(tk.Checkbutton(secondary_gui, text='Also include metadata from the "phits.out" file', variable=cb4_var, anchor=tk.W))
             common_widgets[-1].select()  # This makes the checkbox be ticked by default
             common_widgets.append(tk.Checkbutton(secondary_gui, text="Also make a plot of the tally's output and save it as a PDF and PNG", variable=cb3_var, anchor=tk.W))
             common_widgets[-1].select()  # This makes the checkbox be ticked by default
@@ -5354,20 +6148,23 @@ elif launch_GUI:
             common_widgets.append(tk.Label(secondary_gui, text="\nMaximum number of dump entries to read. Leave blank to read all.", anchor=tk.W))
             common_widgets.append(entry_int2)
 
-        elif option == 3:
+        elif option in [3, 4]:
             cb1_var = tk.BooleanVar()
             cb2_var = tk.BooleanVar()
             cb3_var = tk.BooleanVar()
             cb4_var = tk.BooleanVar()
             cb5_var = tk.BooleanVar()
             cb6_var = tk.BooleanVar()
+            cb7_var = tk.BooleanVar()
+            cb8_var = tk.BooleanVar()
             radio_var = tk.IntVar(value=3)
 
             secondary_entry_str1 = tk.Entry(secondary_gui, width=50)  # Extra width added here
             secondary_entry_int1 = tk.Entry(secondary_gui)
             secondary_entry_int2 = tk.Entry(secondary_gui)
             secondary_entry_str2 = tk.Entry(secondary_gui)
-            secondary_entry_str2.insert(0, ".out") # this is how default values have to be specified for tkinter...
+            if option == 3:
+                secondary_entry_str2.insert(0, ".out") # this is how default values have to be specified for tkinter...
             secondary_entry_str3 = tk.Entry(secondary_gui)
 
             extra_entry_str1 = tk.Entry(secondary_gui)
@@ -5375,32 +6172,35 @@ elif launch_GUI:
             extra_cb2_var = tk.BooleanVar()
 
             # Add extra sample text label at the top of the secondary GUI
-            top_sample_label = tk.Label(secondary_gui, text=directory_mode_full_text,
-                                        anchor=tk.W, font='16')
+            if option == 3:
+                top_sample_label = tk.Label(secondary_gui, text=directory_mode_full_text, anchor=tk.W, font='16')
+            else:  # option == 4
+                top_sample_label = tk.Label(secondary_gui, text=input_file_mode_short_text+' for processing all output files in a PHITS run', anchor=tk.W, font='16')
             top_sample_label.pack(anchor=tk.W, padx=10, pady=10)
 
             common_widgets.append(tk.Checkbutton(secondary_gui, text="Also include contents of all subdirectories", variable=cb1_var, anchor=tk.W))
             common_widgets.append(tk.Checkbutton(secondary_gui, text="Include dump files (otherwise, they will be skipped)", variable=cb2_var, anchor=tk.W))
+            common_widgets.append(tk.Checkbutton(secondary_gui, text="Merge all tally outputs into a combined dictionary object", variable=cb8_var, anchor=tk.W))
             common_widgets.append(tk.Checkbutton(secondary_gui, text="Save plots of all tally outputs to a single PDF", variable=cb6_var, anchor=tk.W))
             common_widgets[-1].select()  # This makes the checkbox be ticked by default
 
         # Pack common widgets with left alignment.
         for widget in common_widgets:
-            widget.pack(anchor=tk.W, padx=10, pady=2)
+            widget.pack(anchor=tk.W, padx=10, pady=opt3_def_pady)
 
-        if option == 3:
+        if option in [3, 4]:
             name_instructions_str = 'In the below 3 fields, specify what characters processed filenames (including the file extension)\n' + \
                                     'must either end with, start with, or contain in order to be processed. Leave blank to ignore.'
-            tk.Label(secondary_gui, text=name_instructions_str, anchor=tk.W, justify='left').pack(anchor=tk.W, padx=10, pady=2)
+            tk.Label(secondary_gui, text=name_instructions_str, anchor=tk.W, justify='left').pack(anchor=tk.W, padx=10, pady=opt3_def_pady)
 
-            tk.Label(secondary_gui, text="End of filename character string (suffix)", anchor=tk.W).pack(anchor=tk.W, padx=10, pady=2)
-            secondary_entry_str2.pack(anchor=tk.W, padx=10, pady=2)
+            tk.Label(secondary_gui, text="End of filename character string (suffix)", anchor=tk.W).pack(anchor=tk.W, padx=10, pady=opt3_def_pady)
+            secondary_entry_str2.pack(anchor=tk.W, padx=10, pady=opt3_def_pady)
 
-            tk.Label(secondary_gui, text="Start of filename character string (prefix)", anchor=tk.W).pack(anchor=tk.W, padx=10, pady=2)
-            secondary_entry_str3.pack(anchor=tk.W, padx=10, pady=2)
+            tk.Label(secondary_gui, text="Start of filename character string (prefix)", anchor=tk.W).pack(anchor=tk.W, padx=10, pady=opt3_def_pady)
+            secondary_entry_str3.pack(anchor=tk.W, padx=10, pady=opt3_def_pady)
 
-            tk.Label(secondary_gui, text="String which must appear in filename (anywhere)", anchor=tk.W).pack(anchor=tk.W, padx=10, pady=2)
-            extra_entry_str1.pack(anchor=tk.W, padx=10, pady=2)
+            tk.Label(secondary_gui, text="String which must appear in filename (anywhere)", anchor=tk.W).pack(anchor=tk.W, padx=10, pady=opt3_def_pady)
+            extra_entry_str1.pack(anchor=tk.W, padx=10, pady=opt3_def_pady)
 
 
             # Add horizontal separator immediately beneath "Checkbox 2"
@@ -5409,22 +6209,25 @@ elif launch_GUI:
 
             sample_text_label2 = tk.Label(secondary_gui, text="Options for processing standard PHITS tally output files",
                                          anchor=tk.W, font='14')
-            sample_text_label2.pack(anchor=tk.W, padx=10, pady=2)
+            sample_text_label2.pack(anchor=tk.W, padx=10, pady=opt3_def_pady)
 
             cb3obj = tk.Checkbutton(secondary_gui, text="Also make and save Pandas DataFrame object of results (in addition to default NumPy array)", variable=cb3_var, anchor=tk.W)
             cb3obj.select() # This makes the checkbox be ticked by default
-            cb3obj.pack(anchor=tk.W, padx=10, pady=2)
+            cb3obj.pack(anchor=tk.W, padx=10, pady=opt3_def_pady)
             cb4obj = tk.Checkbutton(secondary_gui, text="Also calculate absolute uncertainties", variable=cb4_var, anchor=tk.W)
             cb4obj.select() # This makes the checkbox be ticked by default
-            cb4obj.pack(anchor=tk.W, padx=10, pady=2)
+            cb4obj.pack(anchor=tk.W, padx=10, pady=opt3_def_pady)
+            cb7obj = tk.Checkbutton(secondary_gui, text='Also include metadata from the "phits.out" file', variable=cb7_var, anchor=tk.W)
+            cb7obj.select()  # This makes the checkbox be ticked by default
+            cb7obj.pack(anchor=tk.W, padx=10, pady=opt3_def_pady)
             cb5obj = tk.Checkbutton(secondary_gui, text="Also make a plot of each tally's output and save it as a PDF and PNG", variable=cb5_var, anchor=tk.W)
             cb5obj.select()  # This makes the checkbox be ticked by default
-            cb5obj.pack(anchor=tk.W, padx=10, pady=2)
+            cb5obj.pack(anchor=tk.W, padx=10, pady=opt3_def_pady)
 
             options_frame = tk.LabelFrame(secondary_gui, text="Data output format options for dump files")
-            tk.Radiobutton(options_frame, text="Save only a pickle file of a list of namedtuples with dump event information", variable=radio_var, value=1, anchor=tk.W).pack(anchor=tk.W)
-            tk.Radiobutton(options_frame, text="Save only a pickle file of a Pandas DataFrame of dump event information", variable=radio_var, value=2, anchor=tk.W).pack(anchor=tk.W)
-            tk.Radiobutton(options_frame, text="Save both the namedtuples list pickle file and the Pandas DataFrame pickle file", variable=radio_var, value=3, anchor=tk.W).pack(anchor=tk.W)
+            tk.Radiobutton(options_frame, text="Save only a pickle file of a list of namedtuples with dump event information", variable=radio_var, value=1, anchor=tk.W).pack(anchor=tk.W, pady=opt3_def_pady)
+            tk.Radiobutton(options_frame, text="Save only a pickle file of a Pandas DataFrame of dump event information", variable=radio_var, value=2, anchor=tk.W).pack(anchor=tk.W, pady=opt3_def_pady)
+            tk.Radiobutton(options_frame, text="Save both the namedtuples list pickle file and the Pandas DataFrame pickle file", variable=radio_var, value=3, anchor=tk.W).pack(anchor=tk.W, pady=opt3_def_pady)
 
 
 
@@ -5434,15 +6237,15 @@ elif launch_GUI:
 
             sample_text_label = tk.Label(secondary_gui, text="Options for processing PHITS tally dump output files",
                                          anchor=tk.W, font='14')
-            sample_text_label.pack(anchor=tk.W, padx=10, pady=2)
+            sample_text_label.pack(anchor=tk.W, padx=10, pady=opt3_def_pady)
 
             options_frame.pack(padx=10, pady=10, anchor=tk.W) # radio buttons
 
             dir_info_str = "Return extra directional information (relative to the origin and z-axis); \nthis requires all position and direction values [x,y,z,u,v,w] to be included in the dump file."
             tk.Checkbutton(secondary_gui, text=dir_info_str, variable=extra_cb1_var, anchor=tk.W, justify='left').pack(
-                anchor=tk.W, padx=10, pady=2)
+                anchor=tk.W, padx=10, pady=opt3_def_pady)
             tk.Checkbutton(secondary_gui, text="Use degrees (instead of radians) for extra directional information", variable=extra_cb2_var, anchor=tk.W).pack(
-                anchor=tk.W, padx=10, pady=2)
+                anchor=tk.W, padx=10, pady=opt3_def_pady)
 
             dump_instrcutions = 'If in the same directory as the found dump file exists the corresponding standard tally output file,\n' + \
                                 'and the only difference in their file names is the "_dmp" at the end of the dump file, the \n' + \
@@ -5453,15 +6256,15 @@ elif launch_GUI:
                                 'In the second box, enter a sequence of that many numbers, separated by spaces, describing \n' + \
                                 'the column order of the dump file.'
 
-            tk.Label(secondary_gui, text=dump_instrcutions, anchor=tk.W, justify='left').pack(anchor=tk.W, padx=10, pady=2)
-            secondary_entry_int1.pack(anchor=tk.W, padx=10, pady=2)
+            tk.Label(secondary_gui, text=dump_instrcutions, anchor=tk.W, justify='left').pack(anchor=tk.W, padx=10, pady=opt3_def_pady)
+            secondary_entry_int1.pack(anchor=tk.W, padx=10, pady=opt3_def_pady+1)
             #tk.Label(secondary_gui, text="Input 1 (string)", anchor=tk.W).pack(anchor=tk.W, padx=10, pady=2)
-            secondary_entry_str1.pack(anchor=tk.W, padx=10, pady=2)
+            secondary_entry_str1.pack(anchor=tk.W, padx=10, pady=opt3_def_pady+1)
 
 
 
             tk.Label(secondary_gui, text="\nMaximum number of dump entries to read. Leave blank to read all.", anchor=tk.W).pack(anchor=tk.W, padx=10, pady=2)
-            secondary_entry_int2.pack(anchor=tk.W, padx=10, pady=2)
+            secondary_entry_int2.pack(anchor=tk.W, padx=10, pady=opt3_def_pady)
 
 
 
@@ -5486,6 +6289,7 @@ elif launch_GUI:
     tk.Radiobutton(root, text=standard_mode_full_text, variable=selected_option, value=1).pack(anchor=tk.W)
     tk.Radiobutton(root, text=dump_mode_full_text, variable=selected_option, value=2).pack(anchor=tk.W)
     tk.Radiobutton(root, text=directory_mode_full_text, variable=selected_option, value=3).pack(anchor=tk.W)
+    tk.Radiobutton(root, text=input_file_mode_full_text, variable=selected_option, value=4).pack(anchor=tk.W)
 
     confirm_btn = tk.Button(root, text="Select", command=on_option_selected)
     confirm_btn.pack(pady=4)
@@ -5500,9 +6304,11 @@ elif launch_GUI:
         make_PandasDF = settings['option_1_cb1']
         calculate_absolute_errors = settings['option_1_cb2']
         autoplot_tally_output = settings['option_1_cb3']
+        include_phitsout_in_metadata = settings['option_1_cb4']
         parse_tally_output_file(Path(settings['file']), make_PandasDF=make_PandasDF,
                                 calculate_absolute_errors=calculate_absolute_errors,
                                 autoplot_tally_output=autoplot_tally_output,
+                                include_phitsout_in_metadata=include_phitsout_in_metadata,
                                 save_output_pickle=True, prefer_reading_existing_pickle=False)
 
     elif settings['main_mode'] == 2:  # dump tally mode
@@ -5539,13 +6345,15 @@ elif launch_GUI:
                               save_namedtuple_list=save_namedtuple_list,
                               save_Pandas_dataframe=save_Pandas_dataframe)
 
-    elif settings['main_mode'] == 3:  # directory mode
+    elif settings['main_mode'] == 3 or settings['main_mode'] == 4:  # directory mode or input file mode
         recursive_search = settings['option_3_cb1']
         include_dump_files = settings['option_3_cb2']
         make_PandasDF = settings['option_3_cb3']
         calculate_absolute_errors = settings['option_3_cb4']
         autoplot_tally_output = settings['option_3_cb5']
         autoplot_all_tally_output_in_dir = settings['option_3_cb6']
+        include_phitsout_in_metadata = settings['option_3_cb7']
+        merge_tally_outputs = settings['option_3_cb8']
         file_suffix = settings['input_str_2']
         if file_suffix == None: file_suffix = ''
         file_prefix = settings['input_str_3']
@@ -5584,7 +6392,9 @@ elif launch_GUI:
                                       dump_use_degrees=use_degrees,
                                       dump_max_entries_read=max_entries_read,
                                       dump_save_namedtuple_list=save_namedtuple_list,
-                                      dump_save_Pandas_dataframe=save_Pandas_dataframe
+                                      dump_save_Pandas_dataframe=save_Pandas_dataframe,
+                                      include_phitsout_in_metadata=include_phitsout_in_metadata,
+                                      merge_tally_outputs=merge_tally_outputs
                                       )
 
     else:
@@ -5675,13 +6485,37 @@ elif test_explicit_files_dirs:
     #output_file_path = Path(base_path + r'sample\source\Cosmicray\Airshower\depthdose.out') 
     #output_file_path = Path(base_path + r'sample\misc\history_counter\track_yz_ch1.out')
     #output_file_path = Path(base_path + r'recommendation\Counter\track.out')
+    #output_file_path = Path(base_path + r'MPI_dumps\\CT_1D_phantom\\neutron_yield.out')
 
+    phitsout_file_path = Path(output_file_path.parent, 'phits.out')
+    input_file_path = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\MPI_dumps\CT_1D_phantom\beam-on-target_phits-input.inp')
+    #input_file_path = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-cross\complex\beam-on-target.inp')
+    phitsout_file_path = Path(input_file_path.parent, 'phits.out')
 
     test_parsing_of_dir = False #True
     if test_parsing_of_dir:
         dir_path = output_file_path = Path(base_path + r't-cross\complex\proton_in_hist_rz.out')
         dir_output_list = parse_all_tally_output_in_dir(dir_path)
         print(dir_output_list)
+        sys.exit()
+
+    test_parsing_of_dir_with_merge = False  # True
+    if test_parsing_of_dir_with_merge:
+        dir_path = output_file_path = Path(base_path + r't-cross\complex\proton_in_hist_rz.out')
+        #dir_path = output_file_path = Path(base_path + r't-cross\complex\beam-on-target.inp')
+        dir_output_dict = parse_all_tally_output_in_dir(dir_path, 
+                                                        merge_tally_outputs=True, 
+                                                        return_tally_output=True,
+                                                        compress_pickle_with_lzma=True,
+                                                        #include_phitsout_in_metadata=True,
+                                                        include_subdirectories=False,
+                                                        prefer_reading_existing_pickle=False,
+                                                        save_output_pickle=False,
+                                                        save_pickle_of_merged_tally_outputs=True
+                                                        )
+        print(dir_output_dict.keys())
+        print(dir_output_dict['energy_deposit.out']['tally_metadata'].keys())
+        #pprint.pp(dir_output_dict)
         sys.exit()
     
     test_large_dump_splitting = False
@@ -5735,7 +6569,32 @@ elif test_explicit_files_dirs:
         if [tuple(t) for t in nt_list]==[tuple(t) for t in nt_list_dill]: print('It works!')
 
         sys.exit()
-
+        
+        
+    testing_phitsout_parsing = False
+    if testing_phitsout_parsing:
+        phitsout_meta = parse_phitsout_file(phitsout_file_path)
+        pprint.pp(dict(phitsout_meta))
+        sys.exit()
+    
+    testing_phits_input_parsing = False
+    if testing_phits_input_parsing:
+        x = extract_tally_outputs_from_phits_input(input_file_path)
+        pprint.pp(x)
+        phitsout_file_path = Path(input_file_path.parent, 'phits.out')
+        y = extract_tally_outputs_from_phits_input(phitsout_file_path)
+        pprint.pp(y)
+        print(x==y)
+        sys.exit()
+        
+    testing_dir_mode_with_phits_input = True 
+    if testing_dir_mode_with_phits_input:
+        x = parse_all_tally_output_in_dir(phitsout_file_path, 
+                                          include_dump_files=False,
+                                          include_phitsout_in_metadata=None,
+                                          autoplot_all_tally_output_in_dir=False)
+        print(x)
+        sys.exit()
 
 
     tally_output_filepath = output_file_path
@@ -5744,17 +6603,18 @@ elif test_explicit_files_dirs:
     tally_data = tally_output['tally_data']
     tally_metadata = tally_output['tally_metadata']
     tally_df = tally_output['tally_dataframe']
-
+    
     pprint.pp(dict(tally_metadata))
     
-    import matplotlib.pyplot as plt
-    
-    fg_list = autoplot_tally_results(tally_output, return_fg_list=True) #, additional_save_extensions=['.png','jpeg'])
-    #fg = fg_list[0]
-    #for ax in fg.axes.flat:
-    #    ax.set_facecolor((0, 1, 0, 1))
-    #    ax.set_xlabel('TEST', visible=True)
-    #plt.show()
+    testing_autoplot = False 
+    if testing_autoplot:
+        import matplotlib.pyplot as plt
+        fg_list = autoplot_tally_results(tally_output, return_fg_list=True) #, additional_save_extensions=['.png','jpeg'])
+        #fg = fg_list[0]
+        #for ax in fg.axes.flat:
+        #    ax.set_facecolor((0, 1, 0, 1))
+        #    ax.set_xlabel('TEST', visible=True)
+        #plt.show()
     
     
     sys.exit()
