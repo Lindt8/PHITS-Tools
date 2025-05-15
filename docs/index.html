@@ -25,7 +25,8 @@
 <p>This module contains a variety of tools used for parsing PHITS output files.</p>
 <p>Specifically, it seeks to be a (nearly) universal PHITS output parser, supporting output from
 all tallies, both normal "standard" output as well as dump file outputs (in ASCII and binary formats).
-It is also capable of automatically parsing all such PHITS output files in a directory.
+It is also capable of automatically parsing all such PHITS output files in a directory or listed in
+active tallies inside of a PHITS input file.
 If a DCHAIN input file (output from the [T-Dchain] tally) or DCHAIN output <code>*.act</code> file is provided
 to the main tally output processing function, an attempt will be made to import the <a href="https://github.com/Lindt8/DCHAIN-Tools">DCHAIN Tools module</a>
 and process the found DCHAIN output files too.</p>
@@ -181,7 +182,7 @@ Explicitly, inclusion of the various CLI options have the following effects on t
 <p><img alt="" src="https://github.com/Lindt8/PHITS-Tools/blob/main/docs/PHITS_tools_CLI.png?raw=true" title="PHITS Tools CLI options"></p>
 <h3 id="automatic-processing-at-phits-runtime"><strong>Automatic processing at PHITS runtime</strong></h3>
 <p>PHITS Tools can be used to automatically process the output of every PHITS run executed with the "phits.bat" and "phits.sh"
-scripts found in the "phits/bin/" directory of your PHITS distribution.
+scripts found in the "phits/bin/" directory of your PHITS installation.
 To do this, first you must identify the location
 of your "PHITS_tools.py" file.
 If using the file directly downloaded from GitHub, this should be in a location of your choosing.
@@ -205,7 +206,7 @@ add the following line to your PHITS execution script:</p>
 <ul>
 <li>After PHITS finishes running normally, the PHITS input file is passed to PHITS Tools.</li>
 <li>Since it is a PHITS input file, the CLI will have <code><a title="PHITS_tools.parse_all_tally_output_in_dir" href="#PHITS_tools.parse_all_tally_output_in_dir">parse_all_tally_output_in_dir()</a></code> handle it, in <em>[INPUT_FILE mode]</em></li>
-<li>The input file (and its produced "phits.out"-type file) is scanned for output files from active tallies (using <code><a title="PHITS_tools.extract_tally_outputs_from_phits_input" href="#PHITS_tools.extract_tally_outputs_from_phits_input">extract_tally_outputs_from_phits_input()</a></code> and <code><a title="PHITS_tools.parse_phitsout_file" href="#PHITS_tools.parse_phitsout_file">parse_phitsout_file()</a></code>). <ul>
+<li>The input file and its produced "phits.out"-type file are scanned for output files from active tallies, including those inputted via the PHITS insert file function <code>infl:{}</code> too (using <code><a title="PHITS_tools.extract_tally_outputs_from_phits_input" href="#PHITS_tools.extract_tally_outputs_from_phits_input">extract_tally_outputs_from_phits_input()</a></code> and <code><a title="PHITS_tools.parse_phitsout_file" href="#PHITS_tools.parse_phitsout_file">parse_phitsout_file()</a></code>). <ul>
 <li>This will include any dump files (<strong><code>-d</code></strong>) if present.</li>
 <li>When the "phits.out" file (<code>file(6)</code> in the PHITS input [Parameters]) is parsed, its metadata&mdash;including the PHITS input echo&mdash;will be saved to a .pickle file, compressed with LZMA (<strong><code>-lzma</code></strong>) and with the extra ".xz" extension.</li>
 </ul>
@@ -263,7 +264,8 @@ This module contains a variety of tools used for parsing PHITS output files.
 
 Specifically, it seeks to be a (nearly) universal PHITS output parser, supporting output from
 all tallies, both normal &#34;standard&#34; output as well as dump file outputs (in ASCII and binary formats).
-It is also capable of automatically parsing all such PHITS output files in a directory.
+It is also capable of automatically parsing all such PHITS output files in a directory or listed in 
+active tallies inside of a PHITS input file.
 If a DCHAIN input file (output from the [T-Dchain] tally) or DCHAIN output `*.act` file is provided
 to the main tally output processing function, an attempt will be made to import the [DCHAIN Tools module](https://github.com/Lindt8/DCHAIN-Tools)
 and process the found DCHAIN output files too.
@@ -384,7 +386,7 @@ Below is a picture of all of these options available for use within the CLI and 
 ### **Automatic processing at PHITS runtime**
 
 PHITS Tools can be used to automatically process the output of every PHITS run executed with the &#34;phits.bat&#34; and &#34;phits.sh&#34; 
-scripts found in the &#34;phits/bin/&#34; directory of your PHITS distribution.  To do this, first you must identify the location 
+scripts found in the &#34;phits/bin/&#34; directory of your PHITS installation.  To do this, first you must identify the location 
 of your &#34;PHITS_tools.py&#34; file.  If using the file directly downloaded from GitHub, this should be in a location of your choosing.
 If you installed PHITS Tools via `pip install PHITS-Tools`, you can find its location with `pip show PHITS-Tools -f`. 
 Once you have identified the location of PHITS_tools.py, for example &#34;/path/locating/PHITS_Tools/PHITS_tools.py&#34;, you can
@@ -408,7 +410,7 @@ Adding this line causes the following to happen:
 
 - After PHITS finishes running normally, the PHITS input file is passed to PHITS Tools.
 - Since it is a PHITS input file, the CLI will have `parse_all_tally_output_in_dir()` handle it, in *[INPUT_FILE mode]*
-- The input file (and its produced &#34;phits.out&#34;-type file) is scanned for output files from active tallies (using `extract_tally_outputs_from_phits_input()` and `parse_phitsout_file()`). 
+- The input file and its produced &#34;phits.out&#34;-type file are scanned for output files from active tallies, including those inputted via the PHITS insert file function `infl:{}` too (using `extract_tally_outputs_from_phits_input()` and `parse_phitsout_file()`). 
       - This will include any dump files (**`-d`**) if present.
       - When the &#34;phits.out&#34; file (`file(6)` in the PHITS input [Parameters]) is parsed, its metadata&amp;mdash;including the PHITS input echo&amp;mdash;will be saved to a .pickle file, compressed with LZMA (**`-lzma`**) and with the extra &#34;.xz&#34; extension.
 - Then, the standard tally outputs are processed.  For each standard tally output:
