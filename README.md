@@ -97,12 +97,7 @@ Below is a picture of all of these options available for use within the CLI.
 
 ## **Automatic processing at PHITS runtime**
 
-PHITS Tools can be used to automatically process the output of every PHITS run executed with the "phits.bat" and "phits.sh" 
-scripts found in the "phits/bin/" directory of your PHITS installation.  To do this, first you must identify the location 
-of your "PHITS_tools.py" file.  If using the file directly downloaded from GitHub, this should be in a location of your choosing.
-If you installed PHITS Tools via `pip install PHITS-Tools`, you can find its location with `pip show PHITS-Tools -f`. 
-Once you have identified the location of PHITS_tools.py, for example "/path/locating/PHITS_Tools/PHITS_tools.py", you can
-add the following line to your PHITS execution script:
+PHITS Tools can be used to automatically process the output of every PHITS run executed with the "phits.bat" and "phits.sh" scripts found in the "phits/bin/" directory of your PHITS installation.  To do this, first you must identify the location of your "PHITS_tools.py" file.  If using the file directly downloaded from GitHub, this should be in a location of your choosing.  If you installed PHITS Tools via `pip install PHITS-Tools`, you can find its location with `pip show PHITS-Tools -f`. Once you have identified the location of PHITS_tools.py, for example "/path/locating/PHITS_Tools/PHITS_tools.py", you can add the following line to your PHITS execution script:
 
 On Windows, using "phits/bin/phits.bat":
 
@@ -142,19 +137,12 @@ Adding this line causes the following to happen:
    - This PDF of plots is saved to a file sharing the same name as the PHITS input file but ending in "_ALL_TALLY_OUTPUTS_PLOTTED.pdf"
 
 
-You can edit the flags provided to the CLI for your desired default behavior.  For instance, to only save the pickle file of 
-the merged output (rather than for every tally output too), replace `-m` with `-smo`. And to not bother with creating a merged output
-and only save the outputs for each individual tally, just omit `-m`.  Given that the plotting is easily the slowest part of 
-the execution of PHITS Tools in most cases, it may be desirable to omit the `-p` and/or `-pa` flags to not save plots of the tally 
-outputs individually or all together in a single PDF, respectively.  Since dump files can be very large and sometimes solely 
-created for reusage by PHITS (e.g., with a `s-type=17` [Source] section), it may also be desirable to exclude dump files from 
-automatic processing by omitting `-d`.  As an example, a more "minimal" automatic processing would result from:
+You can edit the flags provided to the CLI for your desired default behavior.  For instance, to only save the pickle file of the merged output (rather than for every tally output too), replace `-m` with `-smo`. And to not bother with creating a merged output and only save the outputs for each individual tally, just omit `-m`.  Given that the plotting is easily the slowest part of the execution of PHITS Tools in most cases, it may be desirable to omit the `-p` and/or `-pa` flags to not save plots of the tally outputs individually or all together in a single PDF, respectively.  Since dump files can be very large and sometimes solely created for reusage by PHITS (e.g., with a `s-type=17` [Source] section), it may also be desirable to exclude dump files from automatic processing by omitting `-d`.  As an example, a more "minimal" automatic processing would result from:
 
 - Windows: `python "C:\path\locating\PHITS_Tools\PHITS_tools.py" "%%~nxF" -po -smo -lzma -pa`
 - Linux/Mac: `python "/path/locating/PHITS_Tools/PHITS_tools.py" $1 -po -smo -lzma -pa`
 
-This would only create the ".pickle.xz" file of the merged standard tally outputs and the PDF containing all of their 
-plots together, skipping any processing of dump files.
+This would only create the ".pickle.xz" file of the merged standard tally outputs and the PDF containing all of their plots together, skipping any processing of dump files.
 
 ## Testing, reporting issues, and contributing
 
