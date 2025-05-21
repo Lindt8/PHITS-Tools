@@ -4586,6 +4586,15 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                     # most likely issue is hcol string is missing the "n" for the ?-lower column
                     nhcols = nhcols + 1
                     icol_mod = 1
+                elif nhcols > num_data_vals_in_first_row: # likely extra hcol columns present
+                    hcols_new = []
+                    for ih, h in enumerate(hcols):
+                        if len(h) > 1 and h[:2] in ['dy', 'dx'] and len(hcols_new) > 1 and hcols_new[-1][:2] in ['ny', 'nx']:
+                            hcols_new[-1] = h 
+                        else:
+                            hcols_new.append(h)
+                    hcols = hcols_new
+                    nhcols = len(hcols)
             is_col_data = np.full(nhcols,False)
             data_col_indices = []
             is_col_err = np.full(nhcols,False)
@@ -4596,8 +4605,8 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                     is_col_err[iii+1+icol_mod] = True
                     data_col_indices.append(iii+icol_mod)
                     err_col_indices.append(iii+1+icol_mod)
-            #print(is_col_data)
-            #print(is_col_err)
+            #print('is_col_data', is_col_data)
+            #print('is_col_err ', is_col_err)
             cols = data_table[1][1:].strip().split()
             ncols = len(cols)
             ndata_cols = np.sum(is_col_data) # number of data values per row
@@ -6590,7 +6599,7 @@ elif test_explicit_files_dirs:
         print(x==y)
         sys.exit()
         
-    testing_dir_mode_with_phits_input = True 
+    testing_dir_mode_with_phits_input = False 
     if testing_dir_mode_with_phits_input:
         x = parse_all_tally_output_in_dir(phitsout_file_path, 
                                           include_dump_files=False,
@@ -6598,7 +6607,15 @@ elif test_explicit_files_dirs:
                                           autoplot_all_tally_output_in_dir=False)
         print(x)
         sys.exit()
-
+    
+    test_user_support_sims = False 
+    if test_user_support_sims:
+        tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\user_support_simulations\2025-05-21 Hamed PHITS Tools\flux_1_1_2_Spect.out')
+        results_dict = parse_tally_output_file(tally_output_filepath)
+        tally_df = results_dict['tally_dataframe']
+        print(tally_df.to_string())
+        sys.exit()
+    
 
     tally_output_filepath = output_file_path
     tally_output = parse_tally_output_file(tally_output_filepath, make_PandasDF=True, calculate_absolute_errors=True,
