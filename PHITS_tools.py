@@ -1548,7 +1548,7 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = Non
     
     # If there is only one phits.out file, we can safely assume it belongs to all other processed output
     if len(phitsout_files_to_process) == 1 and (save_output_pickle or (include_phitsout_in_metadata is None or (type(include_phitsout_in_metadata) == bool and include_phitsout_in_metadata))):
-        phitsout_dict = parse_phitsout_file(phitsout_files_to_process[0], include_input_echo=include_input_echo, save_phitsout_pickle=save_output_pickle)
+        phitsout_dict = parse_phitsout_file(phitsout_files_to_process[0], include_input_echo=include_input_echo, save_phitsout_pickle=save_output_pickle, compress_pickle_with_lzma=compress_pickle_with_lzma)
         if include_phitsout_in_metadata is None or (type(include_phitsout_in_metadata) == bool and include_phitsout_in_metadata): 
             include_THIS_phitsout_dict_in_metadata = True
         # if merge_tally_outputs:
@@ -6608,7 +6608,7 @@ elif test_explicit_files_dirs:
         print(x)
         sys.exit()
     
-    test_user_support_sims = False 
+    test_user_support_sims = False  # True 
     if test_user_support_sims:
         tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\user_support_simulations\2025-05-21 Hamed PHITS Tools\flux_1_1_2_Spect.out')
         results_dict = parse_tally_output_file(tally_output_filepath)
