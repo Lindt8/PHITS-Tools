@@ -144,6 +144,25 @@ You can edit the flags provided to the CLI for your desired default behavior.  F
 
 This would only create the ".pickle.xz" file of the merged standard tally outputs and the PDF containing all of their plots together, skipping any processing of dump files.
 
+**Automatic processing at DCHAIN runtime**
+
+Similarly, PHITS Tools can be used to automatically process output from the DCHAIN code, utilizing an import of the [DCHAIN Tools module](https://github.com/Lindt8/DCHAIN-Tools).
+
+On Windows, using "phits/dchain-sp/bin/dchain.bat":
+
+- Scroll down toward the bottom of the script, to the section with the line `rem - Your file processing ends here.`
+- Right above that line (before the `goto :continue`), insert a new line with the following command:
+- `python "C:\path\locating\PHITS_Tools\PHITS_tools.py" "%%~nxF" -po -lzma`
+
+On Linux/Mac, using "phits/dchain-sp/bin/dchain.sh":
+
+- Scroll down toward the bottom of the script, right before the line with `echo ' end of dchain '`
+- On the line after the end of the if statement `fi`, add the following command:
+- `python "/path/locating/PHITS_Tools/PHITS_tools.py" ${jnam} -po -lzma`
+
+This will create a ".pickle.xz" file of the processed DCHAIN outputs, as a dictionary object, with contents as described in the documentation for [**`parse_tally_output_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file) under the "[T-Dchain] special case" section, also including an entry with a dictionary of information on the corresponding PHITS run via its "phits.out" file, if found.
+
+
 ## Testing, reporting issues, and contributing
 
 I have extensively tested this module with a rather large number of PHITS output files with all sorts of different geometry settings, combinations of meshes, output options, and other settings to try to capture as a wide array of output files as I could (including the ~300 output files within the `phits/sample/` and `phits/recommendation/` directories included in the distributed PHITS release, which can be tested in an automated way with `test/test_PHITS_tools.py` in this repository, along with a large number of supplemental variations to really test every option I could think of), but there still may be some usage/combinations of different settings I had not considered that may cause PHITS Tools to crash when attempting to parse a particular output file.  If you come across such an edge case&mdash;a standard PHITS tally output file that causes PHITS Tools to crash when attempting to parse it&mdash;please submit it as an issue and include the output file in question and I'll do my best to update the code to work with it!  Over time, hopefully all the possible edge cases can get stamped out this way. :)
