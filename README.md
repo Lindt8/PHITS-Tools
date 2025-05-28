@@ -160,7 +160,7 @@ On Linux/Mac, using "phits/dchain-sp/bin/dchain.sh":
 - On the line after the end of the if statement `fi`, add the following command:
 - `python "/path/locating/PHITS_Tools/PHITS_tools.py" ${jnam} -po -lzma`
 
-This will create a ".pickle.xz" file (with the same basename as the DCHAIN input file) of the processed DCHAIN outputs, as a dictionary object, with contents as described in the documentation for [**`parse_tally_output_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file) under the "[T-Dchain] special case" section, also including an entry with a dictionary of information on the corresponding PHITS run via its "phits.out" file, if found.
+This will create a ".pickle.xz" file (with the same basename as the DCHAIN input file) of the processed DCHAIN outputs, as a dictionary object, with contents as described in the documentation for [**`parse_tally_output_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file) under the "[T-Dchain] special case" section, also including an entry with a dictionary of information on the corresponding PHITS run via its "phits.out" file (if found).
 
 
 ## Testing, reporting issues, and contributing
