@@ -144,7 +144,7 @@ You can edit the flags provided to the CLI for your desired default behavior.  F
 
 This would only create the ".pickle.xz" file of the merged standard tally outputs and the PDF containing all of their plots together, skipping any processing of dump files.
 
-**Automatic processing at DCHAIN runtime**
+#### Automatic processing at DCHAIN runtime
 
 Similarly, PHITS Tools can be used to automatically process output from the DCHAIN code, utilizing an import of the [DCHAIN Tools module](https://github.com/Lindt8/DCHAIN-Tools).
 
