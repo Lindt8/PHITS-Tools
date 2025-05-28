@@ -827,8 +827,11 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
     unsupported_tally_types = ['[T-WWG]', '[T-WWBG]', '[T-Volume]', '[T-Userdefined]', '[T-Gshow]', '[T-Rshow]',
                                '[T-3Dshow]', '[T-4Dtrack]', 'UNKNOWN']  # '[T-Dchain]', 
     if tally_metadata['tally_type'] in unsupported_tally_types:
-        print('\tERROR! tally type',tally_metadata['tally_type'],'is not supported by this function!')
-        return None
+        if tally_metadata['tally_type'] == 'UNKNOWN' and tally_output_filepath.suffix == '.act':
+            pass
+        else:
+            print('\tERROR! tally type',tally_metadata['tally_type'],'is not supported by this function!')
+            return None
     if tally_metadata['tally_type'] == '[T-Dchain]' or tally_output_filepath.suffix == '.act':
         print('\tNOTE: The DCHAIN Tools module is used to process the DCHAIN output files with same basename of provided file.')
         dchain_tools_url = 'github.com/Lindt8/DCHAIN-Tools'
