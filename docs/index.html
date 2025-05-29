@@ -511,7 +511,7 @@ run_with_CLI_inputs = False
 in_debug_mode = False # True # toggles printing of debug messages throughout the code
 #in_debug_mode = True # toggles printing of debug messages throughout the code
 test_explicit_files_dirs = False # used for testing specific files at the bottom of this file
-test_explicit_files_dirs = False
+#test_explicit_files_dirs = True
 
 
 if __name__ == &#34;__main__&#34;:
@@ -1104,9 +1104,12 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
     unsupported_tally_types = [&#39;[T-WWG]&#39;, &#39;[T-WWBG]&#39;, &#39;[T-Volume]&#39;, &#39;[T-Userdefined]&#39;, &#39;[T-Gshow]&#39;, &#39;[T-Rshow]&#39;,
                                &#39;[T-3Dshow]&#39;, &#39;[T-4Dtrack]&#39;, &#39;UNKNOWN&#39;]  # &#39;[T-Dchain]&#39;, 
     if tally_metadata[&#39;tally_type&#39;] in unsupported_tally_types:
-        print(&#39;\tERROR! tally type&#39;,tally_metadata[&#39;tally_type&#39;],&#39;is not supported by this function!&#39;)
-        return None
-    if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Dchain]&#39; or tally_output_filepath.suffix == &#39;.act&#39;:
+        if tally_metadata[&#39;tally_type&#39;] == &#39;UNKNOWN&#39; and tally_output_filepath.suffix == &#39;.act&#39;:
+            pass
+        else:
+            print(&#39;\tERROR! tally type&#39;,tally_metadata[&#39;tally_type&#39;],&#39;is not supported by this function!&#39;)
+            return None
+    if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Dchain]&#39; or (tally_metadata[&#39;tally_type&#39;] == &#39;UNKNOWN&#39; and tally_output_filepath.suffix == &#39;.act&#39;):
         print(&#39;\tNOTE: The DCHAIN Tools module is used to process the DCHAIN output files with same basename of provided file.&#39;)
         dchain_tools_url = &#39;github.com/Lindt8/DCHAIN-Tools&#39;
         dchain_tools_go_to_github_str = &#39;The DCHAIN Tools module ( &#39;+dchain_tools_url+&#39; ) is capable of parsing all DCHAIN-related output.&#39;
@@ -2101,7 +2104,10 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = Non
                     else:
                         tally_include_in_plotting_list.append(True)
             else:
-                tally_output_pickle_path_list.append(path_to_pickle_file)
+                if &#39;path_to_pickle_file&#39; in tally_output:
+                    tally_output_pickle_path_list.append(tally_output[&#39;path_to_pickle_file&#39;]) 
+                else:
+                    tally_output_pickle_path_list.append(path_to_pickle_file)
                 tot_num_values = np.prod(np.shape(tally_output[&#39;tally_data&#39;])[:-1])
                 if tot_num_values &gt; max_num_values_to_plot:
                     tally_include_in_plotting_list.append(False)
@@ -2271,7 +2277,7 @@ def parse_phitsout_file(phitsout_filepath, include_input_echo=True, save_phitsou
     import io
     import pandas as pd
     phitsout_filepath = Path(phitsout_filepath)
-    print(&#39;Processing file:&#39;, phitsout_filepath)
+    print(&#39;\tProcessing file:&#39;, phitsout_filepath)
     starting_dict = {&#39;job&#39;:{},&#39;summary&#39;:{},&#39;memory&#39;:{},&#39;batch&#39;:{}}
     if prefer_to_munch_meta_dict:
         try:
@@ -2482,7 +2488,7 @@ def parse_phitsout_file(phitsout_filepath, include_input_echo=True, save_phitsou
         else:
             with open(pickle_path, &#39;wb&#39;) as handle:
                 pickle.dump(phitsout_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        print(&#39;\tPickle file written:&#39;, pickle_path)
+        print(&#39;\t\tPickle file written:&#39;, pickle_path)
     return phitsout_dict
 
 
@@ -2665,12 +2671,15 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
         Generally, it does not respect plotting-relevant settings provided to PHITS tallies (e.g., `samepage`, `axis`, `angel`, etc.), 
         though it will use the `title` parameter and the plot axis titles for ANGEL included in the .out files, which are
         influenced by some tally parameters, such as `unit` and `y-txt`.
+        
         This function seeks to compile plots of results from one or multiple tallies into a single PDF file (and individual files in other image formats). 
         The [seaborn](https://seaborn.pydata.org/) package&#39;s [relplot](https://seaborn.pydata.org/generated/seaborn.relplot.html) function is used for generating these plots.
         This function is primarily intended to be called by `parse_tally_output_file()` and `parse_all_tally_output_in_dir()`. 
         However, if you wish to make modifications to the automatically generated figures, you can use the `return_fg_list=True` setting 
         and apply your desired modifications to the returned FacetGrid objects.  (This is demonstrated in the 
         [example](https://github.com/Lindt8/PHITS-Tools/tree/main/example) distributed with PHITS Tools.)
+        
+        A showcase of example plots produced by this function can be found in [test/test_tally_plots.pdf](https://github.com/Lindt8/PHITS-Tools/blob/main/test/test_tally_plots.pdf) ([view whole PDF here](https://github.com/Lindt8/PHITS-Tools/blob/main/test/test_tally_plots.pdf?raw=true)).
         
     Dependencies:
         - `import seaborn as sns`
@@ -2745,7 +2754,13 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
         The &#39;pseudo 2D&#39; plots are called &#34;pseudo&#34; here as they are still made with the seaborn replot function, which 
         actually does not support making this type of plot.  The 2D plots are achieved by using the [matplotlib.markers &#34;verts&#34;](https://matplotlib.org/stable/api/markers_api.html) 
         functionality to make markers of the correct aspect ratio to tile together nicely when scaled up (or down) 
-        sufficiently in size `s` to form the illusion of a 2D colormap plot, hence the &#34;pseudo&#34; in the name.
+        sufficiently in size `s` to form the illusion of a 2D colormap plot, hence the &#34;pseudo&#34; in the name. 
+        
+        An additional case to note is that if provided a [T-Yield] tally output with `axis = chart` (or `axis = dchain`) 
+        and with at least 16 unique nuclides produced, a pseudo 2D plot showing nuclide production in a &#34;Table of Isotopes&#34; 
+        format will always be generated (such as shown below), with all other plot axes combined into tuples and used as the `row` variable.
+        
+        ![](https://github.com/Lindt8/PHITS-Tools/blob/main/docs/yield_p-on-ThO2_axis-chart.png?raw=true &#34;example Table of Isotope styled plot&#34;)
         
         &amp;dagger;This function also calculates the total number of values (bins) in the tally output to be plotted, the product 
         of the axis lengths of the `tally_output[&#39;tally_data&#39;]` Numpy array (excluding the final axis for values/errors). 
@@ -2939,6 +2954,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                                     &#39;particle&#39;:&#39;Particle&#39;,
                                     &#39;nuclide&#39;:&#39;Nuclide&#39;, &#39;ZZZAAAM&#39;:&#39;ZZZAAAM&#39;,
                                     &#39;ic/Z/charge&#39;:&#39;Z (proton #)&#39;, &#39;ic/A/mass&#39;:&#39;A (mass #)&#39;, 
+                                    &#39;N/neutron#&#39;:&#39;N (neutron #)&#39;,  &#39;M/isomericstate&#39;:&#39;isomeric state&#39;, 
                                     &#39;#Interactions&#39;:&#39;Number of interactions&#39;, &#39;e2_mid&#39;:&#39;Energy 2 [MeV]&#39;,
                                     &#39;value&#39;:value_label_from_phits, &#39;value2&#39;:value_label_from_phits,
                                     &#39;rel.err.&#39;:&#39;relative error&#39;, &#39;rel.err.2&#39;:&#39;relative error&#39;
@@ -3062,6 +3078,43 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                 
                 if tot_plot_axes==0:
                     pass
+                elif tally_metadata[&#39;tally_type&#39;] == &#39;[T-Yield]&#39; and tally_metadata[&#39;axis&#39;] == &#39;chart&#39; and len(tally_metadata[&#39;nuclide_isomer_list&#39;])&gt;=maxlines:
+                    # Make &#34;Table of Isotopes&#34;-style plot 
+                    # For [T-Yield], geometry mesh is only other available axis, no E, t, angle, etc. supported by tally
+                    pseudo_2d_plot = True
+                    plot_kind = &#39;scatter&#39;
+                    Z_list = np.floor(tally_df[&#39;ZZZAAAM&#39;]/10000).astype(int)
+                    A_list = np.floor((tally_df[&#39;ZZZAAAM&#39;]%10000)/10).astype(int)
+                    N_list = A_list - Z_list
+                    M_list = list(tally_df[&#39;ZZZAAAM&#39;]%10)
+                    M_max = max(M_list)
+                    tally_df[&#39;ic/Z/charge&#39;] = Z_list
+                    tally_df[&#39;N/neutron#&#39;] = N_list
+                    x_var = &#39;N/neutron#&#39;
+                    y_var = &#39;ic/Z/charge&#39;
+                    if M_max &gt; 0:
+                        ms_str_dict = {0:&#39;ground&#39;, 1:&#39;m1&#39;, 2:&#39;m2&#39;, 3:&#39;m3&#39;, 4:&#39;m4&#39;}
+                        M_list = [ms_str_dict[imeta] for imeta in M_list]
+                        tally_df[&#39;M/isomericstate&#39;] = M_list
+                        col_var = &#39;M/isomericstate&#39;
+                    df_cols = tally_df.columns.values.tolist()
+                    these_plot_axes = [ppi for ppi in cat+num if ppi not in [&#39;nuclide&#39;, &#39;ZZZAAAM&#39;]]
+                    tot_plot_axes = len(these_plot_axes) + 1
+                    hue_var = &#39;value&#39;
+                    if tot_plot_axes == 2: # just nuclides and reg (or one axis of xyz/r-z)
+                        row_var = these_plot_axes[0]
+                    if tot_plot_axes &gt;= 3: # nuclides and a xyz/r-z mesh greater than #x1x1
+                        # need to condense xyz/r-z geometry into one column
+                        row_var = tally_df[these_plot_axes].apply(tuple, axis=1)
+                        row_var_name_str = &#39;(&#39;
+                        if &#39;particle&#39; not in these_plot_axes:
+                            for iepa in these_plot_axes:
+                                row_var_name_str += ax_labels[iepa].replace(&#39;[cm]&#39;,&#39;&#39;).strip() + &#39;, &#39;
+                            row_var.name = row_var_name_str[:-2] + &#39;) [cm]&#39;
+                        else:
+                            for iepa in these_plot_axes:
+                                row_var_name_str += ax_labels[iepa] + &#39;, &#39;
+                            row_var.name = row_var_name_str[:-2] + &#39;)&#39;
                 elif tot_plot_axes==1:
                     if len(cat)==1:  # 1 cat + 0 num
                         plot_kind = &#39;scatter&#39;
@@ -3269,7 +3322,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                     # - if log but dataset contains is not of all same sign , use symlog
                     x_norm, y_norm = &#39;linear&#39;, &#39;linear&#39;
                     hue_norm, size_norm = None, None
-                    maxratio = 101
+                    maxratio = 161 #101
                     if x_var not in cat:
                         x_min, x_max = df[x_var].abs().replace(0, np.nan).min(), df[x_var].abs().replace(0, np.nan).max()
                         bins_are_lin_spaced = are_bins_linearly_spaced(df[x_var].to_numpy())
@@ -3294,6 +3347,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                             if not bins_are_lin_spaced and hue_max/hue_min&gt;maxratio:
                                 if len(np.sign(df[hue_var]).unique())&gt;1:
                                     hue_norm = SymLogNorm(linthresh=hue_min)
+                                    if ierr==0 and min(df[&#39;value&#39;])&lt;0: hue_palette_name_str = &#34;Spectral&#34; # &#34;vlag_r&#34; &#34;coolwarm_r&#34;
                                 else:
                                     hue_norm = LogNorm()
                         if pseudo_2d_plot:
@@ -3335,7 +3389,12 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                     if hue_var != None: hue_var_renamed = ax_labels[hue_var]
                     if style_var != None: style_var_renamed = ax_labels[style_var]
                     if size_var != None: size_var_renamed = ax_labels[size_var]
-                    if row_var != None: row_var_renamed = ax_labels[row_var]
+                    if row_var is not None: 
+                        if isinstance(row_var, str):
+                            row_var_renamed = ax_labels[row_var]
+                        else:
+                            #row_var_renamed = [ax_labels[irv] for irv in row_var]
+                            row_var_renamed = row_var
                     if col_var != None: col_var_renamed = ax_labels[col_var]
                     
                     if in_debug_mode:
@@ -3363,8 +3422,12 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                                          )
                     else: # scatterplot
                         if pseudo_2d_plot:
-                            num_cols = df_renamed[x_var_renamed].nunique()
-                            num_rows = df_renamed[y_var_renamed].nunique()
+                            if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Yield]&#39; and tally_metadata[&#39;axis&#39;] == &#39;chart&#39;:
+                                num_cols = max(df_renamed[x_var_renamed]) - min(df_renamed[x_var_renamed]) + 1
+                                num_rows = max(df_renamed[y_var_renamed]) - min(df_renamed[y_var_renamed]) + 1
+                            else:
+                                num_cols = df_renamed[x_var_renamed].nunique()
+                                num_rows = df_renamed[y_var_renamed].nunique()
                             # using horizontal direction
                             #fig_size_inch = fig_height * fig_aspect_ratio
                             #margin = 0.05  # 0.12
@@ -3440,7 +3503,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                     #xlabel_str = tally_metadata[&#39;axis1_label&#39;]
                     #ylabel_str = tally_metadata[&#39;value_label&#39;]
             
-                    st = fg.fig.suptitle(title_str, fontsize=16, va=&#39;top&#39;, y=0.995)
+                    st = fg.fig.suptitle(title_str, fontsize=16, va=&#39;top&#39;, y=0.9995)
                     #fg.fig.get_axes()[0].annotate(title_str, (0.5, 0.95), xycoords=&#39;figure fraction&#39;, ha=&#39;center&#39;, fontsize=16)
                     #fg.set_axis_labels(xlabel_str, ylabel_str)
                     for ax in fg.axes.flat:
@@ -3473,7 +3536,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                         
                     # add PHITS Tools info
                     fontdict = {&#39;color&#39;:&#39;#666666&#39;, &#39;weight&#39;:&#39;normal&#39;, &#39;size&#39;: 8, &#39;style&#39;:&#39;italic&#39;}
-                    fig.text(0.005,0.005,&#39;Figure generated by PHITS Tools, github.com/Lindt8/PHITS-Tools&#39;,fontdict=fontdict,ha=&#39;left&#39;, va=&#39;bottom&#39;, url=&#39;https://github.com/Lindt8/PHITS-Tools&#39;)
+                    fig.text(0.005,0.0005,&#39;Figure generated by PHITS Tools, github.com/Lindt8/PHITS-Tools&#39;,fontdict=fontdict,ha=&#39;left&#39;, va=&#39;bottom&#39;, url=&#39;https://github.com/Lindt8/PHITS-Tools&#39;)
     
                     if use_rasterization:
                         pdf.savefig(bbox_extra_artists=[st], dpi=rasterize_dpi)
@@ -4550,6 +4613,7 @@ def parse_tally_header(tally_header,tally_content):
     reading_axis_data = False
     reading_regions = False
     in_exceptional_mesh_kind = False
+    in_tyield_axis_dchain = False
     for li, line in enumerate(tally_header):
         #if line[0]==&#39;#&#39;: # commented line
         if &#39;data =&#39; in line and &#39;ndata =&#39; not in line: # data section to parse
@@ -4684,6 +4748,8 @@ def parse_tally_header(tally_header,tally_content):
                     outtime_steps[&#39;TMIN_datetime_object&#39;].append(datetime.timedelta(seconds=float(tmin)*time_unit_to_sec[tminu.lower()]))
                     outtime_steps[&#39;TMIN_str&#39;].append(str(outtime_steps[&#39;TMIN_datetime_object&#39;][-1]))
                 meta[&#39;outtime_steps&#39;] = outtime_steps
+            if key == &#39;axis&#39; and tally_type == &#39;[T-Yield]&#39; and value == &#39;dchain&#39;:
+                in_tyield_axis_dchain = True
         elif reading_axis_data:
             values = line.replace(&#39;#&#39;,&#39;&#39;).strip().split()
             for val in values:
@@ -4714,6 +4780,8 @@ def parse_tally_header(tally_header,tally_content):
                         bin_mids_log.append(np.sqrt(data_values[i]*data_values[i+1]))
                 meta[current_data_mesh_kind+&#39;-mesh_bin_mids_log&#39;] = np.array(bin_mids_log)
             continue
+        elif in_tyield_axis_dchain and &#39;nuclear yield (or production)&#39; in line: 
+            break  # no longer in header section
         else:
             continue
 
@@ -7068,7 +7136,9 @@ elif test_explicit_files_dirs:
     #output_file_path = Path(base_path + r&#39;t-yield\yield_reg_axis-charge.out&#39;)
     #output_file_path = Path(base_path + r&#39;t-yield\yield_reg_axis-mass.out&#39;)
     #output_file_path = Path(base_path + r&#39;t-yield\yield_reg_axis-chart.out&#39;)
+    #output_file_path = Path(base_path + r&#39;t-yield\yield_reg_axis-dchain.out&#39;)
     #output_file_path = Path(base_path + r&#39;t-yield\yield_xyz_axis-chart.out&#39;)
+    #output_file_path = Path(base_path + r&#39;t-dchain\150pH2O.dyld&#39;)
 
     #base_path = r&#39;G:\Cloud\OneDrive\work\PHITS\test_tallies\\&#39;
     #output_file_path = Path(base_path + r&#39;tally\t-deposit\deposit_reg_spec-all.out&#39;)
@@ -7260,7 +7330,7 @@ elif test_explicit_files_dirs:
     
     pprint.pp(dict(tally_metadata))
     
-    testing_autoplot = False 
+    testing_autoplot = False
     if testing_autoplot:
         import matplotlib.pyplot as plt
         fg_list = autoplot_tally_results(tally_output, return_fg_list=True) #, additional_save_extensions=[&#39;.png&#39;,&#39;jpeg&#39;])
@@ -8166,9 +8236,12 @@ PHITS Tools as <code>import PHITS_tools.dchain_tools as dchain_tools</code>).</p
     unsupported_tally_types = [&#39;[T-WWG]&#39;, &#39;[T-WWBG]&#39;, &#39;[T-Volume]&#39;, &#39;[T-Userdefined]&#39;, &#39;[T-Gshow]&#39;, &#39;[T-Rshow]&#39;,
                                &#39;[T-3Dshow]&#39;, &#39;[T-4Dtrack]&#39;, &#39;UNKNOWN&#39;]  # &#39;[T-Dchain]&#39;, 
     if tally_metadata[&#39;tally_type&#39;] in unsupported_tally_types:
-        print(&#39;\tERROR! tally type&#39;,tally_metadata[&#39;tally_type&#39;],&#39;is not supported by this function!&#39;)
-        return None
-    if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Dchain]&#39; or tally_output_filepath.suffix == &#39;.act&#39;:
+        if tally_metadata[&#39;tally_type&#39;] == &#39;UNKNOWN&#39; and tally_output_filepath.suffix == &#39;.act&#39;:
+            pass
+        else:
+            print(&#39;\tERROR! tally type&#39;,tally_metadata[&#39;tally_type&#39;],&#39;is not supported by this function!&#39;)
+            return None
+    if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Dchain]&#39; or (tally_metadata[&#39;tally_type&#39;] == &#39;UNKNOWN&#39; and tally_output_filepath.suffix == &#39;.act&#39;):
         print(&#39;\tNOTE: The DCHAIN Tools module is used to process the DCHAIN output files with same basename of provided file.&#39;)
         dchain_tools_url = &#39;github.com/Lindt8/DCHAIN-Tools&#39;
         dchain_tools_go_to_github_str = &#39;The DCHAIN Tools module ( &#39;+dchain_tools_url+&#39; ) is capable of parsing all DCHAIN-related output.&#39;
@@ -9512,7 +9585,10 @@ then in the first line of code for both this and the <code><a title="PHITS_tools
                     else:
                         tally_include_in_plotting_list.append(True)
             else:
-                tally_output_pickle_path_list.append(path_to_pickle_file)
+                if &#39;path_to_pickle_file&#39; in tally_output:
+                    tally_output_pickle_path_list.append(tally_output[&#39;path_to_pickle_file&#39;]) 
+                else:
+                    tally_output_pickle_path_list.append(path_to_pickle_file)
                 tot_num_values = np.prod(np.shape(tally_output[&#39;tally_data&#39;])[:-1])
                 if tot_num_values &gt; max_num_values_to_plot:
                     tally_include_in_plotting_list.append(False)
@@ -9751,7 +9827,7 @@ set <code>prefer_to_munch_meta_dict = False</code>.</em></p></div>
     import io
     import pandas as pd
     phitsout_filepath = Path(phitsout_filepath)
-    print(&#39;Processing file:&#39;, phitsout_filepath)
+    print(&#39;\tProcessing file:&#39;, phitsout_filepath)
     starting_dict = {&#39;job&#39;:{},&#39;summary&#39;:{},&#39;memory&#39;:{},&#39;batch&#39;:{}}
     if prefer_to_munch_meta_dict:
         try:
@@ -9962,7 +10038,7 @@ set <code>prefer_to_munch_meta_dict = False</code>.</em></p></div>
         else:
             with open(pickle_path, &#39;wb&#39;) as handle:
                 pickle.dump(phitsout_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        print(&#39;\tPickle file written:&#39;, pickle_path)
+        print(&#39;\t\tPickle file written:&#39;, pickle_path)
     return phitsout_dict</code></pre>
 </details>
 </dd>
@@ -10215,14 +10291,15 @@ It is not a function for generating customized plots; it exists to automate crea
 output using sets of predetermined rules and settings, principally for initial checking of results.
 Generally, it does not respect plotting-relevant settings provided to PHITS tallies (e.g., <code>samepage</code>, <code>axis</code>, <code>angel</code>, etc.),
 though it will use the <code>title</code> parameter and the plot axis titles for ANGEL included in the .out files, which are
-influenced by some tally parameters, such as <code>unit</code> and <code>y-txt</code>.
-This function seeks to compile plots of results from one or multiple tallies into a single PDF file (and individual files in other image formats).
+influenced by some tally parameters, such as <code>unit</code> and <code>y-txt</code>.</p>
+<p>This function seeks to compile plots of results from one or multiple tallies into a single PDF file (and individual files in other image formats).
 The <a href="https://seaborn.pydata.org/">seaborn</a> package's <a href="https://seaborn.pydata.org/generated/seaborn.relplot.html">relplot</a> function is used for generating these plots.
 This function is primarily intended to be called by <code><a title="PHITS_tools.parse_tally_output_file" href="#PHITS_tools.parse_tally_output_file">parse_tally_output_file()</a></code> and <code><a title="PHITS_tools.parse_all_tally_output_in_dir" href="#PHITS_tools.parse_all_tally_output_in_dir">parse_all_tally_output_in_dir()</a></code>.
 However, if you wish to make modifications to the automatically generated figures, you can use the <code>return_fg_list=True</code> setting
 and apply your desired modifications to the returned FacetGrid objects.
 (This is demonstrated in the
 <a href="https://github.com/Lindt8/PHITS-Tools/tree/main/example">example</a> distributed with PHITS Tools.)</p>
+<p>A showcase of example plots produced by this function can be found in <a href="https://github.com/Lindt8/PHITS-Tools/blob/main/test/test_tally_plots.pdf">test/test_tally_plots.pdf</a> (<a href="https://github.com/Lindt8/PHITS-Tools/blob/main/test/test_tally_plots.pdf?raw=true">view whole PDF here</a>).</p>
 <h2 id="dependencies">Dependencies</h2>
 <ul>
 <li><code>import seaborn as sns</code></li>
@@ -10302,7 +10379,11 @@ For the 'scatter' and 'line' plots, <code>hue</code> and <code>style</code> are 
 actually does not support making this type of plot.
 The 2D plots are achieved by using the <a href="https://matplotlib.org/stable/api/markers_api.html">matplotlib.markers "verts"</a>
 functionality to make markers of the correct aspect ratio to tile together nicely when scaled up (or down)
-sufficiently in size <code>s</code> to form the illusion of a 2D colormap plot, hence the "pseudo" in the name.</p>
+sufficiently in size <code>s</code> to form the illusion of a 2D colormap plot, hence the "pseudo" in the name. </p>
+<p>An additional case to note is that if provided a [T-Yield] tally output with <code>axis = chart</code> (or <code>axis = dchain</code>)
+and with at least 16 unique nuclides produced, a pseudo 2D plot showing nuclide production in a "Table of Isotopes"
+format will always be generated (such as shown below), with all other plot axes combined into tuples and used as the <code>row</code> variable.</p>
+<p><img alt="" src="https://github.com/Lindt8/PHITS-Tools/blob/main/docs/yield_p-on-ThO2_axis-chart.png?raw=true" title="example Table of Isotope styled plot"></p>
 <p>&dagger;This function also calculates the total number of values (bins) in the tally output to be plotted, the product
 of the axis lengths of the <code>tally_output['tally_data']</code> Numpy array (excluding the final axis for values/errors).
 If this value exceeds 10 million (controlled by the <code>max_num_values_to_plot</code> input in this function),
@@ -10328,12 +10409,15 @@ the <code>sns.relplot()</code> call) using a default DPI of 300 (controlled by t
         Generally, it does not respect plotting-relevant settings provided to PHITS tallies (e.g., `samepage`, `axis`, `angel`, etc.), 
         though it will use the `title` parameter and the plot axis titles for ANGEL included in the .out files, which are
         influenced by some tally parameters, such as `unit` and `y-txt`.
+        
         This function seeks to compile plots of results from one or multiple tallies into a single PDF file (and individual files in other image formats). 
         The [seaborn](https://seaborn.pydata.org/) package&#39;s [relplot](https://seaborn.pydata.org/generated/seaborn.relplot.html) function is used for generating these plots.
         This function is primarily intended to be called by `parse_tally_output_file()` and `parse_all_tally_output_in_dir()`. 
         However, if you wish to make modifications to the automatically generated figures, you can use the `return_fg_list=True` setting 
         and apply your desired modifications to the returned FacetGrid objects.  (This is demonstrated in the 
         [example](https://github.com/Lindt8/PHITS-Tools/tree/main/example) distributed with PHITS Tools.)
+        
+        A showcase of example plots produced by this function can be found in [test/test_tally_plots.pdf](https://github.com/Lindt8/PHITS-Tools/blob/main/test/test_tally_plots.pdf) ([view whole PDF here](https://github.com/Lindt8/PHITS-Tools/blob/main/test/test_tally_plots.pdf?raw=true)).
         
     Dependencies:
         - `import seaborn as sns`
@@ -10408,7 +10492,13 @@ the <code>sns.relplot()</code> call) using a default DPI of 300 (controlled by t
         The &#39;pseudo 2D&#39; plots are called &#34;pseudo&#34; here as they are still made with the seaborn replot function, which 
         actually does not support making this type of plot.  The 2D plots are achieved by using the [matplotlib.markers &#34;verts&#34;](https://matplotlib.org/stable/api/markers_api.html) 
         functionality to make markers of the correct aspect ratio to tile together nicely when scaled up (or down) 
-        sufficiently in size `s` to form the illusion of a 2D colormap plot, hence the &#34;pseudo&#34; in the name.
+        sufficiently in size `s` to form the illusion of a 2D colormap plot, hence the &#34;pseudo&#34; in the name. 
+        
+        An additional case to note is that if provided a [T-Yield] tally output with `axis = chart` (or `axis = dchain`) 
+        and with at least 16 unique nuclides produced, a pseudo 2D plot showing nuclide production in a &#34;Table of Isotopes&#34; 
+        format will always be generated (such as shown below), with all other plot axes combined into tuples and used as the `row` variable.
+        
+        ![](https://github.com/Lindt8/PHITS-Tools/blob/main/docs/yield_p-on-ThO2_axis-chart.png?raw=true &#34;example Table of Isotope styled plot&#34;)
         
         &amp;dagger;This function also calculates the total number of values (bins) in the tally output to be plotted, the product 
         of the axis lengths of the `tally_output[&#39;tally_data&#39;]` Numpy array (excluding the final axis for values/errors). 
@@ -10602,6 +10692,7 @@ the <code>sns.relplot()</code> call) using a default DPI of 300 (controlled by t
                                     &#39;particle&#39;:&#39;Particle&#39;,
                                     &#39;nuclide&#39;:&#39;Nuclide&#39;, &#39;ZZZAAAM&#39;:&#39;ZZZAAAM&#39;,
                                     &#39;ic/Z/charge&#39;:&#39;Z (proton #)&#39;, &#39;ic/A/mass&#39;:&#39;A (mass #)&#39;, 
+                                    &#39;N/neutron#&#39;:&#39;N (neutron #)&#39;,  &#39;M/isomericstate&#39;:&#39;isomeric state&#39;, 
                                     &#39;#Interactions&#39;:&#39;Number of interactions&#39;, &#39;e2_mid&#39;:&#39;Energy 2 [MeV]&#39;,
                                     &#39;value&#39;:value_label_from_phits, &#39;value2&#39;:value_label_from_phits,
                                     &#39;rel.err.&#39;:&#39;relative error&#39;, &#39;rel.err.2&#39;:&#39;relative error&#39;
@@ -10725,6 +10816,43 @@ the <code>sns.relplot()</code> call) using a default DPI of 300 (controlled by t
                 
                 if tot_plot_axes==0:
                     pass
+                elif tally_metadata[&#39;tally_type&#39;] == &#39;[T-Yield]&#39; and tally_metadata[&#39;axis&#39;] == &#39;chart&#39; and len(tally_metadata[&#39;nuclide_isomer_list&#39;])&gt;=maxlines:
+                    # Make &#34;Table of Isotopes&#34;-style plot 
+                    # For [T-Yield], geometry mesh is only other available axis, no E, t, angle, etc. supported by tally
+                    pseudo_2d_plot = True
+                    plot_kind = &#39;scatter&#39;
+                    Z_list = np.floor(tally_df[&#39;ZZZAAAM&#39;]/10000).astype(int)
+                    A_list = np.floor((tally_df[&#39;ZZZAAAM&#39;]%10000)/10).astype(int)
+                    N_list = A_list - Z_list
+                    M_list = list(tally_df[&#39;ZZZAAAM&#39;]%10)
+                    M_max = max(M_list)
+                    tally_df[&#39;ic/Z/charge&#39;] = Z_list
+                    tally_df[&#39;N/neutron#&#39;] = N_list
+                    x_var = &#39;N/neutron#&#39;
+                    y_var = &#39;ic/Z/charge&#39;
+                    if M_max &gt; 0:
+                        ms_str_dict = {0:&#39;ground&#39;, 1:&#39;m1&#39;, 2:&#39;m2&#39;, 3:&#39;m3&#39;, 4:&#39;m4&#39;}
+                        M_list = [ms_str_dict[imeta] for imeta in M_list]
+                        tally_df[&#39;M/isomericstate&#39;] = M_list
+                        col_var = &#39;M/isomericstate&#39;
+                    df_cols = tally_df.columns.values.tolist()
+                    these_plot_axes = [ppi for ppi in cat+num if ppi not in [&#39;nuclide&#39;, &#39;ZZZAAAM&#39;]]
+                    tot_plot_axes = len(these_plot_axes) + 1
+                    hue_var = &#39;value&#39;
+                    if tot_plot_axes == 2: # just nuclides and reg (or one axis of xyz/r-z)
+                        row_var = these_plot_axes[0]
+                    if tot_plot_axes &gt;= 3: # nuclides and a xyz/r-z mesh greater than #x1x1
+                        # need to condense xyz/r-z geometry into one column
+                        row_var = tally_df[these_plot_axes].apply(tuple, axis=1)
+                        row_var_name_str = &#39;(&#39;
+                        if &#39;particle&#39; not in these_plot_axes:
+                            for iepa in these_plot_axes:
+                                row_var_name_str += ax_labels[iepa].replace(&#39;[cm]&#39;,&#39;&#39;).strip() + &#39;, &#39;
+                            row_var.name = row_var_name_str[:-2] + &#39;) [cm]&#39;
+                        else:
+                            for iepa in these_plot_axes:
+                                row_var_name_str += ax_labels[iepa] + &#39;, &#39;
+                            row_var.name = row_var_name_str[:-2] + &#39;)&#39;
                 elif tot_plot_axes==1:
                     if len(cat)==1:  # 1 cat + 0 num
                         plot_kind = &#39;scatter&#39;
@@ -10932,7 +11060,7 @@ the <code>sns.relplot()</code> call) using a default DPI of 300 (controlled by t
                     # - if log but dataset contains is not of all same sign , use symlog
                     x_norm, y_norm = &#39;linear&#39;, &#39;linear&#39;
                     hue_norm, size_norm = None, None
-                    maxratio = 101
+                    maxratio = 161 #101
                     if x_var not in cat:
                         x_min, x_max = df[x_var].abs().replace(0, np.nan).min(), df[x_var].abs().replace(0, np.nan).max()
                         bins_are_lin_spaced = are_bins_linearly_spaced(df[x_var].to_numpy())
@@ -10957,6 +11085,7 @@ the <code>sns.relplot()</code> call) using a default DPI of 300 (controlled by t
                             if not bins_are_lin_spaced and hue_max/hue_min&gt;maxratio:
                                 if len(np.sign(df[hue_var]).unique())&gt;1:
                                     hue_norm = SymLogNorm(linthresh=hue_min)
+                                    if ierr==0 and min(df[&#39;value&#39;])&lt;0: hue_palette_name_str = &#34;Spectral&#34; # &#34;vlag_r&#34; &#34;coolwarm_r&#34;
                                 else:
                                     hue_norm = LogNorm()
                         if pseudo_2d_plot:
@@ -10998,7 +11127,12 @@ the <code>sns.relplot()</code> call) using a default DPI of 300 (controlled by t
                     if hue_var != None: hue_var_renamed = ax_labels[hue_var]
                     if style_var != None: style_var_renamed = ax_labels[style_var]
                     if size_var != None: size_var_renamed = ax_labels[size_var]
-                    if row_var != None: row_var_renamed = ax_labels[row_var]
+                    if row_var is not None: 
+                        if isinstance(row_var, str):
+                            row_var_renamed = ax_labels[row_var]
+                        else:
+                            #row_var_renamed = [ax_labels[irv] for irv in row_var]
+                            row_var_renamed = row_var
                     if col_var != None: col_var_renamed = ax_labels[col_var]
                     
                     if in_debug_mode:
@@ -11026,8 +11160,12 @@ the <code>sns.relplot()</code> call) using a default DPI of 300 (controlled by t
                                          )
                     else: # scatterplot
                         if pseudo_2d_plot:
-                            num_cols = df_renamed[x_var_renamed].nunique()
-                            num_rows = df_renamed[y_var_renamed].nunique()
+                            if tally_metadata[&#39;tally_type&#39;] == &#39;[T-Yield]&#39; and tally_metadata[&#39;axis&#39;] == &#39;chart&#39;:
+                                num_cols = max(df_renamed[x_var_renamed]) - min(df_renamed[x_var_renamed]) + 1
+                                num_rows = max(df_renamed[y_var_renamed]) - min(df_renamed[y_var_renamed]) + 1
+                            else:
+                                num_cols = df_renamed[x_var_renamed].nunique()
+                                num_rows = df_renamed[y_var_renamed].nunique()
                             # using horizontal direction
                             #fig_size_inch = fig_height * fig_aspect_ratio
                             #margin = 0.05  # 0.12
@@ -11103,7 +11241,7 @@ the <code>sns.relplot()</code> call) using a default DPI of 300 (controlled by t
                     #xlabel_str = tally_metadata[&#39;axis1_label&#39;]
                     #ylabel_str = tally_metadata[&#39;value_label&#39;]
             
-                    st = fg.fig.suptitle(title_str, fontsize=16, va=&#39;top&#39;, y=0.995)
+                    st = fg.fig.suptitle(title_str, fontsize=16, va=&#39;top&#39;, y=0.9995)
                     #fg.fig.get_axes()[0].annotate(title_str, (0.5, 0.95), xycoords=&#39;figure fraction&#39;, ha=&#39;center&#39;, fontsize=16)
                     #fg.set_axis_labels(xlabel_str, ylabel_str)
                     for ax in fg.axes.flat:
@@ -11136,7 +11274,7 @@ the <code>sns.relplot()</code> call) using a default DPI of 300 (controlled by t
                         
                     # add PHITS Tools info
                     fontdict = {&#39;color&#39;:&#39;#666666&#39;, &#39;weight&#39;:&#39;normal&#39;, &#39;size&#39;: 8, &#39;style&#39;:&#39;italic&#39;}
-                    fig.text(0.005,0.005,&#39;Figure generated by PHITS Tools, github.com/Lindt8/PHITS-Tools&#39;,fontdict=fontdict,ha=&#39;left&#39;, va=&#39;bottom&#39;, url=&#39;https://github.com/Lindt8/PHITS-Tools&#39;)
+                    fig.text(0.005,0.0005,&#39;Figure generated by PHITS Tools, github.com/Lindt8/PHITS-Tools&#39;,fontdict=fontdict,ha=&#39;left&#39;, va=&#39;bottom&#39;, url=&#39;https://github.com/Lindt8/PHITS-Tools&#39;)
     
                     if use_rasterization:
                         pdf.savefig(bbox_extra_artists=[st], dpi=rasterize_dpi)
@@ -12612,6 +12750,7 @@ broken into "blocks" ("newpage:"-separated) which are lists of lines belonging t
     reading_axis_data = False
     reading_regions = False
     in_exceptional_mesh_kind = False
+    in_tyield_axis_dchain = False
     for li, line in enumerate(tally_header):
         #if line[0]==&#39;#&#39;: # commented line
         if &#39;data =&#39; in line and &#39;ndata =&#39; not in line: # data section to parse
@@ -12746,6 +12885,8 @@ broken into "blocks" ("newpage:"-separated) which are lists of lines belonging t
                     outtime_steps[&#39;TMIN_datetime_object&#39;].append(datetime.timedelta(seconds=float(tmin)*time_unit_to_sec[tminu.lower()]))
                     outtime_steps[&#39;TMIN_str&#39;].append(str(outtime_steps[&#39;TMIN_datetime_object&#39;][-1]))
                 meta[&#39;outtime_steps&#39;] = outtime_steps
+            if key == &#39;axis&#39; and tally_type == &#39;[T-Yield]&#39; and value == &#39;dchain&#39;:
+                in_tyield_axis_dchain = True
         elif reading_axis_data:
             values = line.replace(&#39;#&#39;,&#39;&#39;).strip().split()
             for val in values:
@@ -12776,6 +12917,8 @@ broken into "blocks" ("newpage:"-separated) which are lists of lines belonging t
                         bin_mids_log.append(np.sqrt(data_values[i]*data_values[i+1]))
                 meta[current_data_mesh_kind+&#39;-mesh_bin_mids_log&#39;] = np.array(bin_mids_log)
             continue
+        elif in_tyield_axis_dchain and &#39;nuclear yield (or production)&#39; in line: 
+            break  # no longer in header section
         else:
             continue
 
