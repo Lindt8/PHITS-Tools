@@ -9,7 +9,7 @@ already have a PHITS installation, you will find an extensive set of sample
 PHITS inputs and outputs provided within the `phits/sample/` and `phits/recommendation/`
 directories and their nested subdirectories, totalling approximately 300 test 
 output files to be parsed by this script.  Also note that the `phits/recommendation/` 
-directory, complete with PHITS outputs, is publicly available for download on the PHITS website 
+directory, complete with PHITS output files, is publicly available for download on the PHITS website 
 at the bottom of [this page under "Recommendation Settings"](https://phits.jaea.go.jp/rireki-manuale.html) 
 ([direct download of ZIP file here](https://phits.jaea.go.jp/lec/recommendation.zip)).
 
