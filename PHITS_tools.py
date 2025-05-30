@@ -1840,12 +1840,12 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = Non
                 else:
                     tally_include_in_plotting_list.append(True)
         if return_tally_output or (merge_tally_outputs and not save_output_pickle and autoplot_all_tally_output_in_dir):
-            if 'has_dyld_dtrk_file' in tally_output: # instance where [T-Dchain].out provided, .dyld and .dtrk outputs returned
+            if tally_output is not None and 'has_dyld_dtrk_file' in tally_output: # instance where [T-Dchain].out provided, .dyld and .dtrk outputs returned
                 if tally_output['dtrk_tally_output'] is not None: tally_output_list.append(tally_output['dtrk_tally_output'])
                 if tally_output['dyld_tally_output'] is not None: tally_output_list.append(tally_output['dyld_tally_output'])
             else:
                 tally_output_list.append(tally_output)
-        if merge_tally_outputs:
+        if merge_tally_outputs and tally_output is not None:
             if 'has_dyld_dtrk_file' in tally_output:  # instance where [T-Dchain].out provided, .dyld and .dtrk outputs returned
                 if tally_output['dtrk_tally_output'] is not None:
                     if operating_in_directory_mode:
@@ -1918,7 +1918,8 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = Non
             for i in range(len(tally_include_in_plotting_list)):
                 if tally_include_in_plotting_list[i]:
                     if return_tally_output or (merge_tally_outputs and not save_output_pickle):
-                        plot_list.append(tally_output_list[i])
+                        if tally_output_list[i] is not None:
+                            plot_list.append(tally_output_list[i])
                     else:
                         plot_list.append(tally_output_pickle_path_list[i])
             autoplot_tally_results(plot_list, plot_errorbars=calculate_absolute_errors, output_filename=plot_filepath)
