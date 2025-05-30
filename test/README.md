@@ -15,6 +15,6 @@ at the bottom of [this page under "Recommendation Settings"](https://phits.jaea.
 
 `test_PHITS_tools.py` uses these distributed sample outputs as its testing suite; 
 all you must do is make sure the `path_to_phits_base_folder` variable on line 6 
-correctly points to your PHITS installation's base folder (by default, `C:\phits\`).  
+correctly points to your PHITS installation's base folder (by default, `C:\phits\`). 
 When the script is ran, `PHITS Tools` will attempt parsing all of these outputs and print 
 its test results to the terminal and to `test.log`, saved to the current working directory.
