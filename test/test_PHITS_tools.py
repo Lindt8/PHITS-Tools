@@ -86,7 +86,7 @@ if test_input_mode_parsing:
     log_file_str += log_str
     for f in inputs_to_parse:
         i += 1
-        test_num_str = '{:3d}/{:3d}'.format(i, num_tests)
+        test_num_str = '{:3d}/{:3d}'.format(i-num_tests, numi_tests)
         try:
             x = PHITS_tools.parse_all_tally_output_in_dir(f, save_output_pickle=False, merge_tally_outputs=True,
                                                           save_pickle_of_merged_tally_outputs=True, compress_pickle_with_lzma=True,
