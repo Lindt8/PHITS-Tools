@@ -3,7 +3,7 @@ from pathlib import Path
 from traceback import format_exc
 import re
 
-path_to_phits_base_folder = Path('C:\phits')
+path_to_phits_base_folder = Path(r'C:\phits')
 
 phits_sample_dir = Path(path_to_phits_base_folder,'sample')
 phits_recommendation_dir = Path(path_to_phits_base_folder,'recommendation')
