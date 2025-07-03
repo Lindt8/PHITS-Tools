@@ -7,6 +7,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   1   : A-150 Tissue-Equivalent Plastic (A150TEP) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.127000 
@@ -42,6 +43,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   2   : Acetone 
+  Source = PNNL-15870 Rev. 1 
   Formula = C3H6O 
   Molecular weight (g/mole) = 58.07914 
   Density (g/cm3) = 0.789900 
@@ -68,6 +70,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   3   : Acetylene 
+  Source = PNNL-15870 Rev. 1 
   Formula = C2H2 
   Molecular weight (g/mole) = 26.03728 
   Density (g/cm3) = 0.001097 
@@ -91,6 +94,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   4   : Air (dry, near sea level) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.001205 
@@ -120,6 +124,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   5   : Alanine 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.420000 
@@ -149,6 +154,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   6   : Aluminum 
+  Source = PNNL-15870 Rev. 1 
   Formula = Al 
   Molecular weight (g/mole) = 26.981538 
   Density (g/cm3) = 2.698900 
@@ -169,6 +175,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   7   : Aluminum Oxide 
+  Source = PNNL-15870 Rev. 1 
   Formula = Al2O3 
   Molecular weight (g/mole) = 101.961276 
   Density (g/cm3) = 3.970000 
@@ -192,6 +199,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   8   : Aluminum, alloy 2024-O 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.780000 
@@ -236,6 +244,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   9   : Aluminum, alloy 2090-T83 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.590000 
@@ -286,6 +295,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   10  : Aluminum, alloy 3003 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.730000 
@@ -321,6 +331,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   11  : Aluminum, alloy 4043-O 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.690000 
@@ -365,6 +376,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   12  : Aluminum, alloy 5086-O 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.660000 
@@ -409,6 +421,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   13  : Aluminum, alloy 6061-O 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.700000 
@@ -453,6 +466,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   14  : Aluminum, alloy 7075-O 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.810000 
@@ -497,6 +511,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   15  : Ammonia (liquid at T= -79 C) 
+  Source = PNNL-15870 Rev. 1 
   Formula = NH3 
   Molecular weight (g/mole) = 17.03052 
   Density (g/cm3) = 0.771000 
@@ -520,6 +535,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   16  : Anthracene 
+  Source = PNNL-15870 Rev. 1 
   Formula = C14H10 
   Molecular weight (g/mole) = 178.2292 
   Density (g/cm3) = 1.250000 
@@ -543,6 +559,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   17  : Argon 
+  Source = PNNL-15870 Rev. 1 
   Formula = Ar 
   Molecular weight (g/mole) = 39.948 
   Density (g/cm3) = 0.001662 
@@ -563,6 +580,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   18  : Asphalt 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.300000 
@@ -601,6 +619,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   19  : Asphalt pavement 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.578400 
@@ -669,6 +688,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   20  : Bakelite 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.250000 
@@ -695,6 +715,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   21  : Barium Fluoride 
+  Source = PNNL-15870 Rev. 1 
   Formula = BaF2 
   Molecular weight (g/mole) = 175.3238064 
   Density (g/cm3) = 4.890000 
@@ -718,6 +739,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   22  : Barium sulfate 
+  Source = PNNL-15870 Rev. 1 
   Formula = BaSO4 
   Molecular weight (g/mole) = 233.3896 
   Density (g/cm3) = 4.500000 
@@ -744,6 +766,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   23  : Benzene 
+  Source = PNNL-15870 Rev. 1 
   Formula = C6H6 
   Molecular weight (g/mole) = 78.11184 
   Density (g/cm3) = 0.876500 
@@ -767,6 +790,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   24  : Beryllium 
+  Source = PNNL-15870 Rev. 1 
   Formula = Be 
   Molecular weight (g/mole) = 9.012182 
   Density (g/cm3) = 1.848000 
@@ -787,6 +811,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   25  : Beryllium Carbide 
+  Source = PNNL-15870 Rev. 1 
   Formula = Be2C 
   Molecular weight (g/mole) = 30.035064 
   Density (g/cm3) = 1.900000 
@@ -810,6 +835,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   26  : Beryllium Oxide 
+  Source = PNNL-15870 Rev. 1 
   Formula = BeO 
   Molecular weight (g/mole) = 25.011582 
   Density (g/cm3) = 3.010000 
@@ -833,6 +859,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   27  : Bismuth 
+  Source = PNNL-15870 Rev. 1 
   Formula = Bi 
   Molecular weight (g/mole) = 208.98038 
   Density (g/cm3) = 9.747000 
@@ -853,6 +880,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   28  : Bismuth Germanate (BGO) 
+  Source = PNNL-15870 Rev. 1 
   Formula = Bi4Ge3O12 
   Molecular weight (g/mole) = 1245.83432 
   Density (g/cm3) = 7.130000 
@@ -879,6 +907,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   29  : Blood (ICRP) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.060000 
@@ -938,6 +967,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   30  : Bone Equivalent Plastic, B-100 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.450000 
@@ -973,6 +1003,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   31  : Bone Equivalent Plastic, B-110 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.785000 
@@ -1008,6 +1039,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   32  : Bone, Compact (ICRU) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.850000 
@@ -1049,6 +1081,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   33  : Bone, Cortical (ICRP) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.850000 
@@ -1093,6 +1126,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   34  : Boral (65% Al-35% B4C) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.530000 
@@ -1119,6 +1153,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   35  : Boral (Aluminum 10% boron alloy) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.600000 
@@ -1157,6 +1192,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   36  : Boral (Aluminum 5% boron alloy) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.600000 
@@ -1195,6 +1231,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   37  : Borax 
+  Source = PNNL-15870 Rev. 1 
   Formula = NA2B4O7-10(H2O) 
   Molecular weight (g/mole) = 381.37214 
   Density (g/cm3) = 1.730000 
@@ -1224,6 +1261,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   38  : Boric Acid 
+  Source = PNNL-15870 Rev. 1 
   Formula = H3BO3 
   Molecular weight (g/mole) = 61.83302 
   Density (g/cm3) = 1.500000 
@@ -1250,6 +1288,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   39  : Boron 
+  Source = PNNL-15870 Rev. 1 
   Formula = B 
   Molecular weight (g/mole) = 10.811 
   Density (g/cm3) = 2.370000 
@@ -1270,6 +1309,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   40  : Boron Carbide 
+  Source = PNNL-15870 Rev. 1 
   Formula = B4C 
   Molecular weight (g/mole) = 55.2547 
   Density (g/cm3) = 2.520000 
@@ -1293,6 +1333,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   41  : Boron Fluoride (B2F4) 
+  Source = PNNL-15870 Rev. 1 
   Formula = B2F4 
   Molecular weight (g/mole) = 97.6156128 
   Density (g/cm3) = 0.004058 
@@ -1316,6 +1357,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   42  : Boron Fluoride (BF3) 
+  Source = PNNL-15870 Rev. 1 
   Formula = BF3 
   Molecular weight (g/mole) = 67.8062096 
   Density (g/cm3) = 0.002831 
@@ -1339,6 +1381,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   43  : Boron Oxide 
+  Source = PNNL-15870 Rev. 1 
   Formula = B2O3 
   Molecular weight (g/mole) = 69.6202 
   Density (g/cm3) = 1.812000 
@@ -1362,6 +1405,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   44  : Brain (ICRP) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.030000 
@@ -1418,6 +1462,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   45  : Brass (typical composition) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 8.070000 
@@ -1450,6 +1495,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   46  : Brick, Common Silica 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.800000 
@@ -1482,6 +1528,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   47  : Brick, Fire 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.100000 
@@ -1520,6 +1567,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   48  : Brick, Kaolin (white) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.100000 
@@ -1558,6 +1606,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   49  : Bronze (typical composition) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 8.400000 
@@ -1602,6 +1651,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   50  : C-552 Air-Equivalent Plastic 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.760000 
@@ -1634,6 +1684,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   51  : Cadmium 
+  Source = PNNL-15870 Rev. 1 
   Formula = Cd 
   Molecular weight (g/mole) = 112.411 
   Density (g/cm3) = 8.650000 
@@ -1654,6 +1705,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   52  : Cadmium Nitrate Tetrahydrate 
+  Source = PNNL-15870 Rev. 1 
   Formula = Cd(NO3)2-4(H2O) 
   Molecular weight (g/mole) = 308.48192 
   Density (g/cm3) = 2.450000 
@@ -1683,6 +1735,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   53  : Cadmium Telluride 
+  Source = PNNL-15870 Rev. 1 
   Formula = CdTe 
   Molecular weight (g/mole) = 240.011 
   Density (g/cm3) = 6.200000 
@@ -1706,6 +1759,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   54  : Cadmium Tungstate (CWO) 
+  Source = PNNL-15870 Rev. 1 
   Formula = CdWO4 
   Molecular weight (g/mole) = 360.2486 
   Density (g/cm3) = 7.900000 
@@ -1732,6 +1786,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   55  : Calcium Carbonate 
+  Source = PNNL-15870 Rev. 1 
   Formula = CaCO3 
   Molecular weight (g/mole) = 100.0869 
   Density (g/cm3) = 2.800000 
@@ -1758,6 +1813,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   56  : Calcium Fluoride 
+  Source = PNNL-15870 Rev. 1 
   Formula = CaF2 
   Molecular weight (g/mole) = 78.0748064 
   Density (g/cm3) = 3.180000 
@@ -1781,6 +1837,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   57  : Calcium Oxide 
+  Source = PNNL-15870 Rev. 1 
   Formula = CaO 
   Molecular weight (g/mole) = 56.0774 
   Density (g/cm3) = 3.300000 
@@ -1804,6 +1861,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   58  : Calcium Sulfate 
+  Source = PNNL-15870 Rev. 1 
   Formula = CaSO4 
   Molecular weight (g/mole) = 136.1406 
   Density (g/cm3) = 2.960000 
@@ -1830,6 +1888,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   59  : Carbon Dioxide 
+  Source = PNNL-15870 Rev. 1 
   Formula = CO2 
   Molecular weight (g/mole) = 44.0095 
   Density (g/cm3) = 0.001842 
@@ -1853,6 +1912,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   60  : Carbon Tetrachloride 
+  Source = PNNL-15870 Rev. 1 
   Formula = CCl4 
   Molecular weight (g/mole) = 153.8227 
   Density (g/cm3) = 1.594000 
@@ -1876,6 +1936,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   61  : Carbon, Activated 
+  Source = PNNL-15870 Rev. 1 
   Formula = C 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.320000 
@@ -1899,6 +1960,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   62  : Carbon, Amorphous 
+  Source = PNNL-15870 Rev. 1 
   Formula = C 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.000000 
@@ -1922,6 +1984,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   63  : Carbon, Graphite (reactor grade) 
+  Source = PNNL-15870 Rev. 1 
   Formula = C 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.700000 
@@ -1945,6 +2008,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   64  : Cat litter (clumping) 
+  Source = PNNL-15870 Rev. 1 
   Formula = Na0.2Ca0.1Al2Si4O10(OH)2(H2O)10 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.100000 
@@ -1980,6 +2044,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   65  : Cat litter (non-clumping) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.100000 
@@ -2024,6 +2089,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   66  : Cellulose Acetate 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.420000 
@@ -2050,6 +2116,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   67  : Celotex 
+  Source = PNNL-15870 Rev. 1 
   Formula = C6H10O5 
   Molecular weight (g/mole) = 162.1406 
   Density (g/cm3) = 0.240000 
@@ -2076,6 +2143,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   68  : Ceric Sulfate Dosimeter Solution 
+  Source = PNNL-15870 Rev. 1 
   Formula = H2O:Ce2SO4 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.030000 
@@ -2108,6 +2176,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   69  : Cerium Fluoride 
+  Source = PNNL-15870 Rev. 1 
   Formula = CeF3 
   Molecular weight (g/mole) = 197.1112096 
   Density (g/cm3) = 6.160000 
@@ -2131,6 +2200,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   70  : Cesium Iodide 
+  Source = PNNL-15870 Rev. 1 
   Formula = CsI 
   Molecular weight (g/mole) = 259.80992 
   Density (g/cm3) = 4.510000 
@@ -2154,6 +2224,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   71  : Chromium 
+  Source = PNNL-15870 Rev. 1 
   Formula = Cr 
   Molecular weight (g/mole) = 51.9961 
   Density (g/cm3) = 7.180000 
@@ -2174,6 +2245,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   72  : Clay 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.200000 
@@ -2224,6 +2296,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   73  : Coal, Anthracite 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.840000 
@@ -2256,6 +2329,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   74  : Coal, Bituminous 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.750000 
@@ -2288,6 +2362,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   75  : Coal, Lignite 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.750000 
@@ -2320,6 +2395,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   76  : Concrete, Barite (Type BA) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 3.350000 
@@ -2364,6 +2440,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   77  : Concrete, Barytes-Limonite 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 3.360000 
@@ -2414,6 +2491,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   78  : Concrete, Boron Frits-baryte 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 3.100000 
@@ -2476,6 +2554,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   79  : Concrete, Colemanite-baryte 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 3.200000 
@@ -2529,6 +2608,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   80  : Concrete, Ferro-phosphorus 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 4.800000 
@@ -2570,6 +2650,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   81  : Concrete, Hanford Dry 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.180000 
@@ -2614,6 +2695,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   82  : Concrete, Hanford Wet 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.350000 
@@ -2658,6 +2740,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   83  : Concrete, Iron-limonite 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 4.400000 
@@ -2702,6 +2785,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   84  : Concrete, Iron-Portland 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 5.900000 
@@ -2746,6 +2830,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   85  : Concrete, Limonite and steel 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 4.540000 
@@ -2790,6 +2875,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   86  : Concrete, Los Alamos (MCNP) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.250000 
@@ -2828,6 +2914,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   87  : Concrete, Luminite-colemanite-baryte 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 3.100000 
@@ -2884,6 +2971,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   88  : Concrete, Luminite-Portland-colemanite-baryte 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 3.100000 
@@ -2940,6 +3028,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   89  : Concrete, M-1 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 4.500000 
@@ -2981,6 +3070,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   90  : Concrete, Magnetite 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 3.530000 
@@ -3034,6 +3124,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   91  : Concrete, Magnetite and steel 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 4.640000 
@@ -3078,6 +3169,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   92  : Concrete, Magnuson 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.147000 
@@ -3137,6 +3229,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   93  : Concrete, MO 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 5.500000 
@@ -3172,6 +3265,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   94  : Concrete, Oak Ridge (ORNL) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.300000 
@@ -3219,6 +3313,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   95  : Concrete, Ordinary (NBS 03) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.350000 
@@ -3266,6 +3361,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   96  : Concrete, Ordinary (NBS 04) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.350000 
@@ -3313,6 +3409,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   97  : Concrete, Ordinary (NIST) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.300000 
@@ -3360,6 +3457,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   98  : Concrete, Portland 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.300000 
@@ -3407,6 +3505,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   99  : Concrete, Regular 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.300000 
@@ -3445,6 +3544,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   100 : Concrete, Rocky Flats 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.320000 
@@ -3501,6 +3601,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   101 : Concrete, Serpentine 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.100000 
@@ -3551,6 +3652,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   102 : Copper 
+  Source = PNNL-15870 Rev. 1 
   Formula = Cu 
   Molecular weight (g/mole) = 63.546 
   Density (g/cm3) = 8.960000 
@@ -3571,6 +3673,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   103 : Diatomaceous Earth 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.220000 
@@ -3615,6 +3718,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   104 : Earth, Typical Western U.S. 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.520000 
@@ -3644,6 +3748,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   105 : Earth, U.S. Average 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.520000 
@@ -3691,6 +3796,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   106 : Ethane 
+  Source = PNNL-15870 Rev. 1 
   Formula = C2H6 
   Molecular weight (g/mole) = 30.06904 
   Density (g/cm3) = 0.001253 
@@ -3714,6 +3820,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   107 : Ethyl Acetate 
+  Source = PNNL-15870 Rev. 1 
   Formula = C4H8O2 
   Molecular weight (g/mole) = 88.10512 
   Density (g/cm3) = 0.901000 
@@ -3740,6 +3847,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   108 : Ethyl Alcohol 
+  Source = PNNL-15870 Rev. 1 
   Formula = C2H6O 
   Molecular weight (g/mole) = 46.06844 
   Density (g/cm3) = 0.789300 
@@ -3766,6 +3874,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   109 : Ethylene 
+  Source = PNNL-15870 Rev. 1 
   Formula = C2H4 
   Molecular weight (g/mole) = 28.05316 
   Density (g/cm3) = 0.001175 
@@ -3789,6 +3898,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   110 : Ethylene Glycol 
+  Source = PNNL-15870 Rev. 1 
   Formula = C2H6O2 
   Molecular weight (g/mole) = 62.06784 
   Density (g/cm3) = 1.114000 
@@ -3815,6 +3925,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   111 : Explosive compound, AN 
+  Source = PNNL-15870 Rev. 1 
   Formula = NH4NO3 
   Molecular weight (g/mole) = 80.04336 
   Density (g/cm3) = 1.720000 
@@ -3841,6 +3952,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   112 : Explosive compound, EGDN 
+  Source = PNNL-15870 Rev. 1 
   Formula = C2H4N2O6 
   Molecular weight (g/mole) = 152.06296 
   Density (g/cm3) = 1.490000 
@@ -3870,6 +3982,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   113 : Explosive compound, HMX 
+  Source = PNNL-15870 Rev. 1 
   Formula = C4H8N8O8 
   Molecular weight (g/mole) = 296.15512 
   Density (g/cm3) = 1.890000 
@@ -3899,6 +4012,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   114 : Explosive compound, NC 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.490000 
@@ -3928,6 +4042,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   115 : Explosive compound, NG 
+  Source = PNNL-15870 Rev. 1 
   Formula = C3H5N3O9 
   Molecular weight (g/mole) = 227.0865 
   Density (g/cm3) = 1.600000 
@@ -3957,6 +4072,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   116 : Explosive compound, PETN 
+  Source = PNNL-15870 Rev. 1 
   Formula = C5H8N4O12 
   Molecular weight (g/mole) = 316.13662 
   Density (g/cm3) = 1.770000 
@@ -3986,6 +4102,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   117 : Explosive compound, RDX 
+  Source = PNNL-15870 Rev. 1 
   Formula = C3H6N6O6 
   Molecular weight (g/mole) = 222.11634 
   Density (g/cm3) = 1.820000 
@@ -4015,6 +4132,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   118 : Explosive compound, TNT 
+  Source = PNNL-15870 Rev. 1 
   Formula = C6H2(NO2)3CH3 
   Molecular weight (g/mole) = 227.1311 
   Density (g/cm3) = 1.650000 
@@ -4044,6 +4162,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   119 : Eye Lens (ICRP) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.100000 
@@ -4073,6 +4192,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   120 : Felt 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.185000 
@@ -4102,6 +4222,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   121 : Ferric Oxide 
+  Source = PNNL-15870 Rev. 1 
   Formula = Fe2O3 
   Molecular weight (g/mole) = 159.6882 
   Density (g/cm3) = 5.200000 
@@ -4125,6 +4246,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   122 : Ferrous Sulfate Dosimeter Solution 
+  Source = PNNL-15870 Rev. 1 
   Formula = H2O:FeSO4 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.024000 
@@ -4163,6 +4285,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   123 : Fertilizer (Muriate of Potash) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.270000 
@@ -4207,6 +4330,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   124 : Fiberglass, Type C 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.490000 
@@ -4251,6 +4375,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   125 : Fiberglass, Type E 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.565000 
@@ -4301,6 +4426,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   126 : Fiberglass, Type R 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.550000 
@@ -4333,6 +4459,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   127 : Freon-12 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.120000 
@@ -4359,6 +4486,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   128 : Freon-12B2 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.800000 
@@ -4385,6 +4513,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   129 : Freon-13 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.950000 
@@ -4411,6 +4540,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   130 : Freon-13B1 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.500000 
@@ -4437,6 +4567,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   131 : Freon-13I1 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.800000 
@@ -4463,6 +4594,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   132 : Gadolinium 
+  Source = PNNL-15870 Rev. 1 
   Formula = Gd 
   Molecular weight (g/mole) = 157.25 
   Density (g/cm3) = 7.900400 
@@ -4483,6 +4615,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   133 : Gadolinium Oxysulfide 
+  Source = PNNL-15870 Rev. 1 
   Formula = Gd2O2S 
   Molecular weight (g/mole) = 378.5638 
   Density (g/cm3) = 7.440000 
@@ -4509,6 +4642,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   134 : Gadolinium Silicate (GSO) 
+  Source = PNNL-15870 Rev. 1 
   Formula = Gd2SiO5 
   Molecular weight (g/mole) = 422.5825 
   Density (g/cm3) = 6.710000 
@@ -4535,6 +4669,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   135 : Gafchromic Sensor (GS) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.300000 
@@ -4564,6 +4699,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   136 : Gallium Arsenide 
+  Source = PNNL-15870 Rev. 1 
   Formula = GaAs 
   Molecular weight (g/mole) = 144.6446 
   Density (g/cm3) = 5.310000 
@@ -4587,6 +4723,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   137 : Gasoline 
+  Source = PNNL-15870 Rev. 1 
   Formula = C8H18 
   Molecular weight (g/mole) = 114.22852 
   Density (g/cm3) = 0.721000 
@@ -4610,6 +4747,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   138 : Germanium, High Purity 
+  Source = PNNL-15870 Rev. 1 
   Formula = Ge 
   Molecular weight (g/mole) = 72.64 
   Density (g/cm3) = 5.323000 
@@ -4630,6 +4768,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   139 : Glass Scintillator, Li Doped  (GS1, GS2, GS3) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.660000 
@@ -4665,6 +4804,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   140 : Glass Scintillator, Li Doped  (GS10, GS20, GS30) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.500000 
@@ -4700,6 +4840,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   141 : Glass Scintillator, Li Doped  (GSF1) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.420000 
@@ -4735,6 +4876,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   142 : Glass Scintillator, Li Doped  (KG1, KG2, KG3) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.420000 
@@ -4764,6 +4906,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   143 : Glass, Borosilicate (Pyrex Glass) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.230000 
@@ -4799,6 +4942,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   144 : Glass, Foam 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.128000 
@@ -4834,6 +4978,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   145 : Glass, Lead 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 6.220000 
@@ -4866,6 +5011,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   146 : Glass, Plate 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.400000 
@@ -4895,6 +5041,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   147 : Glycerol 
+  Source = PNNL-15870 Rev. 1 
   Formula = C3H8O3 
   Molecular weight (g/mole) = 92.09382 
   Density (g/cm3) = 1.261300 
@@ -4921,6 +5068,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   148 : Gold 
+  Source = PNNL-15870 Rev. 1 
   Formula = Au 
   Molecular weight (g/mole) = 196.96655 
   Density (g/cm3) = 19.320000 
@@ -4941,6 +5089,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   149 : Gypsum (Plaster of Paris) 
+  Source = PNNL-15870 Rev. 1 
   Formula = CaSO4-2(H2O) 
   Molecular weight (g/mole) = 172.17116 
   Density (g/cm3) = 2.320000 
@@ -4970,6 +5119,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   150 : He-3 proportional gas 
+  Source = PNNL-15870 Rev. 1 
   Formula = He-3 
   Molecular weight (g/mole) = 3.0160293097 
   Density (g/cm3) = 0.000125 
@@ -4990,6 +5140,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   151 : Helium, Natural 
+  Source = PNNL-15870 Rev. 1 
   Formula = He 
   Molecular weight (g/mole) = 4.002602 
   Density (g/cm3) = 0.000166 
@@ -5010,6 +5161,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   152 : Hydrogen 
+  Source = PNNL-15870 Rev. 1 
   Formula = H2 
   Molecular weight (g/mole) = 2.01588 
   Density (g/cm3) = 0.000084 
@@ -5030,6 +5182,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   153 : Incoloy-800 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 7.940000 
@@ -5077,6 +5230,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   154 : Inconel-600 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 8.470000 
@@ -5118,6 +5272,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   155 : Inconel-625 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.320000 
@@ -5174,6 +5329,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   156 : Inconel-718 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 8.190000 
@@ -5236,6 +5392,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   157 : Indium 
+  Source = PNNL-15870 Rev. 1 
   Formula = In 
   Molecular weight (g/mole) = 114.818 
   Density (g/cm3) = 7.310000 
@@ -5256,6 +5413,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   158 : Iron 
+  Source = PNNL-15870 Rev. 1 
   Formula = Fe 
   Molecular weight (g/mole) = 55.845 
   Density (g/cm3) = 7.874000 
@@ -5276,6 +5434,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   159 : Iron Boride (Fe2B) 
+  Source = PNNL-15870 Rev. 1 
   Formula = Fe2B 
   Molecular weight (g/mole) = 122.501 
   Density (g/cm3) = 7.300000 
@@ -5299,6 +5458,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   160 : Iron Boride (FeB) 
+  Source = PNNL-15870 Rev. 1 
   Formula = FeB 
   Molecular weight (g/mole) = 66.656 
   Density (g/cm3) = 7.150000 
@@ -5322,6 +5482,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   161 : Iron, Armco Ingot 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 7.866000 
@@ -5357,6 +5518,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   162 : Iron, Cast (gray) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 7.150000 
@@ -5392,6 +5554,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   163 : Iron, Wrought (Byers No.1) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 7.700000 
@@ -5427,6 +5590,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   164 : Kaowool 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.096000 
@@ -5465,6 +5629,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   165 : Kapton Polyimide Film 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.420000 
@@ -5494,6 +5659,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   166 : Kennertium 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 16.800000 
@@ -5520,6 +5686,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   167 : Kernite 
+  Source = PNNL-15870 Rev. 1 
   Formula = Na2B4O7-4(H2O) 
   Molecular weight (g/mole) = 273.28046 
   Density (g/cm3) = 1.950000 
@@ -5549,6 +5716,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   168 : Kerosene 
+  Source = PNNL-15870 Rev. 1 
   Formula = C14H30 
   Molecular weight (g/mole) = 198.388 
   Density (g/cm3) = 0.819000 
@@ -5572,6 +5740,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   169 : Krypton 
+  Source = PNNL-15870 Rev. 1 
   Formula = Kr 
   Molecular weight (g/mole) = 83.798 
   Density (g/cm3) = 0.003478 
@@ -5592,6 +5761,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   170 : Kynar 
+  Source = PNNL-15870 Rev. 1 
   Formula = H2C2F2 
   Molecular weight (g/mole) = 64.0340864 
   Density (g/cm3) = 1.790000 
@@ -5618,6 +5788,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   171 : Lead 
+  Source = PNNL-15870 Rev. 1 
   Formula = Pb 
   Molecular weight (g/mole) = 207.2 
   Density (g/cm3) = 11.350000 
@@ -5638,6 +5809,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   172 : Lead Tungstate (PWO) 
+  Source = PNNL-15870 Rev. 1 
   Formula = PbWO4 
   Molecular weight (g/mole) = 455.0376 
   Density (g/cm3) = 8.240000 
@@ -5664,6 +5836,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   173 : Lithium 
+  Source = PNNL-15870 Rev. 1 
   Formula = Li 
   Molecular weight (g/mole) = 6.941 
   Density (g/cm3) = 0.534000 
@@ -5684,6 +5857,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   174 : Lithium Amide 
+  Source = PNNL-15870 Rev. 1 
   Formula = LiNH2 
   Molecular weight (g/mole) = 22.96358 
   Density (g/cm3) = 1.178000 
@@ -5710,6 +5884,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   175 : Lithium Fluoride 
+  Source = PNNL-15870 Rev. 1 
   Formula = LiF 
   Molecular weight (g/mole) = 25.9394032 
   Density (g/cm3) = 2.635000 
@@ -5733,6 +5908,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   176 : Lithium Gadrium Borate (LGB) 
+  Source = PNNL-15870 Rev. 1 
   Formula = Li6Gd(BO3)3 
   Molecular weight (g/mole) = 367.3741448 
   Density (g/cm3) = 3.500000 
@@ -5762,6 +5938,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   177 : Lithium Hydride 
+  Source = PNNL-15870 Rev. 1 
   Formula = LiH 
   Molecular weight (g/mole) = 7.94894 
   Density (g/cm3) = 0.820000 
@@ -5785,6 +5962,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   178 : Lithium Iodide (high density) 
+  Source = PNNL-15870 Rev. 1 
   Formula = LiI 
   Molecular weight (g/mole) = 133.84547 
   Density (g/cm3) = 4.080000 
@@ -5808,6 +5986,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   179 : Lithium Iodide (low density) 
+  Source = PNNL-15870 Rev. 1 
   Formula = LiI 
   Molecular weight (g/mole) = 133.84547 
   Density (g/cm3) = 3.494000 
@@ -5831,6 +6010,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   180 : Lithium Oxide 
+  Source = PNNL-15870 Rev. 1 
   Formula = Li2O 
   Molecular weight (g/mole) = 29.8814 
   Density (g/cm3) = 2.013000 
@@ -5854,6 +6034,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   181 : Lithium Tetraborate 
+  Source = PNNL-15870 Rev. 1 
   Formula = Li2B4O7 
   Molecular weight (g/mole) = 169.1218 
   Density (g/cm3) = 2.440000 
@@ -5880,6 +6061,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   182 : Lucite 
+  Source = PNNL-15870 Rev. 1 
   Formula = C5O2H8 
   Molecular weight (g/mole) = 100.11582 
   Density (g/cm3) = 1.190000 
@@ -5906,6 +6088,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   183 : Lutetium Aluminum Garnet (LuAG) 
+  Source = PNNL-15870 Rev. 1 
   Formula = Al5Lu3O12 
   Molecular weight (g/mole) = 851.80149 
   Density (g/cm3) = 6.730000 
@@ -5932,6 +6115,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   184 : Lutetium Orthoaluminate (LuAP) 
+  Source = PNNL-15870 Rev. 1 
   Formula = LuAlO3 
   Molecular weight (g/mole) = 249.946738 
   Density (g/cm3) = 8.400000 
@@ -5958,6 +6142,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   185 : Lutetium Oxyorthosilicate (LSO) 
+  Source = PNNL-15870 Rev. 1 
   Formula = Lu2SiO5 
   Molecular weight (g/mole) = 458.0165 
   Density (g/cm3) = 7.400000 
@@ -5984,6 +6169,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   186 : Lutetium Yttrium OxyorthoSilicate (LYSO) 
+  Source = PNNL-15870 Rev. 1 
   Formula = Lu2Y2SiO5 
   Molecular weight (g/mole) = 635.8282 
   Density (g/cm3) = 7.300000 
@@ -6013,6 +6199,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   187 : Magnesium 
+  Source = PNNL-15870 Rev. 1 
   Formula = Mg 
   Molecular weight (g/mole) = 24.305 
   Density (g/cm3) = 1.740000 
@@ -6033,6 +6220,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   188 : Magnesium Oxide 
+  Source = PNNL-15870 Rev. 1 
   Formula = MgO 
   Molecular weight (g/mole) = 40.3044 
   Density (g/cm3) = 3.580000 
@@ -6056,6 +6244,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   189 : Magnesium Tetraborate 
+  Source = PNNL-15870 Rev. 1 
   Formula = MgB4O7 
   Molecular weight (g/mole) = 179.5448 
   Density (g/cm3) = 2.530000 
@@ -6082,6 +6271,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   190 : Masonite 
+  Source = PNNL-15870 Rev. 1 
   Formula = C6H10O5 
   Molecular weight (g/mole) = 162.1406 
   Density (g/cm3) = 1.300000 
@@ -6108,6 +6298,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   191 : Melamine 
+  Source = PNNL-15870 Rev. 1 
   Formula = C5H7N6 
   Molecular weight (g/mole) = 151.14928 
   Density (g/cm3) = 1.350000 
@@ -6134,6 +6325,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   192 : Mercury 
+  Source = PNNL-15870 Rev. 1 
   Formula = Hg 
   Molecular weight (g/mole) = 200.59 
   Density (g/cm3) = 13.546000 
@@ -6154,6 +6346,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   193 : Mercury Iodide 
+  Source = PNNL-15870 Rev. 1 
   Formula = HgI2 
   Molecular weight (g/mole) = 454.39894 
   Density (g/cm3) = 6.360000 
@@ -6177,6 +6370,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   194 : Methane 
+  Source = PNNL-15870 Rev. 1 
   Formula = CH4 
   Molecular weight (g/mole) = 16.04246 
   Density (g/cm3) = 0.000667 
@@ -6200,6 +6394,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   195 : Methanol 
+  Source = PNNL-15870 Rev. 1 
   Formula = CH4O 
   Molecular weight (g/mole) = 32.04186 
   Density (g/cm3) = 0.791400 
@@ -6226,6 +6421,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   196 : Methylene Chloride 
+  Source = PNNL-15870 Rev. 1 
   Formula = CH2Cl2 
   Molecular weight (g/mole) = 84.93258 
   Density (g/cm3) = 1.326600 
@@ -6252,6 +6448,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   197 : Molybdenum 
+  Source = PNNL-15870 Rev. 1 
   Formula = Mo 
   Molecular weight (g/mole) = 95.94 
   Density (g/cm3) = 10.220000 
@@ -6272,6 +6469,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   198 : Monosodium Titanate, MST 
+  Source = PNNL-15870 Rev. 1 
   Formula = NaTi2O5H 
   Molecular weight (g/mole) = 199.72871 
   Density (g/cm3) = 1.000000 
@@ -6301,6 +6499,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   199 : Muscle Equivalent-Liquid, with sucrose 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.110000 
@@ -6330,6 +6529,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   200 : Muscle Equivalent-Liquid, without sucrose 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.070000 
@@ -6359,6 +6559,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   201 : Muscle, Skeletal 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.040000 
@@ -6415,6 +6616,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   202 : Muscle, Striated 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.040000 
@@ -6459,6 +6661,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   203 : Neon 
+  Source = PNNL-15870 Rev. 1 
   Formula = Ne 
   Molecular weight (g/mole) = 20.1797 
   Density (g/cm3) = 0.000839 
@@ -6479,6 +6682,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   204 : Nickel 
+  Source = PNNL-15870 Rev. 1 
   Formula = Ni 
   Molecular weight (g/mole) = 58.6934 
   Density (g/cm3) = 8.902000 
@@ -6499,6 +6703,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   205 : Niobium 
+  Source = PNNL-15870 Rev. 1 
   Formula = Nb 
   Molecular weight (g/mole) = 92.90638 
   Density (g/cm3) = 8.570000 
@@ -6519,6 +6724,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   206 : Nitrogen 
+  Source = PNNL-15870 Rev. 1 
   Formula = N2 
   Molecular weight (g/mole) = 28.0134 
   Density (g/cm3) = 0.001165 
@@ -6539,6 +6745,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   207 : Nylon, Dupont ELVAmide 8062 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.080000 
@@ -6568,6 +6775,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   208 : Nylon, Type 11 (Rilsan) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.425000 
@@ -6597,6 +6805,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   209 : Nylon, Type 6 and Type 6/6 
+  Source = PNNL-15870 Rev. 1 
   Formula = C12H22N2O2 
   Molecular weight (g/mole) = 226.31528 
   Density (g/cm3) = 1.140000 
@@ -6626,6 +6835,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   210 : Nylon, Type 6/10 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.140000 
@@ -6655,6 +6865,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   211 : Oil, Crude (Heavy, Cold Lake, Canada) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.970000 
@@ -6687,6 +6898,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   212 : Oil, Crude (Heavy, Mexican) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.975000 
@@ -6713,6 +6925,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   213 : Oil, Crude (Heavy, Qayarah, Iraq) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.970000 
@@ -6742,6 +6955,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   214 : Oil, Crude (Light, Texas) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.875000 
@@ -6771,6 +6985,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   215 : Oil, Fuel (Calif.) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.955000 
@@ -6797,6 +7012,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   216 : Oil, Hydraulic 
+  Source = PNNL-15870 Rev. 1 
   Formula = C40H33O4Cl6P 
   Molecular weight (g/mole) = 821.379381 
   Density (g/cm3) = 0.871000 
@@ -6829,6 +7045,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   217 : Oil, Lard 
+  Source = PNNL-15870 Rev. 1 
   Formula = C10H18O 
   Molecular weight (g/mole) = 154.24932 
   Density (g/cm3) = 0.915000 
@@ -6855,6 +7072,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   218 : Oxygen 
+  Source = PNNL-15870 Rev. 1 
   Formula = O2 
   Molecular weight (g/mole) = 31.9988 
   Density (g/cm3) = 0.001332 
@@ -6875,6 +7093,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   219 : P-10 gas 
+  Source = PNNL-15870 Rev. 1 
   Formula = 90% Ar, 10% CH4 
   Molecular weight (g/mole) = 37.557446 
   Density (g/cm3) = 0.001561 
@@ -6901,6 +7120,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   220 : P-5 gas 
+  Source = PNNL-15870 Rev. 1 
   Formula = 95% Ar, 5% CH4 
   Molecular weight (g/mole) = 38.752723 
   Density (g/cm3) = 0.001611 
@@ -6927,6 +7147,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   221 : Palladium 
+  Source = PNNL-15870 Rev. 1 
   Formula = Pd 
   Molecular weight (g/mole) = 106.42 
   Density (g/cm3) = 12.020000 
@@ -6947,6 +7168,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   222 : Photographic Emulsion, Gel in 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.291400 
@@ -6979,6 +7201,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   223 : Photographic Emulsion, Kodak Type AA 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.200000 
@@ -7014,6 +7237,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   224 : Photographic Emulsion, Standard Nuclear 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 3.815000 
@@ -7055,6 +7279,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   225 : Platinum 
+  Source = PNNL-15870 Rev. 1 
   Formula = Pt 
   Molecular weight (g/mole) = 195.078 
   Density (g/cm3) = 21.450000 
@@ -7075,6 +7300,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   226 : Plutonium Bromide 
+  Source = PNNL-15870 Rev. 1 
   Formula = PuBr3 
   Molecular weight (g/mole) = 478.8329578603 
   Density (g/cm3) = 6.750000 
@@ -7113,6 +7339,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   227 : Plutonium Carbide 
+  Source = PNNL-15870 Rev. 1 
   Formula = PuC 
   Molecular weight (g/mole) = 251.1316578603 
   Density (g/cm3) = 13.600000 
@@ -7151,6 +7378,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   228 : Plutonium Chloride 
+  Source = PNNL-15870 Rev. 1 
   Formula = PuCl3 
   Molecular weight (g/mole) = 345.4799578603 
   Density (g/cm3) = 5.710000 
@@ -7189,6 +7417,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   229 : Plutonium Dioxide 
+  Source = PNNL-15870 Rev. 1 
   Formula = PuO2 
   Molecular weight (g/mole) = 271.1197578603 
   Density (g/cm3) = 11.460000 
@@ -7227,6 +7456,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   230 : Plutonium Flouride (PuF3) 
+  Source = PNNL-15870 Rev. 1 
   Formula = PuF3 
   Molecular weight (g/mole) = 296.1161674603 
   Density (g/cm3) = 9.330000 
@@ -7265,6 +7495,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   231 : Plutonium Flouride (PuF4) 
+  Source = PNNL-15870 Rev. 1 
   Formula = PuF4 
   Molecular weight (g/mole) = 315.1145706603 
   Density (g/cm3) = 7.000000 
@@ -7303,6 +7534,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   232 : Plutonium Flouride (PuF6) 
+  Source = PNNL-15870 Rev. 1 
   Formula = PuF6 
   Molecular weight (g/mole) = 353.1113770603 
   Density (g/cm3) = 5.080000 
@@ -7341,6 +7573,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   233 : Plutonium Iodide 
+  Source = PNNL-15870 Rev. 1 
   Formula = PuI3 
   Molecular weight (g/mole) = 619.8343678603 
   Density (g/cm3) = 6.920000 
@@ -7379,6 +7612,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   234 : Plutonium Nitrate 
+  Source = PNNL-15870 Rev. 1 
   Formula = Pu(NO3)4 
   Molecular weight (g/mole) = 487.1405578603 
   Density (g/cm3) = 2.447000 
@@ -7420,6 +7654,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   235 : Plutonium Nitride 
+  Source = PNNL-15870 Rev. 1 
   Formula = PuN 
   Molecular weight (g/mole) = 253.1276578603 
   Density (g/cm3) = 14.250000 
@@ -7458,6 +7693,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   236 : Plutonium Oxide (Pu2O3) 
+  Source = PNNL-15870 Rev. 1 
   Formula = Pu2O3 
   Molecular weight (g/mole) = 526.2401157206 
   Density (g/cm3) = 10.500000 
@@ -7496,6 +7732,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   237 : Plutonium Oxide (PuO) 
+  Source = PNNL-15870 Rev. 1 
   Formula = PuO 
   Molecular weight (g/mole) = 255.1203578603 
   Density (g/cm3) = 14.000000 
@@ -7534,6 +7771,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   238 : Plutonium, Aged WGPu (A: 4-7% Pu-240) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 19.840000 
@@ -7569,6 +7807,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   239 : Plutonium, Aged WGPu (B: 10-13% Pu-240) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 19.840000 
@@ -7604,6 +7843,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   240 : Plutonium, Aged WGPu (C: 16-19% Pu-240) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 19.840000 
@@ -7639,6 +7879,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   241 : Plutonium, DOE 3013 WGPu 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 19.840000 
@@ -7671,6 +7912,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   242 : Plutonium, Fuel Grade 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 19.840000 
@@ -7703,6 +7945,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   243 : Plutonium, Power Grade 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 19.840000 
@@ -7735,6 +7978,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   244 : Plutonium, Shefelbine WGPu 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 19.840000 
@@ -7770,6 +8014,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   245 : Polycarbonate 
+  Source = PNNL-15870 Rev. 1 
   Formula = C16H14O3 
   Molecular weight (g/mole) = 254.28056 
   Density (g/cm3) = 1.200000 
@@ -7796,6 +8041,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   246 : Polyethylene Terephthalate (PET) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.380000 
@@ -7822,6 +8068,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   247 : Polyethylene, Borated 
+  Source = PNNL-15870 Rev. 1 
   Formula = B4C in C2H4 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.000000 
@@ -7848,6 +8095,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   248 : Polyethylene, Non-borated 
+  Source = PNNL-15870 Rev. 1 
   Formula = C2H4 
   Molecular weight (g/mole) = 28.05316 
   Density (g/cm3) = 0.930000 
@@ -7871,6 +8119,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   249 : Polyisocyanurate (PIR) 
+  Source = PNNL-15870 Rev. 1 
   Formula = C15H10N2O2 
   Molecular weight (g/mole) = 250.2521 
   Density (g/cm3) = 0.048200 
@@ -7900,6 +8149,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   250 : Polypropylene (PP) 
+  Source = PNNL-15870 Rev. 1 
   Formula = C3H6 
   Molecular weight (g/mole) = 42.07974 
   Density (g/cm3) = 0.900000 
@@ -7923,6 +8173,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   251 : Polystyrene (PS) 
+  Source = PNNL-15870 Rev. 1 
   Formula = C8H8 
   Molecular weight (g/mole) = 104.14912 
   Density (g/cm3) = 1.060000 
@@ -7946,6 +8197,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   252 : Polytetrafluoroethylene (PTFE) 
+  Source = PNNL-15870 Rev. 1 
   Formula = C2F4 
   Molecular weight (g/mole) = 100.0150128 
   Density (g/cm3) = 2.250000 
@@ -7969,6 +8221,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   253 : Polyurethane Foam (PUR) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.021000 
@@ -7998,6 +8251,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   254 : Polyvinyl Acetate (PVA) 
+  Source = PNNL-15870 Rev. 1 
   Formula = C4H6O2 
   Molecular weight (g/mole) = 86.08924 
   Density (g/cm3) = 1.190000 
@@ -8024,6 +8278,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   255 : Polyvinyl Chloride (PVC) 
+  Source = PNNL-15870 Rev. 1 
   Formula = C2H3Cl 
   Molecular weight (g/mole) = 62.49822 
   Density (g/cm3) = 1.406000 
@@ -8050,6 +8305,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   256 : Polyvinyl Toluene (PVT) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.032000 
@@ -8073,6 +8329,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   257 : Polyvinylidene Chloride (PVDC) 
+  Source = PNNL-15870 Rev. 1 
   Formula = C2H2Cl2 
   Molecular weight (g/mole) = 96.94328 
   Density (g/cm3) = 1.700000 
@@ -8099,6 +8356,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   258 : Potassium Aluminum Silicate 
+  Source = PNNL-15870 Rev. 1 
   Formula = KAlSi3O8 
   Molecular weight (g/mole) = 278.331538 
   Density (g/cm3) = 1.100000 
@@ -8128,6 +8386,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   259 : Potassium Iodide 
+  Source = PNNL-15870 Rev. 1 
   Formula = KI 
   Molecular weight (g/mole) = 166.00277 
   Density (g/cm3) = 3.130000 
@@ -8151,6 +8410,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   260 : Potassium Oxide 
+  Source = PNNL-15870 Rev. 1 
   Formula = K2O 
   Molecular weight (g/mole) = 94.196 
   Density (g/cm3) = 2.320000 
@@ -8174,6 +8434,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   261 : Propane (gas) 
+  Source = PNNL-15870 Rev. 1 
   Formula = C3H8 
   Molecular weight (g/mole) = 44.09562 
   Density (g/cm3) = 0.001879 
@@ -8197,6 +8458,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   262 : Propane (liquid) 
+  Source = PNNL-15870 Rev. 1 
   Formula = C3H8 
   Molecular weight (g/mole) = 44.09562 
   Density (g/cm3) = 0.430000 
@@ -8220,6 +8482,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   263 : P-terphenyl 
+  Source = PNNL-15870 Rev. 1 
   Formula = C14H10 
   Molecular weight (g/mole) = 178.2292 
   Density (g/cm3) = 1.230000 
@@ -8243,6 +8506,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   264 : Radiochromic Dye Film, Nylon Base  (RDF: NB) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.080000 
@@ -8272,6 +8536,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   265 : Rock (Average of 5 types) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.662000 
@@ -8331,6 +8596,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   266 : Rock, Basalt 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 3.010000 
@@ -8381,6 +8647,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   267 : Rock, Granite 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.690000 
@@ -8431,6 +8698,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   268 : Rock, Limestone 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.610000 
@@ -8487,6 +8755,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   269 : Rock, Sandstone 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.320000 
@@ -8543,6 +8812,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   270 : Rock, Shale 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 2.680000 
@@ -8599,6 +8869,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   271 : Rubber, Butyl 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.920000 
@@ -8622,6 +8893,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   272 : Rubber, Natural 
+  Source = PNNL-15870 Rev. 1 
   Formula = C5H8 
   Molecular weight (g/mole) = 68.11702 
   Density (g/cm3) = 0.920000 
@@ -8645,6 +8917,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   273 : Rubber, Neoprene 
+  Source = PNNL-15870 Rev. 1 
   Formula = C4H5Cl 
   Molecular weight (g/mole) = 88.5355 
   Density (g/cm3) = 1.230000 
@@ -8671,6 +8944,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   274 : Rubber, Silicon 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.018500 
@@ -8700,6 +8974,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   275 : Salt Water (T=0 C) 
+  Source = PNNL-15870 Rev. 1 
   Formula = H2O:NaCl 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.209865 
@@ -8729,6 +9004,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   276 : Salt Water (T=20 C) 
+  Source = PNNL-15870 Rev. 1 
   Formula = H2O:NaCl 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.022394 
@@ -8758,6 +9034,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   277 : Sand 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.700000 
@@ -8802,6 +9079,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   278 : Sea Water, Simple Artificial 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.023343 
@@ -8843,6 +9121,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   279 : Sea Water, Standard 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.023343 
@@ -8896,6 +9175,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   280 : Sepiolite 
+  Source = PNNL-15870 Rev. 1 
   Formula = Mg4Si6O15(OH)2-6(H2O) 
   Molecular weight (g/mole) = 647.83036 
   Density (g/cm3) = 2.140000 
@@ -8925,6 +9205,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   281 : Silicon 
+  Source = PNNL-15870 Rev. 1 
   Formula = Si 
   Molecular weight (g/mole) = 28.0855 
   Density (g/cm3) = 2.330000 
@@ -8945,6 +9226,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   282 : Silicon Carbide (hexagonal) 
+  Source = PNNL-15870 Rev. 1 
   Formula = SiC 
   Molecular weight (g/mole) = 40.0962 
   Density (g/cm3) = 3.210000 
@@ -8968,6 +9250,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   283 : Silicon Dioxide (Alpha-quartz) 
+  Source = PNNL-15870 Rev. 1 
   Formula = SiO2 
   Molecular weight (g/mole) = 60.0843 
   Density (g/cm3) = 2.648000 
@@ -8991,6 +9274,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   284 : Silicon Dioxide (Silica) 
+  Source = PNNL-15870 Rev. 1 
   Formula = SiO2 
   Molecular weight (g/mole) = 60.0843 
   Density (g/cm3) = 2.320000 
@@ -9014,6 +9298,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   285 : Silver 
+  Source = PNNL-15870 Rev. 1 
   Formula = Ag 
   Molecular weight (g/mole) = 107.8682 
   Density (g/cm3) = 10.500000 
@@ -9034,6 +9319,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   286 : Skin (ICRP) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.100000 
@@ -9090,6 +9376,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   287 : Sodium 
+  Source = PNNL-15870 Rev. 1 
   Formula = Na 
   Molecular weight (g/mole) = 22.98977 
   Density (g/cm3) = 0.971000 
@@ -9110,6 +9397,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   288 : Sodium Bismuth Tungstate (NBWO) 
+  Source = PNNL-15870 Rev. 1 
   Formula = NaBi(WO4)2 
   Molecular weight (g/mole) = 727.64535 
   Density (g/cm3) = 7.570000 
@@ -9139,6 +9427,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   289 : Sodium Chloride 
+  Source = PNNL-15870 Rev. 1 
   Formula = NaCl 
   Molecular weight (g/mole) = 58.44277 
   Density (g/cm3) = 2.170000 
@@ -9162,6 +9451,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   290 : Sodium Iodide 
+  Source = PNNL-15870 Rev. 1 
   Formula = NaI 
   Molecular weight (g/mole) = 149.89424 
   Density (g/cm3) = 3.667000 
@@ -9185,6 +9475,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   291 : Sodium Nitrate 
+  Source = PNNL-15870 Rev. 1 
   Formula = NaNO3 
   Molecular weight (g/mole) = 84.99467 
   Density (g/cm3) = 2.261000 
@@ -9211,6 +9502,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   292 : Sodium Oxide 
+  Source = PNNL-15870 Rev. 1 
   Formula = Na2O 
   Molecular weight (g/mole) = 61.97894 
   Density (g/cm3) = 2.270000 
@@ -9234,6 +9526,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   293 : Steel, Boron Stainless 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 7.870000 
@@ -9278,6 +9571,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   294 : Steel, Carbon 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 7.820000 
@@ -9301,6 +9595,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   295 : Steel, HT9 Stainless 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 7.874000 
@@ -9351,6 +9646,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   296 : Steel, Stainless 202 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 7.860000 
@@ -9395,6 +9691,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   297 : Steel, Stainless 302 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 7.860000 
@@ -9436,6 +9733,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   298 : Steel, Stainless 304 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 8.000000 
@@ -9477,6 +9775,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   299 : Steel, Stainless 304L 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 8.000000 
@@ -9518,6 +9817,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   300 : Steel, Stainless 316 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 8.000000 
@@ -9562,6 +9862,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   301 : Steel, Stainless 316L 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 8.000000 
@@ -9606,6 +9907,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   302 : Steel, Stainless 321 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 8.000000 
@@ -9650,6 +9952,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   303 : Steel, Stainless 347 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 8.000000 
@@ -9697,6 +10000,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   304 : Steel, Stainless 409 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 7.800000 
@@ -9738,6 +10042,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   305 : Steel, Stainless 440 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 7.800000 
@@ -9779,6 +10084,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   306 : Sterotex 
+  Source = PNNL-15870 Rev. 1 
   Formula = (C17H35CO2)3-C3H5 
   Molecular weight (g/mole) = 891.4797 
   Density (g/cm3) = 0.862000 
@@ -9805,6 +10111,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   307 : Stilbene (trans-stilbene isomer) 
+  Source = PNNL-15870 Rev. 1 
   Formula = C14H10 
   Molecular weight (g/mole) = 178.2292 
   Density (g/cm3) = 1.220000 
@@ -9828,6 +10135,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   308 : Sulphur 
+  Source = PNNL-15870 Rev. 1 
   Formula = S 
   Molecular weight (g/mole) = 32.065 
   Density (g/cm3) = 2.000000 
@@ -9848,6 +10156,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   309 : Tantalum 
+  Source = PNNL-15870 Rev. 1 
   Formula = Ta 
   Molecular weight (g/mole) = 180.9479 
   Density (g/cm3) = 16.654000 
@@ -9868,6 +10177,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   310 : Thorium 
+  Source = PNNL-15870 Rev. 1 
   Formula = Th 
   Molecular weight (g/mole) = 232.0381 
   Density (g/cm3) = 11.720000 
@@ -9888,6 +10198,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   311 : Thorium Dioxide 
+  Source = PNNL-15870 Rev. 1 
   Formula = ThO2 
   Molecular weight (g/mole) = 264.0369 
   Density (g/cm3) = 10.000000 
@@ -9911,6 +10222,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   312 : Tin 
+  Source = PNNL-15870 Rev. 1 
   Formula = Sn 
   Molecular weight (g/mole) = 118.71 
   Density (g/cm3) = 7.310000 
@@ -9931,6 +10243,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   313 : Tissue Equivalent, MS20 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.000000 
@@ -9966,6 +10279,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   314 : Tissue Equivalent-Gas, methane based  (TEG: MB) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.001064 
@@ -9995,6 +10309,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   315 : Tissue Equivalent-Gas, propane based  (TEG: PB) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.001826 
@@ -10024,6 +10339,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   316 : Tissue, Adipose (ICRP) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.920000 
@@ -10080,6 +10396,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   317 : Tissue, Breast 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.020000 
@@ -10121,6 +10438,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   318 : Tissue, Lung (ICRP) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.050000 
@@ -10177,6 +10495,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   319 : Tissue, Ovary 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.050000 
@@ -10221,6 +10540,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   320 : Tissue, Soft (ICRP) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.000000 
@@ -10277,6 +10597,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   321 : Tissue, Soft (ICRU four component) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.000000 
@@ -10306,6 +10627,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   322 : Tissue, Testes (ICRP) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.040000 
@@ -10362,6 +10684,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   323 : Tissue, Testis (ICRU) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.040000 
@@ -10406,6 +10729,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   324 : Titanium 
+  Source = PNNL-15870 Rev. 1 
   Formula = Ti 
   Molecular weight (g/mole) = 47.867 
   Density (g/cm3) = 4.540000 
@@ -10426,6 +10750,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   325 : Titanium alloy, grade 5 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 4.430000 
@@ -10467,6 +10792,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   326 : Titanium Dioxide 
+  Source = PNNL-15870 Rev. 1 
   Formula = TiO2 
   Molecular weight (g/mole) = 79.8658 
   Density (g/cm3) = 4.260000 
@@ -10490,6 +10816,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   327 : Titanium Hydride 
+  Source = PNNL-15870 Rev. 1 
   Formula = TiH2 
   Molecular weight (g/mole) = 49.88288 
   Density (g/cm3) = 3.750000 
@@ -10513,6 +10840,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   328 : Toluene 
+  Source = PNNL-15870 Rev. 1 
   Formula = C7H8 
   Molecular weight (g/mole) = 92.13842 
   Density (g/cm3) = 0.866900 
@@ -10536,6 +10864,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   329 : Tributyl Borate 
+  Source = PNNL-15870 Rev. 1 
   Formula = B(OC4H9)3 
   Molecular weight (g/mole) = 230.15198 
   Density (g/cm3) = 0.864000 
@@ -10565,6 +10894,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   330 : Tributyl Phosphate (TBP) 
+  Source = PNNL-15870 Rev. 1 
   Formula = (C4H9)3PO4 
   Molecular weight (g/mole) = 266.314141 
   Density (g/cm3) = 0.972400 
@@ -10594,6 +10924,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   331 : Tungsten 
+  Source = PNNL-15870 Rev. 1 
   Formula = W 
   Molecular weight (g/mole) = 183.84 
   Density (g/cm3) = 19.300000 
@@ -10614,6 +10945,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   332 : Uranium Carbide 
+  Source = PNNL-15870 Rev. 1 
   Formula = UC 
   Molecular weight (g/mole) = 249.9687908998 
   Density (g/cm3) = 13.630000 
@@ -10646,6 +10978,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   333 : Uranium Dicarbide 
+  Source = PNNL-15870 Rev. 1 
   Formula = UC2 
   Molecular weight (g/mole) = 261.9794908998 
   Density (g/cm3) = 11.280000 
@@ -10678,6 +11011,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   334 : Uranium Dioxide 
+  Source = PNNL-15870 Rev. 1 
   Formula = UO2 
   Molecular weight (g/mole) = 269.9568908998 
   Density (g/cm3) = 10.960000 
@@ -10710,6 +11044,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   335 : Uranium Hexafluoride 
+  Source = PNNL-15870 Rev. 1 
   Formula = UF6 
   Molecular weight (g/mole) = 351.9485100998 
   Density (g/cm3) = 4.680000 
@@ -10742,6 +11077,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   336 : Uranium Hydride 
+  Source = PNNL-15870 Rev. 1 
   Formula = UH3 
   Molecular weight (g/mole) = 240.9819108998 
   Density (g/cm3) = 11.100000 
@@ -10774,6 +11110,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   337 : Uranium Nitride 
+  Source = PNNL-15870 Rev. 1 
   Formula = UN 
   Molecular weight (g/mole) = 251.9647908998 
   Density (g/cm3) = 14.310000 
@@ -10806,6 +11143,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   338 : Uranium Oxide 
+  Source = PNNL-15870 Rev. 1 
   Formula = U3O8 
   Molecular weight (g/mole) = 841.8694726993 
   Density (g/cm3) = 8.300000 
@@ -10838,6 +11176,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   339 : Uranium Tetrafluoride 
+  Source = PNNL-15870 Rev. 1 
   Formula = UF4 
   Molecular weight (g/mole) = 313.9517036998 
   Density (g/cm3) = 6.700000 
@@ -10870,6 +11209,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   340 : Uranium Trioxide 
+  Source = PNNL-15870 Rev. 1 
   Formula = UO3 
   Molecular weight (g/mole) = 285.9562908998 
   Density (g/cm3) = 7.290000 
@@ -10902,6 +11242,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   341 : Uranium, Depleted, Typical 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 18.951157 
@@ -10928,6 +11269,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   342 : Uranium, Enriched, Typical Commercial 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 18.944492 
@@ -10954,6 +11296,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   343 : Uranium, HEU, Health Physics Society 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 18.724868 
@@ -10983,6 +11326,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   344 : Uranium, HEU, Russian Average 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 18.732854 
@@ -11012,6 +11356,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   345 : Uranium, HEU, US Average 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 18.724760 
@@ -11041,6 +11386,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   346 : Uranium, Low Enriched (LEU) 
+  Source = PNNL-15870 Rev. 1 
   Formula = U 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 18.944386 
@@ -11070,6 +11416,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   347 : Uranium, Natural (NU) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 18.950000 
@@ -11096,6 +11443,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   348 : Uranium-Plutonium, Mixed Oxide (MOX) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 11.000000 
@@ -11143,6 +11491,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   349 : Uranyl Fluoride 
+  Source = PNNL-15870 Rev. 1 
   Formula = UO2F2 
   Molecular weight (g/mole) = 307.9536972998 
   Density (g/cm3) = 6.370000 
@@ -11178,6 +11527,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   350 : Uranyl Nitrate 
+  Source = PNNL-15870 Rev. 1 
   Formula = UO2(NO3)2 
   Molecular weight (g/mole) = 393.9666908998 
   Density (g/cm3) = 2.203000 
@@ -11213,6 +11563,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   351 : Vermiculite, Exfoliated 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.085000 
@@ -11257,6 +11608,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   352 : Viton Fluoroelastomer 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.800000 
@@ -11283,6 +11635,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   353 : Water, Heavy 
+  Source = PNNL-15870 Rev. 1 
   Formula = D2O 
   Molecular weight (g/mole) = 20.027603556 
   Density (g/cm3) = 1.105340 
@@ -11306,6 +11659,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   354 : Water, Liquid 
+  Source = PNNL-15870 Rev. 1 
   Formula = H2O 
   Molecular weight (g/mole) = 18.01528 
   Density (g/cm3) = 0.998207 
@@ -11329,6 +11683,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   355 : Water, Vapor 
+  Source = PNNL-15870 Rev. 1 
   Formula = H2O 
   Molecular weight (g/mole) = 18.01528 
   Density (g/cm3) = 0.000756 
@@ -11352,6 +11707,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   356 : Wax, M3 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 1.050000 
@@ -11384,6 +11740,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   357 : Wax, Mix D 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.990000 
@@ -11416,6 +11773,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   358 : Wax, Paraffin 
+  Source = PNNL-15870 Rev. 1 
   Formula = C25H52 
   Molecular weight (g/mole) = 352.68038 
   Density (g/cm3) = 0.930000 
@@ -11439,6 +11797,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   359 : Wood (Southern Pine) 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 0.640000 
@@ -11480,6 +11839,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   360 : Xenon 
+  Source = PNNL-15870 Rev. 1 
   Formula = Xe 
   Molecular weight (g/mole) = 131.293 
   Density (g/cm3) = 0.005485 
@@ -11500,6 +11860,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   361 : Yttrium Aluminum Garnet (YAG) 
+  Source = PNNL-15870 Rev. 1 
   Formula = Y3Al5O12 
   Molecular weight (g/mole) = 593.61804 
   Density (g/cm3) = 4.560000 
@@ -11526,6 +11887,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   362 : Yttrium Aluminum Perovskite (YAP) 
+  Source = PNNL-15870 Rev. 1 
   Formula = YAlO3 
   Molecular weight (g/mole) = 163.885588 
   Density (g/cm3) = 5.370000 
@@ -11552,6 +11914,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   363 : Yttrium OxyorthoSilicate (YSO) 
+  Source = PNNL-15870 Rev. 1 
   Formula = Y2SiO5 
   Molecular weight (g/mole) = 285.8942 
   Density (g/cm3) = 4.450000 
@@ -11578,6 +11941,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   364 : Zeolite (Natrolite) 
+  Source = PNNL-15870 Rev. 1 
   Formula = NA2Al2Si3O10-2(H2O) 
   Molecular weight (g/mole) = 380.223676 
   Density (g/cm3) = 2.250000 
@@ -11610,6 +11974,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   365 : Zinc 
+  Source = PNNL-15870 Rev. 1 
   Formula = Zn 
   Molecular weight (g/mole) = 65.409 
   Density (g/cm3) = 7.133000 
@@ -11630,6 +11995,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   366 : Zinc Selenide 
+  Source = PNNL-15870 Rev. 1 
   Formula = ZnSe 
   Molecular weight (g/mole) = 144.369 
   Density (g/cm3) = 5.420000 
@@ -11653,6 +12019,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   367 : Zinc Sulfide 
+  Source = PNNL-15870 Rev. 1 
   Formula = ZnS 
   Molecular weight (g/mole) = 97.474 
   Density (g/cm3) = 4.090000 
@@ -11676,6 +12043,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   368 : Zircaloy-2 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 6.560000 
@@ -11711,6 +12079,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   369 : Zircaloy-4 
+  Source = PNNL-15870 Rev. 1 
   Formula = - 
   Molecular weight (g/mole) = - 
   Density (g/cm3) = 6.560000 
@@ -11743,6 +12112,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   370 : Zirconium 
+  Source = PNNL-15870 Rev. 1 
   Formula = Zr 
   Molecular weight (g/mole) = 91.224 
   Density (g/cm3) = 6.506000 
@@ -11763,6 +12133,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   371 : Zirconium Hydride (Zr5H8) 
+  Source = PNNL-15870 Rev. 1 
   Formula = Zr5H8 
   Molecular weight (g/mole) = 464.18352 
   Density (g/cm3) = 5.610000 
@@ -11786,6 +12157,7 @@ https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1
 
 ********************************************************************************
   372 : Zirconium Hydride (ZrH2) 
+  Source = PNNL-15870 Rev. 1 
   Formula = ZrH2 
   Molecular weight (g/mole) = 93.23988 
   Density (g/cm3) = 5.610000 
