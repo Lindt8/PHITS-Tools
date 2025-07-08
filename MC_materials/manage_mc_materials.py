@@ -1,5 +1,30 @@
 '''
-This module is used for managing the MC materials database.
+
+This submodule is used for managing the MC materials database found in the "MC_materials" directory, which is located 
+in the same directory as PHITS_tools.py.  The MC materials database consists of a list of materials with the necessary
+compositional information needed for particle transport simulations, and it uses the PNNL 
+Compendium of Material Composition Data for Radiation Transport Modeling (Rev. 1), PNNL-15870 Rev. 1, document as
+its foundational source, on top of which additional materials can be added freely.
+
+The MC materials database files created and managed by this module's functions are also those retrieved by the 
+[`fetch_MC_material()`](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.fetch_MC_material) function in PHITS Tools.
+
+
+
+### Main function for updating MC materials database files
+
+- `update_materials_database_files` : add/modify materials entries, create new database files
+
+### Additional helper functions
+
+- `pnnl_lib_csv_to_dict_list`       : converts the PNNL materials_compendium.csv file to a list of dictionaries
+- `materials_dict_list_to_json`     : save a list of dictionaries to a JSON file
+- `materials_json_to_dict_list`     : read a JSON file into a list of dictionaries
+- `write_descripive_material_entry` : write a plaintext material entry for a material's dictionary object
+- `write_mc_material_entry`         : write a PHITS/MCNP-formatted text entry for a material's dictionary object
+- `write_descriptive_file`          : write a file of plaintext material entries for all material dictionaries in a list
+- `write_MC_formated_files`         : write 4 files of PHITS/MCNP-formatted material entries for all material dictionaries in a list
+- `write_general_MC_file`           : write a file of PHITS/MCNP-formatted material entries (choosing "most sensible" of 4 for each)
 
 '''
 
@@ -10,7 +35,429 @@ import csv
 import sys
 import json
 from pathlib import Path
-from PHITS_tools import Element_Z_to_Sym, fetch_MC_material, nuclide_plain_str_to_ZZZAAAM
+from PHITS_tools import Element_Z_to_Sym, Element_Sym_to_Z, fetch_MC_material, nuclide_plain_str_to_ZZZAAAM
+
+
+
+
+def update_materials_database_files(json_filepath,name,mat_str,matid=None,density=None,source=None,
+                                    source_short=None,formula=None,molecular_weight=None,total_atom_density=None,
+                                    new_database_base_name=None,update_descriptive_file=True,
+                                    update_MC_formated_files=True,update_general_MC_file=True,save_backup_list=True):
+    '''
+    Description:
+    
+        Add or modify a material in a MC materials database JSON file (optionally updating text files too).
+
+    Inputs:
+        (required)
+        
+        - `json_filepath` = string or Path object denoting the path to the JSON materials file. If a string is provided 
+                that does not end in `'.json'`, this function will search to see if a JSON file of the same basename exists
+                in a directory called "MC_materials" inside the same directory as the PHITS_tools.py module (which requires
+                either PHITS Tools to be installed via `pip` or locatable within your PYTHONPATH system variable).
+                The JSON libraries that are shipped with PHITS Tools by default are titled `'Compiled_MC_materials'` 
+                and `'PNNL_materials_compendium'`.
+        - `name` = string of the name of the material to be added / updated.  See the "Notes" section further below for 
+                more information on how entry identification is handled.
+        - `mat_str` = string designating the composition of the material.  This should be provided as a series of 
+                alternating nuclide IDs and concentrations. 
+                Valid nuclide ID's include ZZZAAA values (1000*Z + A) or any format supported by [nuclide_plain_str_to_ZZZAAAM()](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.nuclide_plain_str_to_ZZZAAAM) (no spaces permitted).
+                Concentrations can be provided as either mass fractions (negative) or atom fractions (positive).
+                If they do not sum to unity, they will be automatically normalized such that they will.
+                An example for water: `"1000 2 8000 1"` or `"H 2 O 1"` or `"1000 0.66666 8000 0.33333"`
+        
+    Inputs:
+        (optional)
+        
+        - `matid` = (D=`None`) integer denoting material number in the materials database. If left as default `None`, 
+                this function will nominally assume that a new material is being added to the database.
+                If an integer is provided, the function will assume the intent is to overwrite an existing entry.
+                See the "Notes" section further below for more information on how entry identification is handled.
+        - `density` = (D=`None`) a float denoting the density of the material in g/cm3 (can be a string if variable)
+        - `source` = (D=`None`) a string denoting the data source, e.g., `'PNNL'`, `'NIST'`, `'Mahaffy 2013, DOI: 10.1126/science.1237966'`, etc. [STRONGLY ENCOURAGED]
+        - `source_short` = (D=`None`) a string denoting the data source in shorter/abbreviated form, e.g., `'Mahaffy 2013'`
+        - `formula` = (D=`None`) a string denoting a material's chemical formula
+        - `molecular_weight` = (D=`None`) a float denoting the molecular weight in g/mole
+        - `total_atom_density` = (D=`None`) a float denoting the total atom density in atoms/(barn-cm)
+        - `new_database_base_name` = (D=`None`) a string specifying the base database name to be used for all files written 
+                by this function. If left as default `None`, the base name from `json_filepath` will be used.  Otherwise, 
+                this can be used to create new database files, rather than rewriting existing ones.
+        - `update_descriptive_file` = (D=`True`) Boolean denoting whether the descriptive file for the database, 
+                as generated by `write_descriptive_file()`, should be updated/(re)written.
+        - `update_MC_formated_files` = (D=`True`) Boolean denoting whether the four MCNP/PHITS-formatted files for the database, 
+                as generated by `write_MC_formated_files()`, should be updated/(re)written.
+        - `update_general_MC_file` = (D=`True`) Boolean denoting whether the updated descriptive file for the database, 
+                as generated by `write_general_MC_file()`, should be updated/(re)written.
+        - `save_backup_list` = (D=`True`) Boolean denoting whether an extra (timestamped) copy of the produced JSON 
+                materials list database file should also be saved separately in a "backup_lists" directory located in 
+                the same directory as `json_filepath`.
+
+    Outputs:
+    
+        - `None`; the materials data from `json_filepath` will be updated with the provided new material (or written to 
+                a new JSON database named with `new_database_base_name`), and derived text files are optionally updated 
+                too as designated by `update_descriptive_file`, `update_MC_formated_files`, and `update_general_MC_file`.
+    
+    Notes:
+        
+        Entries in the database are uniquely identified by their `matid` or the combination of `name` and `source`.
+        If provided with a `matid` or `name` and `source` combination already present within the database, a prompt
+        will appear asking whether the existing entry should be overwritten.
+        
+    '''
+    import datetime
+    import tkinter
+    from tkinter import messagebox
+    
+    add_new_material = True
+    rewrite_existing_material = False
+    rewrite_matid = None  # material ID (=index + 1) to overwrite
+    if matid is not None:
+        rewrite_matid = matid
+        rewrite_existing_material = True
+        add_new_material = False
+    
+    # Ensure specified JSON database exists
+    if isinstance(json_filepath, str) and (len(json_filepath) <= 5  or (len(json_filepath) > 5 and json_filepath.lower()[:-5] != '.json')):
+        # basename is provided, need to find location of PHITS_tools.py and MC_materials/
+        database_filename = json_filepath + '.json'
+        import pkgutil
+        lib_file = None
+        try:
+            try: # First, check MC_materials folder distributed with PHITS Tools
+                phits_tools_module_path = pkgutil.get_loader("PHITS_tools").get_filename()
+                mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, 'MC_materials/')
+                if mc_materials_dir_path.exists():
+                    lib_file = Path(mc_materials_dir_path,database_filename)
+                else:
+                    print('Could not find the "PHITS-Tools/MC_materials/" directory via pkgutil.get_loader("PHITS_tools").')
+                    raise FileNotFoundError(mc_materials_dir_path)
+            except: # Failing that, check PYTHONPATH
+                user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
+                for i in user_paths:
+                    if 'phits_tools' in i.lower() or 'phits-tools' in i.lower():
+                        lib_file = Path(i + r'\MC_materials\\' + database_filename)
+                if lib_file is None:
+                    print('Could not find "PHITS-Tools" folder in PYTHONPATH; this folder contains the vital "MC_materials/" directory where the JSON libraries are stored.')
+                    raise FileNotFoundError('$PYTHONPATH/PHITS-Tools/MC_materials/'+database_filename)
+        except:
+            print('Failed to locate "PHITS-Tools/MC_materials/" directory.')
+            return None
+        json_filepath = lib_file
+    else:
+        json_filepath = Path(json_filepath)
+    if not json_filepath.exists():
+        print('Specified materials library could not be located at:', lib_file)
+        return None
+    
+    # load in the materials dictionary list
+    all_mats_list = materials_json_to_dict_list(json_filepath=json_filepath)
+    
+    # If requested, use new name for database
+    if new_database_base_name is not None:
+        json_filepath = Path(json_filepath.parent, new_database_base_name + '.json')
+    
+    
+    def Element_ZorSym_to_mass(Z):
+        '''
+        Description:
+            Returns an element's average atomic mass provided its atomic number Z or elemental symbol
+    
+        Inputs:
+            - `Z` = string of elemental symbol or atomic number Z
+    
+        Outputs:
+            - `A_avg` = average atomic mass
+        '''
+        average_atomic_masses = [1.008664,1.007,4.002602,6.941,9.012182,10.811,12.0107,14.0067,15.9994,18.9984032,
+                                 20.1797,22.98976928,24.305,26.9815386,28.0855,30.973762,32.065,35.453,39.948,39.0983,
+                                 40.078,44.955912,47.867,50.9415,51.9961,54.938045,55.845,58.933195,58.6934,63.546,65.38,
+                                 69.723,72.63,74.9216,78.96,79.904,83.798,85.4678,87.62,88.90585,91.224,92.90638,95.96,98,
+                                 101.07,102.9055,106.42,107.8682,112.411,114.818,118.71,121.76,127.6,126.90447,131.293,
+                                 132.9054519,137.327,138.90547,140.116,140.90765,144.242,145,150.36,151.964,157.25,
+                                 158.92535,162.5,164.93032,167.259,168.93421,173.054,174.9668,178.49,180.94788,183.84,
+                                 186.207,190.23,192.217,195.084,196.966569,200.59,204.3833,207.2,208.9804,209,210,222,
+                                 223,226,227,232.03806,231.03588,238.02891,237,244,243,247,247,251,252,257,258,259,
+                                 266,267,268,269,270,277,278,281,282,285,286,289,290,293,294,294]
+        try:
+            zi = int(Z)
+        except:
+            zi = Element_Sym_to_Z(Z)
+        return average_atomic_masses[zi]
+    
+    
+    if add_new_material:
+        override_duplicate_name = True
+        # First, check existing list to see if there are any conflicting materials
+        duplicate_entry_found = False
+        duplicate_entry_index = None
+        if any([all_mats_list[i]['name'] == name for i in range(len(all_mats_list))]):
+            print("Found this material name in the database already:")
+            for i in range(len(all_mats_list)):
+                if all_mats_list[i]['name'] == name:
+                    print('\tentry number {} from source = {}'.format(str(i + 1), all_mats_list[i]['source']))
+                    if all_mats_list[i]['source'] == source or all_mats_list[i]['source_short'] == source_short:
+                        print('\tMultiple materials with identical names and sources not allowed!')
+                        duplicate_entry_found = True
+                        duplicate_entry_index = i
+                        if not override_duplicate_name:
+                            print('\tIf your intent is to override that existing entry, please set "override_duplicate_name = True"')
+                            sys.exit()
+                        else:
+                            print('\tOverriding existing entry with new one.')
+                    else:
+                        if not override_duplicate_name:
+                            print('\tNo sources conflict with this one, but stopping anyways.  Override this option by setting "override_duplicate_name = True"')
+                            sys.exit()
+                        else:
+                            print('\tNo sources conflict with this one, so this entry will be written separately as a new entry.')
+    if rewrite_existing_material:
+        if rewrite_matid > len(all_mats_list):
+            print('Invalid rewrite_matid {} entered; valid entries are integers from 1 to {}'.format(str(rewrite_matid), str(len(all_mats_list))))
+            sys.exit()
+
+    new_mat = {}
+    new_mat.update({'name': name})
+    new_mat.update({'density': density})
+    if source:
+        new_mat.update({'source': source})
+    if source_short:
+        new_mat.update({'source_short': source})
+    else:
+        new_mat.update({'source': '-'})
+    if formula:
+        new_mat.update({'formula': formula})
+    else:
+        new_mat.update({'formula': '-'})
+    if molecular_weight:
+        new_mat.update({'molecular weight': molecular_weight})
+    else:
+        new_mat.update({'molecular weight': '-'})
+    if total_atom_density:  # else part taken care of later since this is calculated from normal density
+        new_mat.update({'total atom density': total_atom_density})
+
+    # process mat_str
+    mat_elements = mat_str.split()
+    ZZZAAA_ids = []
+    concentrations = []
+    for i in range(len(mat_elements)):
+        mel = mat_elements[i]
+        if i % 2 == 0:  # ZA part
+            try:
+                ZZZAAA = int(mel)
+            except:
+                # contains characters, must be converted
+                if mel.isalpha():  # only element symbol is listed
+                    Z = Element_Sym_to_Z(mel)
+                    ZZZAAA = 1000 * Z
+                else:
+                    ZZZAAA = int(nuclide_plain_str_to_ZZZAAAM(mel) / 10)
+            ZZZAAA_ids.append(ZZZAAA)
+        else:  # concentration part
+            concentrations.append(float(mel))
+
+    # reorder to be in order of increasing ZZZAAA
+    z1 = [x for x, _ in sorted(zip(ZZZAAA_ids, concentrations))]
+    z2 = [x for _, x in sorted(zip(ZZZAAA_ids, concentrations))]
+    ZZZAAA_ids = z1
+    concentrations = z2
+
+    avg_masses = []
+    # normalize concentrations
+    con_sum = sum(concentrations)
+    for i in range(len(concentrations)):
+        concentrations[i] = concentrations[i] / abs(con_sum)
+
+    if con_sum < 0:
+        provided_mass_fracs = True
+        mass_fracs = concentrations
+        # must calculate atom fractions
+        atom_fracs = []
+        for i in range(len(mass_fracs)):
+            A = int(str(ZZZAAA_ids[i])[-3:])
+            if A == 0:
+                A = Element_ZorSym_to_mass(int(str(ZZZAAA_ids[i])[:-3]))
+            atom_fracs.append(mass_fracs[i] / A)
+            avg_masses.append(A)
+        sum_fracs = sum(atom_fracs)
+        # now renormalize
+        for i in range(len(mass_fracs)):
+            atom_fracs[i] = atom_fracs[i] / sum_fracs
+
+    else:
+        provided_mass_fracs = False  # atom fracs instead
+        atom_fracs = concentrations
+        # must calculate atom fractions
+        mass_fracs = []
+        for i in range(len(atom_fracs)):
+            A = int(str(ZZZAAA_ids[i])[-3:])
+            if A == 0:
+                A = Element_ZorSym_to_mass(int(str(ZZZAAA_ids[i])[:-3]))
+            mass_fracs.append(atom_fracs[i] * A)
+            avg_masses.append(A)
+        sum_fracs = sum(mass_fracs)
+        # now renormalize
+        for i in range(len(atom_fracs)):
+            mass_fracs[i] = -1 * mass_fracs[i] / sum_fracs
+
+    def isfloat(value):
+        try:
+            float(value)
+            return True
+        except ValueError:
+            return False
+
+    # calculate atom densities if provided numerical density
+    atom_densities = []
+    if density and isfloat(density):
+        # calculate mass of 1 unit of the material
+        Av = 6.02214076e23
+        tot_atom_density = 0.0  # g/molecule
+        for i in range(len(mass_fracs)):
+            atom_densities.append(float(density) * Av * abs(mass_fracs[i]) / (avg_masses[i] * (1e24)))  # in atoms/b-cm
+            tot_atom_density += abs(atom_densities[-1])
+    else:
+        for i in range(len(mass_fracs)):
+            atom_densities.append(0.0)
+
+    # generate summary information which is by element
+    Z_list = []
+    sym_list = []
+    summary_mf = []
+    summary_af = []
+    summary_ad = []
+    photon_ZZZAAA_ids = []
+    elm_ZA_list = []
+    for i in range(len(ZZZAAA_ids)):
+        Z = int(str(ZZZAAA_ids[i])[:-3])
+        photon_ZZZAAA_ids.append(1000 * Z)
+        if Z not in Z_list:
+            Z_list.append(Z)
+            elm_ZA_list.append(1000 * Z)
+            sym_list.append(Element_Z_to_Sym(Z))
+            summary_mf.append(mass_fracs[i])
+            summary_af.append(atom_fracs[i])
+            summary_ad.append(atom_densities[i])
+        else:
+            zi = Z_list.index(Z)
+            summary_mf[zi] += mass_fracs[i]
+            summary_af[zi] += atom_fracs[i]
+            summary_ad[zi] += atom_densities[i]
+
+    # compile into dictionary
+    new_mat.update({'summary': {'element': sym_list, 'neutron ZA': elm_ZA_list, 'photon ZA': elm_ZA_list,
+                                'weight fraction': summary_mf, 'atom fraction': summary_af,
+                                'atom density': summary_ad}})
+    if not total_atom_density:
+        if density and isfloat(density):
+            new_mat.update({'total atom density': tot_atom_density})
+        else:
+            new_mat.update({'total atom density': '-'})
+
+    pars = ['neutrons', 'photons']
+    par_ZAs = [ZZZAAA_ids, photon_ZZZAAA_ids]
+    for pi in range(len(pars)):
+        par = pars[pi]
+        ZA_list = par_ZAs[pi]
+        new_mat.update({par: {'weight fraction': {'ZA': ZA_list, 'value': mass_fracs},
+                              'atom fraction': {'ZA': ZA_list, 'value': atom_fracs},
+                              'atom density': {'ZA': ZA_list, 'value': atom_densities}}})
+
+    # With GUI, ask user to confirm overwriting of existing material
+    if rewrite_existing_material or (add_new_material and duplicate_entry_found and override_duplicate_name):
+        if rewrite_existing_material:
+            existing_mat_str = write_descripive_material_entry(all_mats_list[rewrite_matid - 1])
+        else:
+            existing_mat_str = write_descripive_material_entry(all_mats_list[duplicate_entry_index])
+        new_mat_str = write_descripive_material_entry(new_mat)
+        r = tkinter.Tk()
+        l1 = tkinter.Label(r, text="Would you like to overwrite the old entry (left) with the new entry (right)?")
+        l1.grid(row=0, column=0, sticky=tkinter.W, padx=10, pady=10)
+
+        def clickButton1():
+            global yn_response
+            yn_response = True
+            r.destroy()
+            return yn_response
+
+        def clickButton2():
+            global yn_response
+            yn_response = False
+            r.destroy()
+            return yn_response
+
+        f1 = tkinter.Frame(r)
+        # button widget 
+        b1 = tkinter.Button(f1, text="Yes", command=clickButton1)
+        b2 = tkinter.Button(f1, text="No", command=clickButton2)
+
+        # arranging button widgets 
+        f1.grid(row=0, column=1, padx=10, pady=10, sticky=tkinter.W)
+        b1.pack(side="left", padx=10)
+        b2.pack(side="right", padx=10)
+
+        # Text of old and new entries
+        old_entry = tkinter.Label(r, text=existing_mat_str)
+        new_entry = tkinter.Label(r, text=new_mat_str)  # , justify='left'
+
+        old_entry.grid(row=1, column=0, sticky=tkinter.W + tkinter.N, padx=10, pady=10)
+        new_entry.grid(row=1, column=1, sticky=tkinter.W + tkinter.N, padx=10, pady=10)
+
+        # b1.grid(row = 2, column = 0, padx = 10, pady = 10, sticky = tkinter.E) 
+        # b2.grid(row = 2, column = 1, padx = 10, pady = 10, sticky = tkinter.W) 
+
+        # infinite loop which can be terminated  
+        # by keyboard or mouse interrupt 
+
+        tkinter.mainloop()
+
+        # r.option_add('*Dialog.msg.font', 'Courier New 16')
+        # response = messagebox.askyesno(r,"Python - material overwrite","Would you like to overwrite the following entry:\n"+'\nwith the new one below?\n')
+        if not yn_response:
+            sys.exit()
+
+    if add_new_material:
+        # add the new material to the library list
+        if duplicate_entry_found:
+            if override_duplicate_name:
+                all_mats_list[duplicate_entry_index] = new_mat
+        else:
+            all_mats_list.append(new_mat)
+    elif rewrite_existing_material:
+        all_mats_list[rewrite_matid - 1] = new_mat
+
+    # Save new materials list
+    materials_dict_list_to_json(all_mats_list, json_filepath=json_filepath)
+    
+    # Update text files
+    if update_descriptive_file:
+        lib_filepath = Path(json_filepath.parent, json_filepath.stem + '.txt')
+        write_descriptive_file(all_mats_list, lib_filepath=lib_filepath)
+    if update_MC_formated_files:
+        lib_filepath = Path(json_filepath.parent, json_filepath.stem + '.txt')
+        write_MC_formated_files(all_mats_list, lib_filepath=lib_filepath)
+    if update_general_MC_file:
+        lib_filepath = Path(json_filepath.parent, json_filepath.stem + '_general.txt')
+        write_general_MC_file(all_mats_list, lib_filepath=lib_filepath)
+
+    if save_backup_list:
+        def time_stamped(fname, fmt='{fname}_%Y-%m-%d-%H%M'):
+            '''
+            requires import datetime
+            '''
+            return datetime.datetime.now().strftime(fmt).format(fname=fname)
+        backup_lib_filename = Path(json_filepath.parent, 'backup_lists/', time_stamped(json_filepath.stem) + '.json')
+        backup_lib_filename.parent.mkdir(parents=True, exist_ok=True) # create backup_lists directory if it doesn't already exist
+        materials_dict_list_to_json(all_mats_list, json_filepath=backup_lib_filename)
+        
+    return None
+
+
+
+
+
+
 
 def pnnl_lib_csv_to_dict_list(path_to_materials_compendium_csv=Path(Path.cwd(), 'materials_compendium.csv')):
     '''
@@ -299,6 +746,7 @@ def write_descriptive_file(mat_list,lib_filepath=Path(Path.cwd(),'MC_materials.t
         - `mat_list` = a list of dictionary objects of the extracted materials information
         - `lib_filepath` = string or Path object denoting the path to the materials library text file to be saved
         - `header_text` = a string of text appearing at the very top of the output text file
+             If left blank (`''`), a default header string as defined at the start of this function will be used.
         - `write_index_file` = (D=`True`) Boolean specifying if an index file, just listing the materials contained 
              in the outputted file along with their ID number and data source (tab delimited), should also be written. 
              If `True`, this file will have the same filepath as `lib_filepath` but with `'_index'` appended to its basename. 
@@ -307,6 +755,15 @@ def write_descriptive_file(mat_list,lib_filepath=Path(Path.cwd(),'MC_materials.t
         - - `None`; the materials text data will be saved to `lib_filepath`.
     '''
     lib_text = ''
+    if header_text=='':
+        header_text = '  ' + 'This file was assembled from a variety of sources over time;' + '\n'
+        header_text += '  ' + 'it just seeks to compile information for materials to be used in Monte Carlo ' + '\n'
+        header_text += '  ' + 'particle transport calculations in an easily accessible plain-text format. ' + '\n'
+        header_text += '  ' + 'The first 372 entries are from the Compendium of Material Composition Data for' + '\n'
+        header_text += '  ' + 'Radiation Transport Modeling (Rev. 1), PNNL-15870 Rev. 1, published by the' + '\n'
+        header_text += '  ' + 'Pacific Northwest National Laboratory.  That document can be found at:' + '\n'
+        header_text += '  ' + r'https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1.pdf' + '\n'
+        header_text += '  ' + 'The sources for other entries are specified.' + '\n'
     lib_text += header_text
     for i in range(len(mat_list)):
         mat = mat_list[i]
@@ -423,83 +880,11 @@ def write_general_MC_file(mat_list,lib_filepath=Path(Path.cwd(),'MC_materials_ge
     return None
 
 
-def update_materials_database_files(json_filepath,name,mat_str,matid=None,density=None,source=None,
-                                    source_short=None,formula=None,molecular_weight=None,total_atom_density=None,
-                                    new_database_base_name=None,update_descriptive_file=True,
-                                    update_MC_formated_files=True,update_general_MC_file=True):
-    '''
-    Description:
-    
-        Add or modify a material in a MC materials database JSON file (optionally updating text files too).
-
-    Inputs:
-        (required)
-        
-        - `json_filepath` = string or Path object denoting the path to the JSON materials file
-        - `name` = string of the name of the material to be added / updated.  See the "Notes" section further below for 
-                more information on how entry identification is handled.
-        - `mat_str` = string designating the composition of the material.  This should be provided as a series of 
-                alternating nuclide IDs and concentrations. 
-                Valid nuclide ID's include ZZZAAA values (1000*Z + A) or any format supported by [nuclide_plain_str_to_ZZZAAAM()](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.nuclide_plain_str_to_ZZZAAAM) (no spaces permitted).
-                Concentrations can be provided as either mass fractions (negative) or atom fractions (positive).
-                If they do not sum to unity, they will be automatically normalized such that they will.
-                An example for water: `"1000 2 8000 1"` or `"H 2 O 1"` or `"1000 0.66666 8000 0.33333"`
-        
-    Inputs:
-        (optional)
-        
-        - `matid` = (D=`None`) integer denoting material number in the materials database. If left as default `None`, 
-                this function will nominally assume that a new material is being added to the database.
-                If an integer is provided, the function will assume the intent is to overwrite an existing entry.
-                See the "Notes" section further below for more information on how entry identification is handled.
-        - `density` = (D=`None`) a float denoting the density of the material in g/cm3 (can be a string if variable)
-        - `source` = (D=`None`) a string denoting the data source, e.g., `'PNNL'`, `'NIST'`, `'Mahaffy 2013, DOI: 10.1126/science.1237966'`, etc. [STRONGLY ENCOURAGED]
-        - `source_short` = (D=`None`) a string denoting the data source in shorter/abbreviated form, e.g., `'Mahaffy 2013'`
-        - `formula` = (D=`None`) a string denoting a material's chemical formula
-        - `molecular_weight` = (D=`None`) a float denoting the molecular weight in g/mole
-        - `total_atom_density` = (D=`None`) a float denoting the total atom density in atoms/(barn-cm)
-        - `new_database_base_name` = (D=`None`) a string specifying the base database name to be used for all files written 
-                by this function. If left as default `None`, the base name from `json_filepath` will be used.  Otherwise, 
-                this can be used to create new database files, rather than rewriting existing ones.
-        - `update_descriptive_file` = (D=`True`) Boolean denoting whether the descriptive file for the database, 
-                as generated by `write_descriptive_file()`, should be updated/(re)written.
-        - `update_MC_formated_files` = (D=`True`) Boolean denoting whether the four MCNP/PHITS-formatted files for the database, 
-                as generated by `write_MC_formated_files()`, should be updated/(re)written.
-        - `update_general_MC_file` = (D=`True`) Boolean denoting whether the updated descriptive file for the database, 
-                as generated by `write_general_MC_file()`, should be updated/(re)written.
-
-    Outputs:
-    
-        - `None`; the materials data from `json_filepath` will be updated with the provided new material (or written to 
-                a new JSON database named with `new_database_base_name`), and derived text files are optionally updated 
-                too as designated by `update_descriptive_file`, `update_MC_formated_files`, and `update_general_MC_file`.
-    
-    Notes:
-        
-        Entries in the database are uniquely identified by their `matid` or the combination of `name` and `source`.
-        If provided with a `matid` or `name` and `source` combination already present within the database, a prompt
-        will appear asking whether the existing entry should be overwritten.
-        
-    '''
-    add_new_material = False
-    rewrite_existing_material = False
-    rewrite_matid = None  # material ID (=index + 1) to overwrite
-    #if matid is not None:
-        
-    
-    
-    return None
 
 
 
 
-
-
-
-
-
-
-
+'''
 # Generate the JSON file and descriptive text file for the PNNL library
 mat_list = pnnl_lib_csv_to_dict_list()
 materials_dict_list_to_json(mat_list,json_filepath=Path(Path.cwd(),'PNNL_materials_compendium.json'))
@@ -510,5 +895,50 @@ header_text += 'This file seeks to just compile the core information of the comp
 header_text += 'easily accessible plain-text format.  The full document can be found at: ' + '\n'
 header_text += r'https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1.pdf' + '\n'
 write_descriptive_file(mat_list,lib_filepath=Path(Path.cwd(),'PNNL_materials_compendium.txt'),header_text=header_text)
-#write_MC_formated_files(mat_list,lib_filepath=Path(Path.cwd(),'PNNL_materials_compendium.txt'),header_text=header_text)
+write_MC_formated_files(mat_list,lib_filepath=Path(Path.cwd(),'PNNL_materials_compendium.txt'),header_text=header_text)
 write_general_MC_file(mat_list,lib_filepath=Path(Path.cwd(),'PNNL_materials_compendium_general.txt'),header_text=header_text)
+'''
+
+'''
+# Using the PNNL compendium as a base, create and add to the "Compiled_MC_materials" database
+json_filepath = 'PNNL_materials_compendium'
+name = 'Martian Atmosphere'
+mat_str = '6000 -2.62E-01  8000 -7.00E-01 18000 -1.93E-02 7000 -1.89E-02'
+update_materials_database_files(json_filepath,
+                                name,
+                                mat_str,
+                                matid=None,
+                                density='function of altitude and time',
+                                source='Mahaffy 2013, DOI: 10.1126/science.1237966',
+                                source_short='Mahaffy 2013',
+                                formula=None,
+                                molecular_weight=None,
+                                total_atom_density=None,
+                                new_database_base_name="Compiled_MC_materials",
+                                update_descriptive_file=True,
+                                update_MC_formated_files=True,
+                                update_general_MC_file=True,
+                                save_backup_list=True)
+'''
+
+'''
+# Update the existing "Compiled_MC_materials" database
+json_filepath = "Compiled_MC_materials"
+name = 'Martian Regolith'
+mat_str = '1000 0.151069196 11000 0.033300262 12000 0.016650131 13000 0.033300262 14000 0.156699215 18000 0.537611902 19000 0.033300262 20000 0.016650131 26000 0.021418638'
+update_materials_database_files(json_filepath,
+                                name,
+                                mat_str,
+                                matid=None,
+                                density=1.7,
+                                source='McKenna-Lawlor 2012, DOI: 10.1016/j.icarus.2011.04.004',
+                                source_short='McKenna-Lawlor 2012',
+                                formula=None,
+                                molecular_weight=None,
+                                total_atom_density=None,
+                                new_database_base_name=None,
+                                update_descriptive_file=True,
+                                update_MC_formated_files=True,
+                                update_general_MC_file=True,
+                                save_backup_list=True)
+'''

@@ -1,11 +1,11 @@
-This file was assembled by Hunter Ratliff from a variety of sources over time;
-it just seeks to compile information for materials to be used in Monte Carlo 
-particle transport calculations in an easily accessible plain-text format. 
-The first 372 entries are from the Compendium of Material Composition Data for
-Radiation Transport Modeling (Rev. 1), PNNL-15870 Rev. 1, published by the
-Pacific Northwest National Laboratory.  That document can be found at:
-https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1.pdf
-The sources for other entries are specified.
+  This file was assembled from a variety of sources over time;
+  it just seeks to compile information for materials to be used in Monte Carlo 
+  particle transport calculations in an easily accessible plain-text format. 
+  The first 372 entries are from the Compendium of Material Composition Data for
+  Radiation Transport Modeling (Rev. 1), PNNL-15870 Rev. 1, published by the
+  Pacific Northwest National Laboratory.  That document can be found at:
+  https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1.pdf
+  The sources for other entries are specified.
 
 ********************************************************************************
   1   : A-150 Tissue-Equivalent Plastic (A150TEP) 
