@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>PHITS_tools API documentation</title>
-<meta name="description" content="This module contains a variety of tools used for parsing PHITS output files â€¦" />
+<meta name="description" content="This module contains a variety of tools used for parsing PHITS output files …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>PHITS_tools</code></h1>
+<h1 class="title">Module <code>PHITS_tools</code> <i><small>(v1.5.1.1)</small></i></h1>
 </header>
 <section id="section-intro">
 <p>This module contains a variety of tools used for parsing PHITS output files.</p>
@@ -82,13 +82,15 @@ functions return the data objects they produce for your own further analyses.</p
 <li><code><a title="PHITS_tools.autoplot_tally_results" href="#PHITS_tools.autoplot_tally_results">autoplot_tally_results()</a></code>
 : make plot(s), saved as PDFs, of tally results from tally output Pandas DataFrame(s)</li>
 <li><code><a title="PHITS_tools.fetch_MC_material" href="#PHITS_tools.fetch_MC_material">fetch_MC_material()</a></code>
-: returns a string of a formatted material for PHITS or MCNP (mostly those in <a href="https://www.osti.gov/biblio/1023125">PNNL-15870 Rev. 1</a>)</li>
+: returns a string of a formatted material for PHITS or MCNP (mostly those in <a href="https://www.osti.gov/biblio/1023125">PNNL-15870 Rev. 1</a>); see <a href="https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html"><strong><code>PHITS_tools.manage_mc_materials</code> submodule documentation</strong></a> for details on managing the materials database</li>
 <li><code><a title="PHITS_tools.ICRP116_effective_dose_coeff" href="#PHITS_tools.ICRP116_effective_dose_coeff">ICRP116_effective_dose_coeff()</a></code>
 : returns effective dose conversion coefficient of a mono-energetic particle of some species and some geometry; does coefficients are those in <a href="https://doi.org/10.1016/j.icrp.2011.10.001">ICRP 116</a></li>
 <li><code><a title="PHITS_tools.merge_dump_file_pickles" href="#PHITS_tools.merge_dump_file_pickles">merge_dump_file_pickles()</a></code>
 : merge multiple dump file outputs into a single file (useful for dumps in MPI runs)</li>
 <li><code><a title="PHITS_tools.ZZZAAAM_to_nuclide_plain_str" href="#PHITS_tools.ZZZAAAM_to_nuclide_plain_str">ZZZAAAM_to_nuclide_plain_str()</a></code>
 : returns a nuclide plaintext string for a given "ZZZAAAM" number (1000Z+10A+M)</li>
+<li><code><a title="PHITS_tools.nuclide_plain_str_to_ZZZAAAM" href="#PHITS_tools.nuclide_plain_str_to_ZZZAAAM">nuclide_plain_str_to_ZZZAAAM()</a></code>
+: returns a "ZZZAAAM" number (1000Z+10A+M) for a given nuclide plaintext string </li>
 <li><code><a title="PHITS_tools.nuclide_plain_str_to_latex_str" href="#PHITS_tools.nuclide_plain_str_to_latex_str">nuclide_plain_str_to_latex_str()</a></code>
 : convert a plaintext string for a nuclide to a LaTeX formatted raw string</li>
 <li><code><a title="PHITS_tools.Element_Z_to_Sym" href="#PHITS_tools.Element_Z_to_Sym">Element_Z_to_Sym()</a></code>
@@ -275,7 +277,7 @@ also including an entry with a dictionary of information on the corresponding PH
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">&#39;&#39;&#39;
+<pre><code class="python">r&#39;&#39;&#39;
 
 This module contains a variety of tools used for parsing PHITS output files.
 
@@ -327,10 +329,11 @@ functions return the data objects they produce for your own further analyses.
 - `tally`                           : tally/histogram values (and their indices) falling within a desired binning structure (useful with &#34;dump&#34; files)
 - `rebinner`                        : rebin a set of y-data to a new x-binning structure (edges need not necessarily be preserved)
 - `autoplot_tally_results`          : make plot(s), saved as PDFs, of tally results from tally output Pandas DataFrame(s)
-- `fetch_MC_material`               : returns a string of a formatted material for PHITS or MCNP (mostly those in [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125))
+- `fetch_MC_material`               : returns a string of a formatted material for PHITS or MCNP (mostly those in [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125)); see [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html) for details on managing the materials database
 - `ICRP116_effective_dose_coeff`    : returns effective dose conversion coefficient of a mono-energetic particle of some species and some geometry; does coefficients are those in [ICRP 116](https://doi.org/10.1016/j.icrp.2011.10.001)
 - `merge_dump_file_pickles`         : merge multiple dump file outputs into a single file (useful for dumps in MPI runs)
 - `ZZZAAAM_to_nuclide_plain_str`    : returns a nuclide plaintext string for a given &#34;ZZZAAAM&#34; number (1000Z+10A+M)
+- `nuclide_plain_str_to_ZZZAAAM`    : returns a &#34;ZZZAAAM&#34; number (1000Z+10A+M) for a given nuclide plaintext string 
 - `nuclide_plain_str_to_latex_str`  : convert a plaintext string for a nuclide to a LaTeX formatted raw string
 - `Element_Z_to_Sym`                : return an elemental symbol string given its proton number Z
 - `Element_Sym_to_Z`                : returns an atomic number Z provided the elemental symbol
@@ -2117,12 +2120,12 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = Non
                 else:
                     tally_include_in_plotting_list.append(True)
         if return_tally_output or (merge_tally_outputs and not save_output_pickle and autoplot_all_tally_output_in_dir):
-            if &#39;has_dyld_dtrk_file&#39; in tally_output: # instance where [T-Dchain].out provided, .dyld and .dtrk outputs returned
+            if tally_output is not None and &#39;has_dyld_dtrk_file&#39; in tally_output: # instance where [T-Dchain].out provided, .dyld and .dtrk outputs returned
                 if tally_output[&#39;dtrk_tally_output&#39;] is not None: tally_output_list.append(tally_output[&#39;dtrk_tally_output&#39;])
                 if tally_output[&#39;dyld_tally_output&#39;] is not None: tally_output_list.append(tally_output[&#39;dyld_tally_output&#39;])
             else:
                 tally_output_list.append(tally_output)
-        if merge_tally_outputs:
+        if merge_tally_outputs and tally_output is not None:
             if &#39;has_dyld_dtrk_file&#39; in tally_output:  # instance where [T-Dchain].out provided, .dyld and .dtrk outputs returned
                 if tally_output[&#39;dtrk_tally_output&#39;] is not None:
                     if operating_in_directory_mode:
@@ -2195,7 +2198,8 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = Non
             for i in range(len(tally_include_in_plotting_list)):
                 if tally_include_in_plotting_list[i]:
                     if return_tally_output or (merge_tally_outputs and not save_output_pickle):
-                        plot_list.append(tally_output_list[i])
+                        if tally_output_list[i] is not None:
+                            plot_list.append(tally_output_list[i])
                     else:
                         plot_list.append(tally_output_pickle_path_list[i])
             autoplot_tally_results(plot_list, plot_errorbars=calculate_absolute_errors, output_filename=plot_filepath)
@@ -3572,15 +3576,20 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
 
 
 
-def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=None,particle=None):
+def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=None,particle=None,matdict=None,
+                      database_filename=&#39;Compiled_MC_materials&#39;):
     &#39;&#39;&#39;
     Description:
         Returns a materials definition string formatted for use in PHITS or MCNP (including a density estimate);
         most available materials are those found in [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125).
+        Note that you can modify this materials database and create additional databases that can interface 
+        with this function via the `PHITS_tools.manage_mc_materials` submodule; see the [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html) 
+        for more detailed information and instructions on managing the materials database.
 
     Dependencies:
-        - PYTHONPATH environmental variable must be set and one entry must contain the directory
-                which contains the vital &#34;MC_materials/Compiled_MC_materials.pkl&#34; file.
+        - Either PHITS Tools must be installed via `pip` (which automatically handles this) or your
+                PYTHONPATH environmental variable must be set and one entry must contain the directory
+                which contains the vital &#34;MC_materials/Compiled_MC_materials.json&#34; file.
 
     Inputs:
        (required to enter `matid` OR `matname`, with `matid` taking priority if conflicting)
@@ -3593,34 +3602,62 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
                 `&#39;atom fraction&#39;` (default if a chemical formula is present; e.g. &#34;Ethane&#34; (Formula = C2H6)) to be returned
        - `particle` = selection of whether natural (`&#39;photons&#39;`, default) or isotopic (`&#39;neutrons&#39;`) elements are used
                 Note that if &#34;enriched&#34; or &#34;depleted&#34; appears in the material&#39;s name, particle=`&#39;neutrons&#39;` is set automatically.
-
+       - `matdict` = dictionary object of same format as entries in materials database; if this is provided, 
+                `matname` and `database_filename` are ignored, using the provided material dictionary entry instead.
+       - `database_filename` = (D=`&#39;Compiled_MC_materials&#39;`) File basename of the database file to be pulled from.
+       
     Outputs:
        - `mat_str` = string containing the material&#39;s information, ready to be inserted directly into a PHITS/MCNP input file
     &#39;&#39;&#39;
     import os
+    import json
+    import pkgutil
     import pickle
     if not matid and not matname:
         print(&#39;Either &#34;matid&#34; or &#34;matname&#34; MUST be defined&#39;)
         return None
-
-    # First, locate and open materials library
-    try:
-        user_paths = os.environ[&#39;PYTHONPATH&#39;].split(os.pathsep)
-        lib_file = None
-        for i in user_paths:
-            if &#39;phits_tools&#39; in i.lower() or &#39;phits-tools&#39; in i.lower():
-                lib_file = i + r&#34;\MC_materials\Compiled_MC_materials&#34;
-        if not lib_file:
-            print(&#39;Could not find &#34;PHITS_tools&#34; folder in PYTHONPATH; this folder contains the vital &#34;MC_materials/Compiled_MC_materials.pkl&#34; file.&#39;)
-    except KeyError:
-        print(&#39;The PYTHONPATH environmental variable must be defined and contain the path to the directory holding &#34;MC_materials/Compiled_MC_materials.pkl&#34;&#39;)
-        return None
-
-    # Load materials library
-    def load_obj(name ):
-        with open(name + &#39;.pkl&#39;, &#39;rb&#39;) as f:
-            return pickle.load(f)
-    all_mats_list = load_obj(lib_file)
+    
+    if matdict is None:
+        # First, locate and open materials library
+        try:
+            lib_file = None
+            try: # First, check MC_materials folder distributed with PHITS Tools
+                phits_tools_module_path = pkgutil.get_loader(&#34;PHITS_tools&#34;).get_filename()
+                mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, &#39;MC_materials/&#39;)
+                if mc_materials_dir_path.exists():
+                    lib_file = Path(mc_materials_dir_path,database_filename)
+                else:
+                    print(&#39;Could not find the &#34;PHITS-Tools/MC_materials/&#34; directory containing the materials library JSON file.&#39;)
+            except: # Failing that, check PYTHONPATH
+                user_paths = os.environ[&#39;PYTHONPATH&#39;].split(os.pathsep)
+                for i in user_paths:
+                    if &#39;phits_tools&#39; in i.lower() or &#39;phits-tools&#39; in i.lower():
+                        lib_file = i + r&#39;\MC_materials\\&#39; + database_filename
+                if not lib_file:
+                    print(&#39;Could not find &#34;PHITS_tools&#34; folder in PYTHONPATH; this folder contains the vital &#34;MC_materials/Compiled_MC_materials.pkl&#34; file.&#39;)
+        except KeyError:
+            print(&#39;The PYTHONPATH environmental variable must be defined and contain the path to the directory holding &#34;MC_materials/Compiled_MC_materials.pkl&#34;&#39;)
+            return None
+    
+        # Load materials library
+        lib_file = Path(lib_file)
+        try: # Updated version uses JSON file
+            with open(Path(lib_file.parent, lib_file.name + &#39;.json&#39;), &#34;r&#34;) as f:
+                all_mats_list = json.load(f)
+        except: # Old version uses a pickle file
+            def load_obj(name):
+                with open(name + &#39;.pkl&#39;, &#39;rb&#39;) as f:
+                    return pickle.load(f)
+            print(&#39;WARNING: Old pickle file of MC materials is being used; up-to-date version uses a JSON database.&#39;)
+            all_mats_list = load_obj(str(lib_file))
+    else:
+        all_mats_list = []
+        if matid is None:
+            matid = 0
+            all_mats_list.append(matdict)
+        else:
+            all_mats_list.extend([None]*(matid))
+            all_mats_list[matid-1] = matdict
 
     if matid: # use mat ID number
         mi = int(matid)-1
@@ -4126,6 +4163,134 @@ def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter=
     nuc_str += symbol + delimiter + str(A) + m_str
 
     return nuc_str
+
+def nuclide_plain_str_to_ZZZAAAM(nuc_str):
+    &#39;&#39;&#39;
+    Description:
+        Converts a plaintext string of a nuclide to an integer ZZZAAAM = 10000\*Z + 10\*A + M
+
+    Dependencies:
+        `Element_Z_to_Sym`
+
+    Inputs:
+       - `nuc_str` = string to be converted; a huge variety of formats are supported, but they all must follow the following rules:
+           + Isomeric/metastable state characters must always immediately follow the atomic mass characters.
+               Isomeric state labels MUST either:
+               - (1) be a single lower-case character OR
+               - (2) begin with any non-numeric character and end with a number
+           + Atomic mass numbers must be nonnegative integers OR the string &#34;nat&#34; (in which case no metastable states can be written)
+           + Elemental symbols MUST begin with an upper-case character
+
+
+    Outputs:
+        - ZZZAAAM integer
+    &#39;&#39;&#39;
+
+    # remove unwanted characters from provided string
+    delete_characters_list = [&#39; &#39;, &#39;-&#39;, &#39;_&#39;]
+    for dc in delete_characters_list:
+        nuc_str = nuc_str.replace(dc,&#39;&#39;)
+
+    # determine which characters are letters versus numbers
+    isalpha_list = []
+    isdigit_list = []
+    for c in nuc_str:
+        isalpha_list.append(c.isalpha())
+        isdigit_list.append(c.isdigit())
+
+    symbol = &#39;&#39;
+    mass = &#39;&#39;
+    isost = &#39;&#39;
+
+    if &#39;nat&#39; in nuc_str:
+        print(&#39;Must specify a specific nuclide, not natural abundances&#39;)
+        return None
+
+    # string MUST begin with either mass number or elemental symbol
+    if isdigit_list[0]: # mass first
+        mass_first = True
+    else:
+        mass_first = False
+
+    if mass_first:
+        ci = 0
+        while isdigit_list[ci]:
+            mass += nuc_str[ci]
+            ci += 1
+        mass = str(int(mass)) # eliminate any extra leading zeros
+        # encountered a non-numeric character, end of mass
+        # now, determine if metastable state is listed or if element is listed next
+        # first, check to see if any other numerals are in string
+        lni = 0 # last numeral index
+        for i in range(ci,len(nuc_str)):
+            if isdigit_list[i]:
+                lni = i
+        if lni != 0:
+            # grab all characters between ci and last numeral as metastable state
+            isost = nuc_str[ci:lni+1]
+            ci = lni + 1
+        else: # no more numerals in string, now check for single lower-case letter
+            if isalpha_list[ci] and nuc_str[ci].islower():
+                isost = nuc_str[ci]
+                ci += 1
+
+        # Now extract elemental symbol
+        for i in range(ci,len(nuc_str)):
+            if isalpha_list[i]:
+                symbol += nuc_str[i]
+
+    else: # if elemental symbol is listed first
+        ci = 0
+        # Extract all characters before first number as the elemental symbol
+        while nuc_str[ci].isalpha():
+            symbol += nuc_str[ci]
+            ci += 1
+
+        # now, extract mass
+        while nuc_str[ci].isdigit():
+            mass += nuc_str[ci]
+            ci += 1
+            if ci == len(nuc_str):
+                break
+
+        # lastly, extract isomeric state, if present
+        if ci != len(nuc_str):
+            isost = nuc_str[ci:]
+
+    # treating the cases of lowercase-specified particles (n, d, t, etc.)
+    if symbol == &#39;&#39; and isost != &#39;&#39;:
+        symbol = isost
+        isost = &#39;&#39;
+
+
+    if symbol == &#39;n&#39;:
+        Z = 0
+    elif symbol == &#39;p&#39; or symbol == &#39;d&#39; or symbol == &#39;t&#39;:
+        Z = 1
+    else:
+        Z = Element_Sym_to_Z(symbol)
+
+    A = int(mass)
+
+    if isost.strip()==&#39;&#39; or isost==&#39;g&#39;:
+        M = 0
+    elif isost==&#39;m&#39; or isost==&#39;m1&#39;:
+        M = 1
+    elif isost==&#39;n&#39; or isost==&#39;m2&#39;:
+        M = 2
+    elif isost==&#39;o&#39; or isost==&#39;m3&#39;:
+        M = 3
+    elif isost==&#39;p&#39; or isost==&#39;m4&#39;:
+        M = 4
+    elif isost==&#39;q&#39; or isost==&#39;m5&#39;:
+        M = 5
+    else:
+        print(&#34;Unknown isomeric state {}, assumed ground state&#34;.format(isost))
+        M = 0
+
+    ZZZAAAM = 10000*Z + 10*A + M
+
+    return ZZZAAAM
 
 
 def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
@@ -9598,12 +9763,12 @@ then in the first line of code for both this and the <code><a title="PHITS_tools
                 else:
                     tally_include_in_plotting_list.append(True)
         if return_tally_output or (merge_tally_outputs and not save_output_pickle and autoplot_all_tally_output_in_dir):
-            if &#39;has_dyld_dtrk_file&#39; in tally_output: # instance where [T-Dchain].out provided, .dyld and .dtrk outputs returned
+            if tally_output is not None and &#39;has_dyld_dtrk_file&#39; in tally_output: # instance where [T-Dchain].out provided, .dyld and .dtrk outputs returned
                 if tally_output[&#39;dtrk_tally_output&#39;] is not None: tally_output_list.append(tally_output[&#39;dtrk_tally_output&#39;])
                 if tally_output[&#39;dyld_tally_output&#39;] is not None: tally_output_list.append(tally_output[&#39;dyld_tally_output&#39;])
             else:
                 tally_output_list.append(tally_output)
-        if merge_tally_outputs:
+        if merge_tally_outputs and tally_output is not None:
             if &#39;has_dyld_dtrk_file&#39; in tally_output:  # instance where [T-Dchain].out provided, .dyld and .dtrk outputs returned
                 if tally_output[&#39;dtrk_tally_output&#39;] is not None:
                     if operating_in_directory_mode:
@@ -9676,7 +9841,8 @@ then in the first line of code for both this and the <code><a title="PHITS_tools
             for i in range(len(tally_include_in_plotting_list)):
                 if tally_include_in_plotting_list[i]:
                     if return_tally_output or (merge_tally_outputs and not save_output_pickle):
-                        plot_list.append(tally_output_list[i])
+                        if tally_output_list[i] is not None:
+                            plot_list.append(tally_output_list[i])
                     else:
                         plot_list.append(tally_output_pickle_path_list[i])
             autoplot_tally_results(plot_list, plot_errorbars=calculate_absolute_errors, output_filename=plot_filepath)
@@ -11308,16 +11474,20 @@ the <code>sns.relplot()</code> call) using a default DPI of 300 (controlled by t
 </details>
 </dd>
 <dt id="PHITS_tools.fetch_MC_material"><code class="name flex">
-<span>def <span class="ident">fetch_MC_material</span></span>(<span>matid=None, matname=None, matsource=None, concentration_type=None, particle=None)</span>
+<span>def <span class="ident">fetch_MC_material</span></span>(<span>matid=None, matname=None, matsource=None, concentration_type=None, particle=None, matdict=None, database_filename='Compiled_MC_materials')</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="description">Description</h2>
 <p>Returns a materials definition string formatted for use in PHITS or MCNP (including a density estimate);
-most available materials are those found in <a href="https://www.osti.gov/biblio/1023125">PNNL-15870 Rev. 1</a>.</p>
+most available materials are those found in <a href="https://www.osti.gov/biblio/1023125">PNNL-15870 Rev. 1</a>.
+Note that you can modify this materials database and create additional databases that can interface
+with this function via the <code>PHITS_tools.manage_mc_materials</code> submodule; see the <a href="https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html"><strong><code>PHITS_tools.manage_mc_materials</code> submodule documentation</strong></a>
+for more detailed information and instructions on managing the materials database.</p>
 <h2 id="dependencies">Dependencies</h2>
 <ul>
-<li>PYTHONPATH environmental variable must be set and one entry must contain the directory
-which contains the vital "MC_materials/Compiled_MC_materials.pkl" file.</li>
+<li>Either PHITS Tools must be installed via <code>pip</code> (which automatically handles this) or your
+PYTHONPATH environmental variable must be set and one entry must contain the directory
+which contains the vital "MC_materials/Compiled_MC_materials.json" file.</li>
 </ul>
 <h2 id="inputs">Inputs</h2>
 <p>(required to enter <code>matid</code> OR <code>matname</code>, with <code>matid</code> taking priority if conflicting)</p>
@@ -11330,6 +11500,9 @@ materials have identical names</li>
 <code>'atom fraction'</code> (default if a chemical formula is present; e.g. "Ethane" (Formula = C2H6)) to be returned</li>
 <li><code>particle</code> = selection of whether natural (<code>'photons'</code>, default) or isotopic (<code>'neutrons'</code>) elements are used
 Note that if "enriched" or "depleted" appears in the material's name, particle=<code>'neutrons'</code> is set automatically.</li>
+<li><code>matdict</code> = dictionary object of same format as entries in materials database; if this is provided,
+<code>matname</code> and <code>database_filename</code> are ignored, using the provided material dictionary entry instead.</li>
+<li><code>database_filename</code> = (D=<code>'Compiled_MC_materials'</code>) File basename of the database file to be pulled from.</li>
 </ul>
 <h2 id="outputs">Outputs</h2>
 <ul>
@@ -11339,15 +11512,20 @@ Note that if "enriched" or "depleted" appears in the material's name, particle=<
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=None,particle=None):
+<pre><code class="python">def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=None,particle=None,matdict=None,
+                      database_filename=&#39;Compiled_MC_materials&#39;):
     &#39;&#39;&#39;
     Description:
         Returns a materials definition string formatted for use in PHITS or MCNP (including a density estimate);
         most available materials are those found in [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125).
+        Note that you can modify this materials database and create additional databases that can interface 
+        with this function via the `PHITS_tools.manage_mc_materials` submodule; see the [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html) 
+        for more detailed information and instructions on managing the materials database.
 
     Dependencies:
-        - PYTHONPATH environmental variable must be set and one entry must contain the directory
-                which contains the vital &#34;MC_materials/Compiled_MC_materials.pkl&#34; file.
+        - Either PHITS Tools must be installed via `pip` (which automatically handles this) or your
+                PYTHONPATH environmental variable must be set and one entry must contain the directory
+                which contains the vital &#34;MC_materials/Compiled_MC_materials.json&#34; file.
 
     Inputs:
        (required to enter `matid` OR `matname`, with `matid` taking priority if conflicting)
@@ -11360,34 +11538,62 @@ Note that if "enriched" or "depleted" appears in the material's name, particle=<
                 `&#39;atom fraction&#39;` (default if a chemical formula is present; e.g. &#34;Ethane&#34; (Formula = C2H6)) to be returned
        - `particle` = selection of whether natural (`&#39;photons&#39;`, default) or isotopic (`&#39;neutrons&#39;`) elements are used
                 Note that if &#34;enriched&#34; or &#34;depleted&#34; appears in the material&#39;s name, particle=`&#39;neutrons&#39;` is set automatically.
-
+       - `matdict` = dictionary object of same format as entries in materials database; if this is provided, 
+                `matname` and `database_filename` are ignored, using the provided material dictionary entry instead.
+       - `database_filename` = (D=`&#39;Compiled_MC_materials&#39;`) File basename of the database file to be pulled from.
+       
     Outputs:
        - `mat_str` = string containing the material&#39;s information, ready to be inserted directly into a PHITS/MCNP input file
     &#39;&#39;&#39;
     import os
+    import json
+    import pkgutil
     import pickle
     if not matid and not matname:
         print(&#39;Either &#34;matid&#34; or &#34;matname&#34; MUST be defined&#39;)
         return None
-
-    # First, locate and open materials library
-    try:
-        user_paths = os.environ[&#39;PYTHONPATH&#39;].split(os.pathsep)
-        lib_file = None
-        for i in user_paths:
-            if &#39;phits_tools&#39; in i.lower() or &#39;phits-tools&#39; in i.lower():
-                lib_file = i + r&#34;\MC_materials\Compiled_MC_materials&#34;
-        if not lib_file:
-            print(&#39;Could not find &#34;PHITS_tools&#34; folder in PYTHONPATH; this folder contains the vital &#34;MC_materials/Compiled_MC_materials.pkl&#34; file.&#39;)
-    except KeyError:
-        print(&#39;The PYTHONPATH environmental variable must be defined and contain the path to the directory holding &#34;MC_materials/Compiled_MC_materials.pkl&#34;&#39;)
-        return None
-
-    # Load materials library
-    def load_obj(name ):
-        with open(name + &#39;.pkl&#39;, &#39;rb&#39;) as f:
-            return pickle.load(f)
-    all_mats_list = load_obj(lib_file)
+    
+    if matdict is None:
+        # First, locate and open materials library
+        try:
+            lib_file = None
+            try: # First, check MC_materials folder distributed with PHITS Tools
+                phits_tools_module_path = pkgutil.get_loader(&#34;PHITS_tools&#34;).get_filename()
+                mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, &#39;MC_materials/&#39;)
+                if mc_materials_dir_path.exists():
+                    lib_file = Path(mc_materials_dir_path,database_filename)
+                else:
+                    print(&#39;Could not find the &#34;PHITS-Tools/MC_materials/&#34; directory containing the materials library JSON file.&#39;)
+            except: # Failing that, check PYTHONPATH
+                user_paths = os.environ[&#39;PYTHONPATH&#39;].split(os.pathsep)
+                for i in user_paths:
+                    if &#39;phits_tools&#39; in i.lower() or &#39;phits-tools&#39; in i.lower():
+                        lib_file = i + r&#39;\MC_materials\\&#39; + database_filename
+                if not lib_file:
+                    print(&#39;Could not find &#34;PHITS_tools&#34; folder in PYTHONPATH; this folder contains the vital &#34;MC_materials/Compiled_MC_materials.pkl&#34; file.&#39;)
+        except KeyError:
+            print(&#39;The PYTHONPATH environmental variable must be defined and contain the path to the directory holding &#34;MC_materials/Compiled_MC_materials.pkl&#34;&#39;)
+            return None
+    
+        # Load materials library
+        lib_file = Path(lib_file)
+        try: # Updated version uses JSON file
+            with open(Path(lib_file.parent, lib_file.name + &#39;.json&#39;), &#34;r&#34;) as f:
+                all_mats_list = json.load(f)
+        except: # Old version uses a pickle file
+            def load_obj(name):
+                with open(name + &#39;.pkl&#39;, &#39;rb&#39;) as f:
+                    return pickle.load(f)
+            print(&#39;WARNING: Old pickle file of MC materials is being used; up-to-date version uses a JSON database.&#39;)
+            all_mats_list = load_obj(str(lib_file))
+    else:
+        all_mats_list = []
+        if matid is None:
+            matid = 0
+            all_mats_list.append(matdict)
+        else:
+            all_mats_list.extend([None]*(matid))
+            all_mats_list[matid-1] = matdict
 
     if matid: # use mat ID number
         mi = int(matid)-1
@@ -12027,6 +12233,165 @@ with default settings except <code>save_namedtuple_list=True</code> and
     nuc_str += symbol + delimiter + str(A) + m_str
 
     return nuc_str</code></pre>
+</details>
+</dd>
+<dt id="PHITS_tools.nuclide_plain_str_to_ZZZAAAM"><code class="name flex">
+<span>def <span class="ident">nuclide_plain_str_to_ZZZAAAM</span></span>(<span>nuc_str)</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="description">Description</h2>
+<p>Converts a plaintext string of a nuclide to an integer ZZZAAAM = 10000*Z + 10*A + M</p>
+<h2 id="dependencies">Dependencies</h2>
+<p><code><a title="PHITS_tools.Element_Z_to_Sym" href="#PHITS_tools.Element_Z_to_Sym">Element_Z_to_Sym()</a></code></p>
+<h2 id="inputs">Inputs</h2>
+<ul>
+<li><code>nuc_str</code> = string to be converted; a huge variety of formats are supported, but they all must follow the following rules:<ul>
+<li>Isomeric/metastable state characters must always immediately follow the atomic mass characters.
+Isomeric state labels MUST either:<ul>
+<li>(1) be a single lower-case character OR</li>
+<li>(2) begin with any non-numeric character and end with a number</li>
+</ul>
+</li>
+<li>Atomic mass numbers must be nonnegative integers OR the string "nat" (in which case no metastable states can be written)</li>
+<li>Elemental symbols MUST begin with an upper-case character</li>
+</ul>
+</li>
+</ul>
+<h2 id="outputs">Outputs</h2>
+<ul>
+<li>ZZZAAAM integer</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nuclide_plain_str_to_ZZZAAAM(nuc_str):
+    &#39;&#39;&#39;
+    Description:
+        Converts a plaintext string of a nuclide to an integer ZZZAAAM = 10000\*Z + 10\*A + M
+
+    Dependencies:
+        `Element_Z_to_Sym`
+
+    Inputs:
+       - `nuc_str` = string to be converted; a huge variety of formats are supported, but they all must follow the following rules:
+           + Isomeric/metastable state characters must always immediately follow the atomic mass characters.
+               Isomeric state labels MUST either:
+               - (1) be a single lower-case character OR
+               - (2) begin with any non-numeric character and end with a number
+           + Atomic mass numbers must be nonnegative integers OR the string &#34;nat&#34; (in which case no metastable states can be written)
+           + Elemental symbols MUST begin with an upper-case character
+
+
+    Outputs:
+        - ZZZAAAM integer
+    &#39;&#39;&#39;
+
+    # remove unwanted characters from provided string
+    delete_characters_list = [&#39; &#39;, &#39;-&#39;, &#39;_&#39;]
+    for dc in delete_characters_list:
+        nuc_str = nuc_str.replace(dc,&#39;&#39;)
+
+    # determine which characters are letters versus numbers
+    isalpha_list = []
+    isdigit_list = []
+    for c in nuc_str:
+        isalpha_list.append(c.isalpha())
+        isdigit_list.append(c.isdigit())
+
+    symbol = &#39;&#39;
+    mass = &#39;&#39;
+    isost = &#39;&#39;
+
+    if &#39;nat&#39; in nuc_str:
+        print(&#39;Must specify a specific nuclide, not natural abundances&#39;)
+        return None
+
+    # string MUST begin with either mass number or elemental symbol
+    if isdigit_list[0]: # mass first
+        mass_first = True
+    else:
+        mass_first = False
+
+    if mass_first:
+        ci = 0
+        while isdigit_list[ci]:
+            mass += nuc_str[ci]
+            ci += 1
+        mass = str(int(mass)) # eliminate any extra leading zeros
+        # encountered a non-numeric character, end of mass
+        # now, determine if metastable state is listed or if element is listed next
+        # first, check to see if any other numerals are in string
+        lni = 0 # last numeral index
+        for i in range(ci,len(nuc_str)):
+            if isdigit_list[i]:
+                lni = i
+        if lni != 0:
+            # grab all characters between ci and last numeral as metastable state
+            isost = nuc_str[ci:lni+1]
+            ci = lni + 1
+        else: # no more numerals in string, now check for single lower-case letter
+            if isalpha_list[ci] and nuc_str[ci].islower():
+                isost = nuc_str[ci]
+                ci += 1
+
+        # Now extract elemental symbol
+        for i in range(ci,len(nuc_str)):
+            if isalpha_list[i]:
+                symbol += nuc_str[i]
+
+    else: # if elemental symbol is listed first
+        ci = 0
+        # Extract all characters before first number as the elemental symbol
+        while nuc_str[ci].isalpha():
+            symbol += nuc_str[ci]
+            ci += 1
+
+        # now, extract mass
+        while nuc_str[ci].isdigit():
+            mass += nuc_str[ci]
+            ci += 1
+            if ci == len(nuc_str):
+                break
+
+        # lastly, extract isomeric state, if present
+        if ci != len(nuc_str):
+            isost = nuc_str[ci:]
+
+    # treating the cases of lowercase-specified particles (n, d, t, etc.)
+    if symbol == &#39;&#39; and isost != &#39;&#39;:
+        symbol = isost
+        isost = &#39;&#39;
+
+
+    if symbol == &#39;n&#39;:
+        Z = 0
+    elif symbol == &#39;p&#39; or symbol == &#39;d&#39; or symbol == &#39;t&#39;:
+        Z = 1
+    else:
+        Z = Element_Sym_to_Z(symbol)
+
+    A = int(mass)
+
+    if isost.strip()==&#39;&#39; or isost==&#39;g&#39;:
+        M = 0
+    elif isost==&#39;m&#39; or isost==&#39;m1&#39;:
+        M = 1
+    elif isost==&#39;n&#39; or isost==&#39;m2&#39;:
+        M = 2
+    elif isost==&#39;o&#39; or isost==&#39;m3&#39;:
+        M = 3
+    elif isost==&#39;p&#39; or isost==&#39;m4&#39;:
+        M = 4
+    elif isost==&#39;q&#39; or isost==&#39;m5&#39;:
+        M = 5
+    else:
+        print(&#34;Unknown isomeric state {}, assumed ground state&#34;.format(isost))
+        M = 0
+
+    ZZZAAAM = 10000*Z + 10*A + M
+
+    return ZZZAAAM</code></pre>
 </details>
 </dd>
 <dt id="PHITS_tools.nuclide_plain_str_to_latex_str"><code class="name flex">
@@ -14859,6 +15224,7 @@ pprint library <code>import pprint</code> and then use <code>pprint.pp(dict(file
 <li><code><a title="PHITS_tools.ICRP116_effective_dose_coeff" href="#PHITS_tools.ICRP116_effective_dose_coeff">ICRP116_effective_dose_coeff</a></code></li>
 <li><code><a title="PHITS_tools.merge_dump_file_pickles" href="#PHITS_tools.merge_dump_file_pickles">merge_dump_file_pickles</a></code></li>
 <li><code><a title="PHITS_tools.ZZZAAAM_to_nuclide_plain_str" href="#PHITS_tools.ZZZAAAM_to_nuclide_plain_str">ZZZAAAM_to_nuclide_plain_str</a></code></li>
+<li><code><a title="PHITS_tools.nuclide_plain_str_to_ZZZAAAM" href="#PHITS_tools.nuclide_plain_str_to_ZZZAAAM">nuclide_plain_str_to_ZZZAAAM</a></code></li>
 <li><code><a title="PHITS_tools.nuclide_plain_str_to_latex_str" href="#PHITS_tools.nuclide_plain_str_to_latex_str">nuclide_plain_str_to_latex_str</a></code></li>
 <li><code><a title="PHITS_tools.Element_Z_to_Sym" href="#PHITS_tools.Element_Z_to_Sym">Element_Z_to_Sym</a></code></li>
 <li><code><a title="PHITS_tools.Element_Sym_to_Z" href="#PHITS_tools.Element_Sym_to_Z">Element_Sym_to_Z</a></code></li>
