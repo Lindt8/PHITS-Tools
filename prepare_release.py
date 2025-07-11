@@ -51,6 +51,6 @@ with open('pyproject.toml','r') as file:
     lines = file.readlines()
     for li, line in enumerate(lines):
         if line[:9] == 'version =':
-            lines[li] = 'version = ' + VERSION_NUMBER + '\n'
+            lines[li] = 'version = "' + VERSION_NUMBER + '"\n'
 with open('pyproject.toml', 'w') as file:
     file.writelines(lines)

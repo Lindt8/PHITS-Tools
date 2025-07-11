@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "PHITS-Tools"
-version = 1.5.1.1
+version = "1.5.1.1"
 description = 'Python module for parsing and post-processing output from the PHITS code'
 readme = "README.md"
 license = "MPL-2.0"
