@@ -9,7 +9,7 @@ import shutil
 import re
 
 # PHITS Tools version number for PyPI release and appearing in the documentation.
-VERSION_NUMBER = '1.5.1.1'
+VERSION_NUMBER = '1.6.0-beta.1'
 
 # Build documentation following pdoc instructions: https://pdoc3.github.io/pdoc/doc/pdoc/#programmatic-usage
 modules = ['PHITS_tools']
