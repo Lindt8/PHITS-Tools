@@ -189,10 +189,10 @@ def update_materials_database_files(json_filepath,name,mat_str,matid=None,densit
         - `json_filepath` = string or Path object denoting the path to the JSON materials file. If a string is provided 
                 that does not end in `'.json'`, this function will search to see if a JSON file of the same basename exists
                 in a directory called "MC_materials" located in
-                - if `prefer_user_data_folder=True`: your local [`"$HOME`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home)`/.PHITS-Tools/"` 
+            - if `prefer_user_data_folder=True`: your local [`"$HOME`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home)`/.PHITS-Tools/"` 
                     directory, creating it and copying the distributed MC_materials data to it if not yet existing via 
                     the `setup_local_mc_materials_directory` function.
-                - if `prefer_user_data_folder=False`: the same directory as the PHITS_tools.py module (which requires
+            - if `prefer_user_data_folder=False`: the same directory as the PHITS_tools.py module (which requires
                     either PHITS Tools to be installed via `pip` or locatable within your PYTHONPATH system variable).
                 The JSON libraries that are shipped with PHITS Tools by default are titled `'Compiled_MC_materials'` 
                 and `'PNNL_materials_compendium'`.
@@ -618,6 +618,7 @@ def setup_local_mc_materials_directory(phits_tools_module_path=None):
         This function copies the "MC_materials" directory distributed with PHITS Tools to a different local directory 
         (outside of the "PHITS-Tools" directory created when installing PHITS Tools via `pip`); specifically, 
          it does the following:
+         
         - Confirmation of existence of a local `MC_materials` directory; if not found:
         - Creation of local `MC_materials` directory:
             - In the same directory as `PHITS_tools.py` is a `MC_materials` directory. If it does not exist already, 

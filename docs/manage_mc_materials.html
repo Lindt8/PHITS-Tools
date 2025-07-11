@@ -380,10 +380,10 @@ def update_materials_database_files(json_filepath,name,mat_str,matid=None,densit
         - `json_filepath` = string or Path object denoting the path to the JSON materials file. If a string is provided 
                 that does not end in `&#39;.json&#39;`, this function will search to see if a JSON file of the same basename exists
                 in a directory called &#34;MC_materials&#34; located in
-                - if `prefer_user_data_folder=True`: your local [`&#34;$HOME`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home)`/.PHITS-Tools/&#34;` 
+            - if `prefer_user_data_folder=True`: your local [`&#34;$HOME`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home)`/.PHITS-Tools/&#34;` 
                     directory, creating it and copying the distributed MC_materials data to it if not yet existing via 
                     the `setup_local_mc_materials_directory` function.
-                - if `prefer_user_data_folder=False`: the same directory as the PHITS_tools.py module (which requires
+            - if `prefer_user_data_folder=False`: the same directory as the PHITS_tools.py module (which requires
                     either PHITS Tools to be installed via `pip` or locatable within your PYTHONPATH system variable).
                 The JSON libraries that are shipped with PHITS Tools by default are titled `&#39;Compiled_MC_materials&#39;` 
                 and `&#39;PNNL_materials_compendium&#39;`.
@@ -809,6 +809,7 @@ def setup_local_mc_materials_directory(phits_tools_module_path=None):
         This function copies the &#34;MC_materials&#34; directory distributed with PHITS Tools to a different local directory 
         (outside of the &#34;PHITS-Tools&#34; directory created when installing PHITS Tools via `pip`); specifically, 
          it does the following:
+         
         - Confirmation of existence of a local `MC_materials` directory; if not found:
         - Creation of local `MC_materials` directory:
             - In the same directory as `PHITS_tools.py` is a `MC_materials` directory. If it does not exist already, 
@@ -1373,14 +1374,16 @@ update_materials_database_files(json_filepath,
 <ul>
 <li><code>json_filepath</code> = string or Path object denoting the path to the JSON materials file. If a string is provided
 that does not end in <code>'.json'</code>, this function will search to see if a JSON file of the same basename exists
-in a directory called "MC_materials" located in
-- if <code>prefer_user_data_folder=True</code>: your local <a href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.home"><code>"$HOME</code></a><code>/.PHITS-Tools/"</code>
+in a directory called "MC_materials" located in<ul>
+<li>if <code>prefer_user_data_folder=True</code>: your local <a href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.home"><code>"$HOME</code></a><code>/.PHITS-Tools/"</code>
 directory, creating it and copying the distributed MC_materials data to it if not yet existing via
-the <code><a title="manage_mc_materials.setup_local_mc_materials_directory" href="#manage_mc_materials.setup_local_mc_materials_directory">setup_local_mc_materials_directory()</a></code> function.
-- if <code>prefer_user_data_folder=False</code>: the same directory as the PHITS_tools.py module (which requires
+the <code><a title="manage_mc_materials.setup_local_mc_materials_directory" href="#manage_mc_materials.setup_local_mc_materials_directory">setup_local_mc_materials_directory()</a></code> function.</li>
+<li>if <code>prefer_user_data_folder=False</code>: the same directory as the PHITS_tools.py module (which requires
 either PHITS Tools to be installed via <code>pip</code> or locatable within your PYTHONPATH system variable).
 The JSON libraries that are shipped with PHITS Tools by default are titled <code>'Compiled_MC_materials'</code>
 and <code>'PNNL_materials_compendium'</code>.</li>
+</ul>
+</li>
 <li><code>name</code> = string of the name of the material to be added / updated.
 See the "Notes" section further below for
 more information on how entry identification is handled.</li>
@@ -1457,10 +1460,10 @@ of the entry and asking for confirmation on whether the existing entry should be
         - `json_filepath` = string or Path object denoting the path to the JSON materials file. If a string is provided 
                 that does not end in `&#39;.json&#39;`, this function will search to see if a JSON file of the same basename exists
                 in a directory called &#34;MC_materials&#34; located in
-                - if `prefer_user_data_folder=True`: your local [`&#34;$HOME`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home)`/.PHITS-Tools/&#34;` 
+            - if `prefer_user_data_folder=True`: your local [`&#34;$HOME`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home)`/.PHITS-Tools/&#34;` 
                     directory, creating it and copying the distributed MC_materials data to it if not yet existing via 
                     the `setup_local_mc_materials_directory` function.
-                - if `prefer_user_data_folder=False`: the same directory as the PHITS_tools.py module (which requires
+            - if `prefer_user_data_folder=False`: the same directory as the PHITS_tools.py module (which requires
                     either PHITS Tools to be installed via `pip` or locatable within your PYTHONPATH system variable).
                 The JSON libraries that are shipped with PHITS Tools by default are titled `&#39;Compiled_MC_materials&#39;` 
                 and `&#39;PNNL_materials_compendium&#39;`.
@@ -1885,20 +1888,26 @@ of the entry and asking for confirmation on whether the existing entry should be
 <div class="desc"><h2 id="description">Description</h2>
 <p>This function copies the "MC_materials" directory distributed with PHITS Tools to a different local directory
 (outside of the "PHITS-Tools" directory created when installing PHITS Tools via <code>pip</code>); specifically,
-it does the following:
-- Confirmation of existence of a local <code>MC_materials</code> directory; if not found:
-- Creation of local <code>MC_materials</code> directory:
-- In the same directory as <code>PHITS_tools.py</code> is a <code>MC_materials</code> directory. If it does not exist already,
+it does the following:</p>
+<ul>
+<li>Confirmation of existence of a local <code>MC_materials</code> directory; if not found:</li>
+<li>Creation of local <code>MC_materials</code> directory:<ul>
+<li>In the same directory as <code>PHITS_tools.py</code> is a <code>MC_materials</code> directory. If it does not exist already,
 a new local directory, outside the PHITS Tools installation, will be created at
-<a href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.home"><code>pathlib.Path.home()</code></a><code>/ '.PHITS-Tools' / 'MC_materials'</code>.
-- On Windows, this defaults to <code>C:\Users\USERNAME\.PHITS-Tools\MC_materials</code>
-- On MacOS and Linux, this defaults to <code>/home/USERNAME/.PHITS-Tools/MC_materials</code>
-- The contents of the original <a href="https://github.com/Lindt8/PHITS-Tools/tree/main/MC_materials">distributed <code>MC_materials</code> directory</a>
-are copied to this new local directory.
-- This directory will be used as the data source for not only <code><a title="manage_mc_materials.update_materials_database_files" href="#manage_mc_materials.update_materials_database_files">update_materials_database_files()</a></code> but also as the new
-default data source for the <a href="https://lindt8.github.io/PHITS-Tools/#PHITS_tools.fetch_MC_material"><code>fetch_MC_material()</code></a> function in PHITS Tools.
-- This local directory is created to allow creation and curation of user MC materials databases locally without fear
-of being overwritten/deleted when updating PHITS Tools to a new version via <code>pip install PHITS-Tools --upgrade</code>.</p>
+<a href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.home"><code>pathlib.Path.home()</code></a><code>/ '.PHITS-Tools' / 'MC_materials'</code>.<ul>
+<li>On Windows, this defaults to <code>C:\Users\USERNAME\.PHITS-Tools\MC_materials</code></li>
+<li>On MacOS and Linux, this defaults to <code>/home/USERNAME/.PHITS-Tools/MC_materials</code></li>
+</ul>
+</li>
+<li>The contents of the original <a href="https://github.com/Lindt8/PHITS-Tools/tree/main/MC_materials">distributed <code>MC_materials</code> directory</a>
+are copied to this new local directory. </li>
+</ul>
+</li>
+<li>This directory will be used as the data source for not only <code><a title="manage_mc_materials.update_materials_database_files" href="#manage_mc_materials.update_materials_database_files">update_materials_database_files()</a></code> but also as the new
+default data source for the <a href="https://lindt8.github.io/PHITS-Tools/#PHITS_tools.fetch_MC_material"><code>fetch_MC_material()</code></a> function in PHITS Tools.</li>
+<li>This local directory is created to allow creation and curation of user MC materials databases locally without fear
+of being overwritten/deleted when updating PHITS Tools to a new version via <code>pip install PHITS-Tools --upgrade</code>.</li>
+</ul>
 <h2 id="inputs">Inputs</h2>
 <ul>
 <li><code>phits_tools_module_path</code> = string or Path object denoting the path to the <code>PHITS_tools.py</code> Python module file.
@@ -1918,6 +1927,7 @@ If this is left as <code>None</code>, an attempt will be made to find it automat
         This function copies the &#34;MC_materials&#34; directory distributed with PHITS Tools to a different local directory 
         (outside of the &#34;PHITS-Tools&#34; directory created when installing PHITS Tools via `pip`); specifically, 
          it does the following:
+         
         - Confirmation of existence of a local `MC_materials` directory; if not found:
         - Creation of local `MC_materials` directory:
             - In the same directory as `PHITS_tools.py` is a `MC_materials` directory. If it does not exist already, 
