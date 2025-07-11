@@ -52,7 +52,7 @@ Executing `update_materials_database_files` with information with a new material
         of being overwritten/deleted when updating PHITS Tools to a new version via `pip install PHITS-Tools --upgrade`.
 2. The JSON database file will be updated with the new/updated materials information provided to the function.
     - If `new_database_base_name` is not left as `None`, instead of updating the existing database, a new databased using 
-        `new_database_base_name` as its `SET_NAME` is created from the existing database, applying the specified 
+        `new_database_base_name` as its "`SET_NAME`" is created from the existing database, applying the specified 
         materials addition/updates to it too.  This new database is then used for the remaining operations.
     - If `save_backup_list=True`, a timestamped copy of the updated/new JSON file is placed in the `MC_materials/backup_lists/` directory.
 3. (if `update_MC_formated_files=True`) `write_descriptive_file()` is called, updating/creating `SET_NAME.txt` and `SET_NAME_index.txt`
@@ -105,7 +105,8 @@ update_materials_database_files(json_filepath,
                                 update_descriptive_file=True,
                                 update_MC_formated_files=True,
                                 update_general_MC_file=True,
-                                save_backup_list=True)
+                                save_backup_list=True,
+                                prefer_user_data_folder=True)
 ```
 
 To just add a new material to an existing database, in this case adding Martian regolith to 
@@ -132,7 +133,8 @@ update_materials_database_files(json_filepath,
                                 update_descriptive_file=True,
                                 update_MC_formated_files=True,
                                 update_general_MC_file=True,
-                                save_backup_list=True)
+                                save_backup_list=True,
+                                prefer_user_data_folder=True)
 ```
 
 And, finally, if you wish to recreate the JSON file and text files for the initial PNNL database `'PNNL_materials_compendium'`, 
@@ -228,6 +230,12 @@ def update_materials_database_files(json_filepath,name,mat_str,matid=None,densit
         - `save_backup_list` = (D=`True`) Boolean denoting whether an extra (timestamped) copy of the produced JSON 
                 materials list database file should also be saved separately in a "backup_lists" directory located in 
                 the same directory as `json_filepath`.
+        - `prefer_user_data_folder` = (D=`True`) Boolean denoting whether this function should prioritize the local 
+                MC materials databases in your local [`"$HOME`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home)`/.PHITS-Tools/"` 
+                directory over those in the PHITS Tools distribution. If the local user directory does not yet exist, 
+                setting this to `True` will cause it to be created with a call of `setup_local_mc_materials_directory`.
+                This local directory is created to allow creation and curation of user MC materials databases locally without fear
+                of being overwritten/deleted when updating PHITS Tools to a new version via `pip install PHITS-Tools --upgrade`.
 
     Outputs:
     
@@ -239,7 +247,10 @@ def update_materials_database_files(json_filepath,name,mat_str,matid=None,densit
         
         Entries in the database are uniquely identified by their `matid` or the combination of `name` and `source`.
         If provided with a `matid` or `name` and `source` combination already present within the database, a prompt
-        will appear asking whether the existing entry should be overwritten.
+        window, as pictured below (in this case, with `matid` specified), will appear showing both the old and new versions 
+        of the entry and asking for confirmation on whether the existing entry should be overwritten with the new one.
+        
+        ![](https://github.com/Lindt8/PHITS-Tools/blob/main/docs/update_MC_material_window.png?raw=true "Overwrite MC materials confirmation window")
         
     '''
     import datetime
@@ -345,10 +356,10 @@ def update_materials_database_files(json_filepath,name,mat_str,matid=None,densit
                         duplicate_entry_found = True
                         duplicate_entry_index = i
                         if not override_duplicate_name:
-                            print('\tIf your intent is to override that existing entry, please set "override_duplicate_name = True"')
+                            print('\tIf your intent is to overwrite that existing entry, please set "override_duplicate_name = True"')
                             sys.exit()
                         else:
-                            print('\tOverriding existing entry with new one.')
+                            print('\tOverwriting existing entry with new one, if "Yes" is selected.')
                     else:
                         if not override_duplicate_name:
                             print('\tNo sources conflict with this one, but stopping anyways.  Override this option by setting "override_duplicate_name = True"')
@@ -510,11 +521,13 @@ def update_materials_database_files(json_filepath,name,mat_str,matid=None,densit
     # With GUI, ask user to confirm overwriting of existing material
     if rewrite_existing_material or (add_new_material and duplicate_entry_found and override_duplicate_name):
         if rewrite_existing_material:
-            existing_mat_str = write_descripive_material_entry(all_mats_list[rewrite_matid - 1])
+            this_matid = rewrite_matid
         else:
-            existing_mat_str = write_descripive_material_entry(all_mats_list[duplicate_entry_index])
-        new_mat_str = write_descripive_material_entry(new_mat)
+            this_matid = duplicate_entry_index+1
+        existing_mat_str = write_descripive_material_entry(all_mats_list[this_matid - 1], this_matid)
+        new_mat_str = write_descripive_material_entry(new_mat, this_matid)
         r = tkinter.Tk()
+        r.title("Overwrite existing entry in "+str(json_filepath)+" ?")
         l1 = tkinter.Label(r, text="Would you like to overwrite the old entry (left) with the new entry (right)?")
         l1.grid(row=0, column=0, sticky=tkinter.W, padx=10, pady=10)
 
@@ -650,9 +663,6 @@ def pnnl_lib_csv_to_dict_list(path_to_materials_compendium_csv=(Path.cwd()/'mate
         to a Python dictionary object.
         The PNNL library's CSV file was obtained from PYNE:
         https://github.com/pyne/pyne/blob/develop/pyne/dbgen/materials_compendium.csv
-
-    Dependencies:
-
 
     Inputs:
         - `path_to_materials_compendium_csv` = string or Path object denoting the path to the "materials_compendium.csv" file
@@ -831,7 +841,7 @@ def write_descripive_material_entry(mat,mati):
     for pi in range(len(pars)):
         par = pars[pi]
         entry_text += '-' * banner_width + '\n'
-        entry_text += '  MCNP formatted ({}) \n'.format(par)
+        entry_text += '  PHITS/MCNP formatted ({}) \n'.format(par)
         entry_text += '     {:^17}     {:^17}     {:^17} \n'.format("Weight Fractions", "Atom Fractions",
                                                                     "Atom Densities")
         for j in range(len(mat[par]['weight fraction']['ZA'])):
@@ -935,7 +945,7 @@ def write_descriptive_file(mat_list,lib_filepath=Path(Path.cwd(),'MC_materials.t
              If `True`, this file will have the same filepath as `lib_filepath` but with `'_index'` appended to its basename. 
     
     Outputs:
-        - - `None`; the materials text data will be saved to `lib_filepath`.
+        - `None`; the materials text data will be saved to `lib_filepath`.
     '''
     lib_text = ''
     if header_text=='':
@@ -988,7 +998,8 @@ def write_mc_formated_files(mat_list, lib_filepath=(Path.cwd()/'MC_materials.txt
             If left blank (`''`), a default header string as defined at the start of this function will be used.
         
     Outputs:
-        - - `None`; the materials text data will be saved to `lib_filepath`.
+        - `None`; the materials text data will be saved to four files at `lib_filepath` with 
+            `_by_[atom/weight]_fraction_for_[neutrons/photons]` appended to the end of the filename.
     '''
     cc = comment_char 
     if header_text=='':
@@ -1028,8 +1039,8 @@ def write_general_mc_file(mat_list,lib_filepath=Path(Path.cwd(),'MC_materials_ge
         Generates a text file of MCNP/PHITS-formatted materials section text blocks for a list of material dictionary objects.
         This single file is a mix of concentration and particle formats as automatically selected for most general situations.
         If a material entry contains a chemical formula, its concentration will be specified by atom fraction; otherwise, 
-        weight fraction will be used.  If any of the "neutron keywords" (`['depleted','enriched',' heu',' leu','uranium','plutonium','uranyl']`)
-        appear in a material's name (case insensitive), the "neutrons" particle-formatted data is use (isotopic compositions specified); 
+        weight fraction will be used.  If any of the "neutron keywords" (`['depleted', 'enriched', ' heu', ' leu', 'uranium', 'plutonium', 'uranyl']`)
+        appear in a material's name (case insensitive), the "neutrons" particle-formatted data is used (isotopic compositions specified); 
         otherwise, the "photons" particle format (natural abundances for elements) is used.
         
     Inputs:
@@ -1101,7 +1112,9 @@ update_materials_database_files(json_filepath,
                                 update_descriptive_file=True,
                                 update_MC_formated_files=True,
                                 update_general_MC_file=True,
-                                save_backup_list=True)
+                                save_backup_list=True,
+                                prefer_user_data_folder=True
+                                )
 '''
 
 '''
@@ -1123,5 +1136,29 @@ update_materials_database_files(json_filepath,
                                 update_descriptive_file=True,
                                 update_MC_formated_files=True,
                                 update_general_MC_file=True,
-                                save_backup_list=True)
+                                save_backup_list=True,
+                                prefer_user_data_folder=True)
+'''
+
+'''
+# Update the existing "Compiled_MC_materials" database
+json_filepath = "Compiled_MC_materials"
+name = 'Wood (Southern Pine, DOUBLE DENSITY) '
+mat_str = '1001  -0.059642 6000  -0.497018 7014  -0.004970 8016  -0.427435 12000  -0.001988 16000  -0.004970 19000  -0.001988 20000  -0.001988'
+update_materials_database_files(json_filepath,
+                                name,
+                                mat_str,
+                                matid=359,
+                                density=2*0.64,
+                                source='DEMONSTRATION OF CHANGED MATERIAL ENTRY',
+                                source_short='TEST_DEMO',
+                                formula=None,
+                                molecular_weight=None,
+                                total_atom_density=None,
+                                new_database_base_name=None,
+                                update_descriptive_file=True,
+                                update_MC_formated_files=True,
+                                update_general_MC_file=True,
+                                save_backup_list=True,
+                                prefer_user_data_folder=True)
 '''

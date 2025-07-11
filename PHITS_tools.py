@@ -3298,7 +3298,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
 
 
 def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=None,particle=None,matdict=None,
-                      database_filename='Compiled_MC_materials'):
+                      database_filename='Compiled_MC_materials',prefer_user_data_folder=True):
     '''
     Description:
         Returns a materials definition string formatted for use in PHITS or MCNP (including a density estimate);
@@ -3310,14 +3310,14 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
     Dependencies:
         - Either PHITS Tools must be installed via `pip` (which automatically handles this) or your
                 PYTHONPATH environmental variable must be set and one entry must contain the directory
-                which contains the vital "MC_materials/Compiled_MC_materials.json" file.
+                which contains PHITS Tools and the vital "MC_materials/Compiled_MC_materials.json" file.
 
     Inputs:
        (required to enter `matid` OR `matname`, with `matid` taking priority if conflicting)
 
-       - `matid` = ID number in the "Compiled_MC_materials" file
-       - `matname` = exact name of material in "Compiled_MC_materials" file
-       - `matsource` = exact source of material in "Compiled_MC_materials" file, only used when multiple
+       - `matid` = ID number in the database specified by `database_filename`
+       - `matname` = exact name of material in the database specified by `database_filename`
+       - `matsource` = exact source of material in the database specified by `database_filename`, only used when multiple
                 materials have identical names
        - `concentration_type` = selection between `'weight fraction'` (default if no chemical formula is present in database; e.g., "Incoloy-800") and
                 `'atom fraction'` (default if a chemical formula is present; e.g. "Ethane" (Formula = C2H6)) to be returned
@@ -3326,7 +3326,15 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
        - `matdict` = dictionary object of same format as entries in materials database; if this is provided, 
                 `matname` and `database_filename` are ignored, using the provided material dictionary entry instead.
        - `database_filename` = (D=`'Compiled_MC_materials'`) File basename of the database file to be pulled from.
-       
+       - `prefer_user_data_folder` = (D=`True`) Boolean denoting whether this function should prioritize the local 
+                MC materials databases in your local [`"$HOME`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home)`/.PHITS-Tools/"` 
+                directory over those in the PHITS Tools distribution, if the local user directory exists. For information 
+                on creation and modification of this local MC materials directory, see the [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html).
+                If `False` (or if `True` but no local user MC_materials directory exists), the MC_materials directory 
+                distributed with PHITS Tools will be used instead, searching for the location first using 
+                [`pkgutil.get_loader`](https://docs.python.org/3/library/pkgutil.html#pkgutil.get_loader)`("PHITS_tools").get_filename()`
+                then, failing that, the PYTHONPATH environmental variable.
+                
     Outputs:
        - `mat_str` = string containing the material's information, ready to be inserted directly into a PHITS/MCNP input file
     '''
@@ -3339,26 +3347,40 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
         return None
     
     if matdict is None:
-        # First, locate and open materials library
-        try:
-            lib_file = None
-            try: # First, check MC_materials folder distributed with PHITS Tools
-                phits_tools_module_path = pkgutil.get_loader("PHITS_tools").get_filename()
-                mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, 'MC_materials/')
-                if mc_materials_dir_path.exists():
-                    lib_file = Path(mc_materials_dir_path,database_filename)
-                else:
-                    print('Could not find the "PHITS-Tools/MC_materials/" directory containing the materials library JSON file.')
-            except: # Failing that, check PYTHONPATH
-                user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
-                for i in user_paths:
-                    if 'phits_tools' in i.lower() or 'phits-tools' in i.lower():
-                        lib_file = i + r'\MC_materials\\' + database_filename
-                if not lib_file:
-                    print('Could not find "PHITS_tools" folder in PYTHONPATH; this folder contains the vital "MC_materials/Compiled_MC_materials.pkl" file.')
-        except KeyError:
-            print('The PYTHONPATH environmental variable must be defined and contain the path to the directory holding "MC_materials/Compiled_MC_materials.pkl"')
-            return None
+        # First, check if a local directory exists and contains this file
+        user_data_dir = Path.home() / '.PHITS-Tools' / 'MC_materials/'
+        if prefer_user_data_folder and user_data_dir.exists():
+            lib_file = Path(user_data_dir, database_filename)
+            lib_file_json = Path(user_data_dir, database_filename + '.json')
+            if not lib_file_json.exists():
+                print('ERROR: Could not find the materials library JSON file:', lib_file_json)
+                return None
+        else:  # Otherwise, try to locate and open materials library from distribution files
+            try:
+                lib_file = None
+                try: # First, check MC_materials folder distributed with PHITS Tools
+                    phits_tools_module_path = pkgutil.get_loader("PHITS_tools").get_filename()
+                    mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, 'MC_materials/')
+                    if mc_materials_dir_path.exists():
+                        lib_file = Path(mc_materials_dir_path,database_filename)
+                        lib_file_json = lib_file.parent / (lib_file.stem + '.json')
+                        if not lib_file_json.exists():
+                            print('ERROR: Could not find the materials library JSON file:', lib_file_json)
+                            return None
+                    else:
+                        print('ERROR: Could not find the "PHITS-Tools/MC_materials/" directory containing the materials library JSON file.')
+                        return None
+                except: # Failing that, check PYTHONPATH
+                    user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
+                    for i in user_paths:
+                        if 'phits_tools' in i.lower() or 'phits-tools' in i.lower():
+                            lib_file = i + r'\MC_materials\\' + database_filename
+                    if not lib_file:
+                        print('ERROR: Could not find "PHITS_tools" folder in PYTHONPATH; this folder contains the vital "MC_materials/Compiled_MC_materials.json" file.')
+                        return None
+            except KeyError:
+                print('ERROR: If PHITS Tools is not installed with pip, the PYTHONPATH environmental variable must be defined and contain the path to the directory holding "MC_materials/Compiled_MC_materials.json"')
+                return None
     
         # Load materials library
         lib_file = Path(lib_file)
@@ -3492,6 +3514,7 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
     entry_text  += cc+'*'*banner_width + '\n'
 
     return entry_text
+
 
 def ICRP116_effective_dose_coeff(E=1.0,particle='photon',geometry='AP',interp_scale='log',interp_type='cubic',extrapolation_on=False):
     '''
@@ -6346,7 +6369,6 @@ def extract_tally_outputs_from_phits_input(phits_input, use_path_and_string_mode
                     dump_files_for_this_tally = list(set(file_path.parent.glob(file_path.stem+"_dmp*"))-set(file_path.parent.glob(file_path.stem+"*.pickle*")))
                     files_dict['dump_output'] += dump_files_for_this_tally
     return files_dict
-
 
 
 

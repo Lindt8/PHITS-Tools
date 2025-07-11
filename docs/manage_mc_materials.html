@@ -80,7 +80,7 @@ of being overwritten/deleted when updating PHITS Tools to a new version via <cod
 </li>
 <li>The JSON database file will be updated with the new/updated materials information provided to the function.<ul>
 <li>If <code>new_database_base_name</code> is not left as <code>None</code>, instead of updating the existing database, a new databased using
-<code>new_database_base_name</code> as its <code>SET_NAME</code> is created from the existing database, applying the specified
+<code>new_database_base_name</code> as its "<code>SET_NAME</code>" is created from the existing database, applying the specified
 materials addition/updates to it too.
 This new database is then used for the remaining operations.</li>
 <li>If <code>save_backup_list=True</code>, a timestamped copy of the updated/new JSON file is placed in the <code>MC_materials/backup_lists/</code> directory.</li>
@@ -137,7 +137,8 @@ update_materials_database_files(json_filepath,
                                 update_descriptive_file=True,
                                 update_MC_formated_files=True,
                                 update_general_MC_file=True,
-                                save_backup_list=True)
+                                save_backup_list=True,
+                                prefer_user_data_folder=True)
 </code></pre>
 <p>To just add a new material to an existing database, in this case adding Martian regolith to
 <code>Compiled_MC_materials.json</code> and its text files, one can use <code><a title="manage_mc_materials.update_materials_database_files" href="#manage_mc_materials.update_materials_database_files">update_materials_database_files()</a></code> as follows:</p>
@@ -161,7 +162,8 @@ update_materials_database_files(json_filepath,
                                 update_descriptive_file=True,
                                 update_MC_formated_files=True,
                                 update_general_MC_file=True,
-                                save_backup_list=True)
+                                save_backup_list=True,
+                                prefer_user_data_folder=True)
 </code></pre>
 <p>And, finally, if you wish to recreate the JSON file and text files for the initial PNNL database <code>'PNNL_materials_compendium'</code>,
 which uses a <a href="https://github.com/pyne/pyne/blob/develop/pyne/dbgen/materials_compendium.csv">CSV file of the PNNL data from PYNE</a>
@@ -241,7 +243,7 @@ Executing `update_materials_database_files` with information with a new material
         of being overwritten/deleted when updating PHITS Tools to a new version via `pip install PHITS-Tools --upgrade`.
 2. The JSON database file will be updated with the new/updated materials information provided to the function.
     - If `new_database_base_name` is not left as `None`, instead of updating the existing database, a new databased using 
-        `new_database_base_name` as its `SET_NAME` is created from the existing database, applying the specified 
+        `new_database_base_name` as its &#34;`SET_NAME`&#34; is created from the existing database, applying the specified 
         materials addition/updates to it too.  This new database is then used for the remaining operations.
     - If `save_backup_list=True`, a timestamped copy of the updated/new JSON file is placed in the `MC_materials/backup_lists/` directory.
 3. (if `update_MC_formated_files=True`) `write_descriptive_file()` is called, updating/creating `SET_NAME.txt` and `SET_NAME_index.txt`
@@ -294,7 +296,8 @@ update_materials_database_files(json_filepath,
                                 update_descriptive_file=True,
                                 update_MC_formated_files=True,
                                 update_general_MC_file=True,
-                                save_backup_list=True)
+                                save_backup_list=True,
+                                prefer_user_data_folder=True)
 ```
 
 To just add a new material to an existing database, in this case adding Martian regolith to 
@@ -321,7 +324,8 @@ update_materials_database_files(json_filepath,
                                 update_descriptive_file=True,
                                 update_MC_formated_files=True,
                                 update_general_MC_file=True,
-                                save_backup_list=True)
+                                save_backup_list=True,
+                                prefer_user_data_folder=True)
 ```
 
 And, finally, if you wish to recreate the JSON file and text files for the initial PNNL database `&#39;PNNL_materials_compendium&#39;`, 
@@ -417,6 +421,12 @@ def update_materials_database_files(json_filepath,name,mat_str,matid=None,densit
         - `save_backup_list` = (D=`True`) Boolean denoting whether an extra (timestamped) copy of the produced JSON 
                 materials list database file should also be saved separately in a &#34;backup_lists&#34; directory located in 
                 the same directory as `json_filepath`.
+        - `prefer_user_data_folder` = (D=`True`) Boolean denoting whether this function should prioritize the local 
+                MC materials databases in your local [`&#34;$HOME`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home)`/.PHITS-Tools/&#34;` 
+                directory over those in the PHITS Tools distribution. If the local user directory does not yet exist, 
+                setting this to `True` will cause it to be created with a call of `setup_local_mc_materials_directory`.
+                This local directory is created to allow creation and curation of user MC materials databases locally without fear
+                of being overwritten/deleted when updating PHITS Tools to a new version via `pip install PHITS-Tools --upgrade`.
 
     Outputs:
     
@@ -428,7 +438,10 @@ def update_materials_database_files(json_filepath,name,mat_str,matid=None,densit
         
         Entries in the database are uniquely identified by their `matid` or the combination of `name` and `source`.
         If provided with a `matid` or `name` and `source` combination already present within the database, a prompt
-        will appear asking whether the existing entry should be overwritten.
+        window, as pictured below (in this case, with `matid` specified), will appear showing both the old and new versions 
+        of the entry and asking for confirmation on whether the existing entry should be overwritten with the new one.
+        
+        ![](https://github.com/Lindt8/PHITS-Tools/blob/main/docs/update_MC_material_window.png?raw=true &#34;Overwrite MC materials confirmation window&#34;)
         
     &#39;&#39;&#39;
     import datetime
@@ -534,10 +547,10 @@ def update_materials_database_files(json_filepath,name,mat_str,matid=None,densit
                         duplicate_entry_found = True
                         duplicate_entry_index = i
                         if not override_duplicate_name:
-                            print(&#39;\tIf your intent is to override that existing entry, please set &#34;override_duplicate_name = True&#34;&#39;)
+                            print(&#39;\tIf your intent is to overwrite that existing entry, please set &#34;override_duplicate_name = True&#34;&#39;)
                             sys.exit()
                         else:
-                            print(&#39;\tOverriding existing entry with new one.&#39;)
+                            print(&#39;\tOverwriting existing entry with new one, if &#34;Yes&#34; is selected.&#39;)
                     else:
                         if not override_duplicate_name:
                             print(&#39;\tNo sources conflict with this one, but stopping anyways.  Override this option by setting &#34;override_duplicate_name = True&#34;&#39;)
@@ -699,11 +712,13 @@ def update_materials_database_files(json_filepath,name,mat_str,matid=None,densit
     # With GUI, ask user to confirm overwriting of existing material
     if rewrite_existing_material or (add_new_material and duplicate_entry_found and override_duplicate_name):
         if rewrite_existing_material:
-            existing_mat_str = write_descripive_material_entry(all_mats_list[rewrite_matid - 1])
+            this_matid = rewrite_matid
         else:
-            existing_mat_str = write_descripive_material_entry(all_mats_list[duplicate_entry_index])
-        new_mat_str = write_descripive_material_entry(new_mat)
+            this_matid = duplicate_entry_index+1
+        existing_mat_str = write_descripive_material_entry(all_mats_list[this_matid - 1], this_matid)
+        new_mat_str = write_descripive_material_entry(new_mat, this_matid)
         r = tkinter.Tk()
+        r.title(&#34;Overwrite existing entry in &#34;+str(json_filepath)+&#34; ?&#34;)
         l1 = tkinter.Label(r, text=&#34;Would you like to overwrite the old entry (left) with the new entry (right)?&#34;)
         l1.grid(row=0, column=0, sticky=tkinter.W, padx=10, pady=10)
 
@@ -839,9 +854,6 @@ def pnnl_lib_csv_to_dict_list(path_to_materials_compendium_csv=(Path.cwd()/&#39;
         to a Python dictionary object.
         The PNNL library&#39;s CSV file was obtained from PYNE:
         https://github.com/pyne/pyne/blob/develop/pyne/dbgen/materials_compendium.csv
-
-    Dependencies:
-
 
     Inputs:
         - `path_to_materials_compendium_csv` = string or Path object denoting the path to the &#34;materials_compendium.csv&#34; file
@@ -1020,7 +1032,7 @@ def write_descripive_material_entry(mat,mati):
     for pi in range(len(pars)):
         par = pars[pi]
         entry_text += &#39;-&#39; * banner_width + &#39;\n&#39;
-        entry_text += &#39;  MCNP formatted ({}) \n&#39;.format(par)
+        entry_text += &#39;  PHITS/MCNP formatted ({}) \n&#39;.format(par)
         entry_text += &#39;     {:^17}     {:^17}     {:^17} \n&#39;.format(&#34;Weight Fractions&#34;, &#34;Atom Fractions&#34;,
                                                                     &#34;Atom Densities&#34;)
         for j in range(len(mat[par][&#39;weight fraction&#39;][&#39;ZA&#39;])):
@@ -1124,7 +1136,7 @@ def write_descriptive_file(mat_list,lib_filepath=Path(Path.cwd(),&#39;MC_materia
              If `True`, this file will have the same filepath as `lib_filepath` but with `&#39;_index&#39;` appended to its basename. 
     
     Outputs:
-        - - `None`; the materials text data will be saved to `lib_filepath`.
+        - `None`; the materials text data will be saved to `lib_filepath`.
     &#39;&#39;&#39;
     lib_text = &#39;&#39;
     if header_text==&#39;&#39;:
@@ -1177,7 +1189,8 @@ def write_mc_formated_files(mat_list, lib_filepath=(Path.cwd()/&#39;MC_materials
             If left blank (`&#39;&#39;`), a default header string as defined at the start of this function will be used.
         
     Outputs:
-        - - `None`; the materials text data will be saved to `lib_filepath`.
+        - `None`; the materials text data will be saved to four files at `lib_filepath` with 
+            `_by_[atom/weight]_fraction_for_[neutrons/photons]` appended to the end of the filename.
     &#39;&#39;&#39;
     cc = comment_char 
     if header_text==&#39;&#39;:
@@ -1217,8 +1230,8 @@ def write_general_mc_file(mat_list,lib_filepath=Path(Path.cwd(),&#39;MC_material
         Generates a text file of MCNP/PHITS-formatted materials section text blocks for a list of material dictionary objects.
         This single file is a mix of concentration and particle formats as automatically selected for most general situations.
         If a material entry contains a chemical formula, its concentration will be specified by atom fraction; otherwise, 
-        weight fraction will be used.  If any of the &#34;neutron keywords&#34; (`[&#39;depleted&#39;,&#39;enriched&#39;,&#39; heu&#39;,&#39; leu&#39;,&#39;uranium&#39;,&#39;plutonium&#39;,&#39;uranyl&#39;]`)
-        appear in a material&#39;s name (case insensitive), the &#34;neutrons&#34; particle-formatted data is use (isotopic compositions specified); 
+        weight fraction will be used.  If any of the &#34;neutron keywords&#34; (`[&#39;depleted&#39;, &#39;enriched&#39;, &#39; heu&#39;, &#39; leu&#39;, &#39;uranium&#39;, &#39;plutonium&#39;, &#39;uranyl&#39;]`)
+        appear in a material&#39;s name (case insensitive), the &#34;neutrons&#34; particle-formatted data is used (isotopic compositions specified); 
         otherwise, the &#34;photons&#34; particle format (natural abundances for elements) is used.
         
     Inputs:
@@ -1290,7 +1303,9 @@ update_materials_database_files(json_filepath,
                                 update_descriptive_file=True,
                                 update_MC_formated_files=True,
                                 update_general_MC_file=True,
-                                save_backup_list=True)
+                                save_backup_list=True,
+                                prefer_user_data_folder=True
+                                )
 &#39;&#39;&#39;
 
 &#39;&#39;&#39;
@@ -1312,7 +1327,31 @@ update_materials_database_files(json_filepath,
                                 update_descriptive_file=True,
                                 update_MC_formated_files=True,
                                 update_general_MC_file=True,
-                                save_backup_list=True)
+                                save_backup_list=True,
+                                prefer_user_data_folder=True)
+&#39;&#39;&#39;
+
+&#39;&#39;&#39;
+# Update the existing &#34;Compiled_MC_materials&#34; database
+json_filepath = &#34;Compiled_MC_materials&#34;
+name = &#39;Wood (Southern Pine, DOUBLE DENSITY) &#39;
+mat_str = &#39;1001  -0.059642 6000  -0.497018 7014  -0.004970 8016  -0.427435 12000  -0.001988 16000  -0.004970 19000  -0.001988 20000  -0.001988&#39;
+update_materials_database_files(json_filepath,
+                                name,
+                                mat_str,
+                                matid=359,
+                                density=2*0.64,
+                                source=&#39;DEMONSTRATION OF CHANGED MATERIAL ENTRY&#39;,
+                                source_short=&#39;TEST_DEMO&#39;,
+                                formula=None,
+                                molecular_weight=None,
+                                total_atom_density=None,
+                                new_database_base_name=None,
+                                update_descriptive_file=True,
+                                update_MC_formated_files=True,
+                                update_general_MC_file=True,
+                                save_backup_list=True,
+                                prefer_user_data_folder=True)
 &#39;&#39;&#39;</code></pre>
 </details>
 </section>
@@ -1379,6 +1418,12 @@ as generated by <code><a title="manage_mc_materials.write_general_mc_file" href=
 <li><code>save_backup_list</code> = (D=<code>True</code>) Boolean denoting whether an extra (timestamped) copy of the produced JSON
 materials list database file should also be saved separately in a "backup_lists" directory located in
 the same directory as <code>json_filepath</code>.</li>
+<li><code>prefer_user_data_folder</code> = (D=<code>True</code>) Boolean denoting whether this function should prioritize the local
+MC materials databases in your local <a href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.home"><code>"$HOME</code></a><code>/.PHITS-Tools/"</code>
+directory over those in the PHITS Tools distribution. If the local user directory does not yet exist,
+setting this to <code>True</code> will cause it to be created with a call of <code><a title="manage_mc_materials.setup_local_mc_materials_directory" href="#manage_mc_materials.setup_local_mc_materials_directory">setup_local_mc_materials_directory()</a></code>.
+This local directory is created to allow creation and curation of user MC materials databases locally without fear
+of being overwritten/deleted when updating PHITS Tools to a new version via <code>pip install PHITS-Tools --upgrade</code>.</li>
 </ul>
 <h2 id="outputs">Outputs</h2>
 <ul>
@@ -1389,7 +1434,9 @@ too as designated by <code>update_descriptive_file</code>, <code>update_MC_forma
 <h2 id="notes">Notes</h2>
 <p>Entries in the database are uniquely identified by their <code>matid</code> or the combination of <code>name</code> and <code>source</code>.
 If provided with a <code>matid</code> or <code>name</code> and <code>source</code> combination already present within the database, a prompt
-will appear asking whether the existing entry should be overwritten.</p></div>
+window, as pictured below (in this case, with <code>matid</code> specified), will appear showing both the old and new versions
+of the entry and asking for confirmation on whether the existing entry should be overwritten with the new one.</p>
+<p><img alt="" src="https://github.com/Lindt8/PHITS-Tools/blob/main/docs/update_MC_material_window.png?raw=true" title="Overwrite MC materials confirmation window"></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1451,6 +1498,12 @@ will appear asking whether the existing entry should be overwritten.</p></div>
         - `save_backup_list` = (D=`True`) Boolean denoting whether an extra (timestamped) copy of the produced JSON 
                 materials list database file should also be saved separately in a &#34;backup_lists&#34; directory located in 
                 the same directory as `json_filepath`.
+        - `prefer_user_data_folder` = (D=`True`) Boolean denoting whether this function should prioritize the local 
+                MC materials databases in your local [`&#34;$HOME`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home)`/.PHITS-Tools/&#34;` 
+                directory over those in the PHITS Tools distribution. If the local user directory does not yet exist, 
+                setting this to `True` will cause it to be created with a call of `setup_local_mc_materials_directory`.
+                This local directory is created to allow creation and curation of user MC materials databases locally without fear
+                of being overwritten/deleted when updating PHITS Tools to a new version via `pip install PHITS-Tools --upgrade`.
 
     Outputs:
     
@@ -1462,7 +1515,10 @@ will appear asking whether the existing entry should be overwritten.</p></div>
         
         Entries in the database are uniquely identified by their `matid` or the combination of `name` and `source`.
         If provided with a `matid` or `name` and `source` combination already present within the database, a prompt
-        will appear asking whether the existing entry should be overwritten.
+        window, as pictured below (in this case, with `matid` specified), will appear showing both the old and new versions 
+        of the entry and asking for confirmation on whether the existing entry should be overwritten with the new one.
+        
+        ![](https://github.com/Lindt8/PHITS-Tools/blob/main/docs/update_MC_material_window.png?raw=true &#34;Overwrite MC materials confirmation window&#34;)
         
     &#39;&#39;&#39;
     import datetime
@@ -1568,10 +1624,10 @@ will appear asking whether the existing entry should be overwritten.</p></div>
                         duplicate_entry_found = True
                         duplicate_entry_index = i
                         if not override_duplicate_name:
-                            print(&#39;\tIf your intent is to override that existing entry, please set &#34;override_duplicate_name = True&#34;&#39;)
+                            print(&#39;\tIf your intent is to overwrite that existing entry, please set &#34;override_duplicate_name = True&#34;&#39;)
                             sys.exit()
                         else:
-                            print(&#39;\tOverriding existing entry with new one.&#39;)
+                            print(&#39;\tOverwriting existing entry with new one, if &#34;Yes&#34; is selected.&#39;)
                     else:
                         if not override_duplicate_name:
                             print(&#39;\tNo sources conflict with this one, but stopping anyways.  Override this option by setting &#34;override_duplicate_name = True&#34;&#39;)
@@ -1733,11 +1789,13 @@ will appear asking whether the existing entry should be overwritten.</p></div>
     # With GUI, ask user to confirm overwriting of existing material
     if rewrite_existing_material or (add_new_material and duplicate_entry_found and override_duplicate_name):
         if rewrite_existing_material:
-            existing_mat_str = write_descripive_material_entry(all_mats_list[rewrite_matid - 1])
+            this_matid = rewrite_matid
         else:
-            existing_mat_str = write_descripive_material_entry(all_mats_list[duplicate_entry_index])
-        new_mat_str = write_descripive_material_entry(new_mat)
+            this_matid = duplicate_entry_index+1
+        existing_mat_str = write_descripive_material_entry(all_mats_list[this_matid - 1], this_matid)
+        new_mat_str = write_descripive_material_entry(new_mat, this_matid)
         r = tkinter.Tk()
+        r.title(&#34;Overwrite existing entry in &#34;+str(json_filepath)+&#34; ?&#34;)
         l1 = tkinter.Label(r, text=&#34;Would you like to overwrite the old entry (left) with the new entry (right)?&#34;)
         l1.grid(row=0, column=0, sticky=tkinter.W, padx=10, pady=10)
 
@@ -1907,7 +1965,6 @@ Compendium of Material Composition Data for Radiation Transport Modeling (Rev. 1
 to a Python dictionary object.
 The PNNL library's CSV file was obtained from PYNE:
 <a href="https://github.com/pyne/pyne/blob/develop/pyne/dbgen/materials_compendium.csv">https://github.com/pyne/pyne/blob/develop/pyne/dbgen/materials_compendium.csv</a></p>
-<h2 id="dependencies">Dependencies</h2>
 <h2 id="inputs">Inputs</h2>
 <ul>
 <li><code>path_to_materials_compendium_csv</code> = string or Path object denoting the path to the "materials_compendium.csv" file</li>
@@ -1928,9 +1985,6 @@ The PNNL library's CSV file was obtained from PYNE:
         to a Python dictionary object.
         The PNNL library&#39;s CSV file was obtained from PYNE:
         https://github.com/pyne/pyne/blob/develop/pyne/dbgen/materials_compendium.csv
-
-    Dependencies:
-
 
     Inputs:
         - `path_to_materials_compendium_csv` = string or Path object denoting the path to the &#34;materials_compendium.csv&#34; file
@@ -2167,7 +2221,7 @@ The PNNL library's CSV file was obtained from PYNE:
     for pi in range(len(pars)):
         par = pars[pi]
         entry_text += &#39;-&#39; * banner_width + &#39;\n&#39;
-        entry_text += &#39;  MCNP formatted ({}) \n&#39;.format(par)
+        entry_text += &#39;  PHITS/MCNP formatted ({}) \n&#39;.format(par)
         entry_text += &#39;     {:^17}     {:^17}     {:^17} \n&#39;.format(&#34;Weight Fractions&#34;, &#34;Atom Fractions&#34;,
                                                                     &#34;Atom Densities&#34;)
         for j in range(len(mat[par][&#39;weight fraction&#39;][&#39;ZA&#39;])):
@@ -2299,11 +2353,7 @@ If <code>True</code>, this file will have the same filepath as <code>lib_filepat
 </ul>
 <h2 id="outputs">Outputs</h2>
 <ul>
-<li>
-<ul>
 <li><code>None</code>; the materials text data will be saved to <code>lib_filepath</code>.</li>
-</ul>
-</li>
 </ul></div>
 <details class="source">
 <summary>
@@ -2324,7 +2374,7 @@ If <code>True</code>, this file will have the same filepath as <code>lib_filepat
              If `True`, this file will have the same filepath as `lib_filepath` but with `&#39;_index&#39;` appended to its basename. 
     
     Outputs:
-        - - `None`; the materials text data will be saved to `lib_filepath`.
+        - `None`; the materials text data will be saved to `lib_filepath`.
     &#39;&#39;&#39;
     lib_text = &#39;&#39;
     if header_text==&#39;&#39;:
@@ -2381,11 +2431,8 @@ If left blank (<code>''</code>), a default header string as defined at the start
 </ul>
 <h2 id="outputs">Outputs</h2>
 <ul>
-<li>
-<ul>
-<li><code>None</code>; the materials text data will be saved to <code>lib_filepath</code>.</li>
-</ul>
-</li>
+<li><code>None</code>; the materials text data will be saved to four files at <code>lib_filepath</code> with
+<code>_by_[atom/weight]_fraction_for_[neutrons/photons]</code> appended to the end of the filename.</li>
 </ul></div>
 <details class="source">
 <summary>
@@ -2406,7 +2453,8 @@ If left blank (<code>''</code>), a default header string as defined at the start
             If left blank (`&#39;&#39;`), a default header string as defined at the start of this function will be used.
         
     Outputs:
-        - - `None`; the materials text data will be saved to `lib_filepath`.
+        - `None`; the materials text data will be saved to four files at `lib_filepath` with 
+            `_by_[atom/weight]_fraction_for_[neutrons/photons]` appended to the end of the filename.
     &#39;&#39;&#39;
     cc = comment_char 
     if header_text==&#39;&#39;:
@@ -2449,8 +2497,8 @@ If left blank (<code>''</code>), a default header string as defined at the start
 This single file is a mix of concentration and particle formats as automatically selected for most general situations.
 If a material entry contains a chemical formula, its concentration will be specified by atom fraction; otherwise,
 weight fraction will be used.
-If any of the "neutron keywords" (<code>['depleted','enriched',' heu',' leu','uranium','plutonium','uranyl']</code>)
-appear in a material's name (case insensitive), the "neutrons" particle-formatted data is use (isotopic compositions specified);
+If any of the "neutron keywords" (<code>['depleted', 'enriched', ' heu', ' leu', 'uranium', 'plutonium', 'uranyl']</code>)
+appear in a material's name (case insensitive), the "neutrons" particle-formatted data is used (isotopic compositions specified);
 otherwise, the "photons" particle format (natural abundances for elements) is used.</p>
 <h2 id="inputs">Inputs</h2>
 <ul>
@@ -2474,8 +2522,8 @@ If left blank (<code>''</code>), a default header string as defined at the start
         Generates a text file of MCNP/PHITS-formatted materials section text blocks for a list of material dictionary objects.
         This single file is a mix of concentration and particle formats as automatically selected for most general situations.
         If a material entry contains a chemical formula, its concentration will be specified by atom fraction; otherwise, 
-        weight fraction will be used.  If any of the &#34;neutron keywords&#34; (`[&#39;depleted&#39;,&#39;enriched&#39;,&#39; heu&#39;,&#39; leu&#39;,&#39;uranium&#39;,&#39;plutonium&#39;,&#39;uranyl&#39;]`)
-        appear in a material&#39;s name (case insensitive), the &#34;neutrons&#34; particle-formatted data is use (isotopic compositions specified); 
+        weight fraction will be used.  If any of the &#34;neutron keywords&#34; (`[&#39;depleted&#39;, &#39;enriched&#39;, &#39; heu&#39;, &#39; leu&#39;, &#39;uranium&#39;, &#39;plutonium&#39;, &#39;uranyl&#39;]`)
+        appear in a material&#39;s name (case insensitive), the &#34;neutrons&#34; particle-formatted data is used (isotopic compositions specified); 
         otherwise, the &#34;photons&#34; particle format (natural abundances for elements) is used.
         
     Inputs:

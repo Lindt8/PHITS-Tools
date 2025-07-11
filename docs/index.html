@@ -3577,7 +3577,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
 
 
 def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=None,particle=None,matdict=None,
-                      database_filename=&#39;Compiled_MC_materials&#39;):
+                      database_filename=&#39;Compiled_MC_materials&#39;,prefer_user_data_folder=True):
     &#39;&#39;&#39;
     Description:
         Returns a materials definition string formatted for use in PHITS or MCNP (including a density estimate);
@@ -3589,14 +3589,14 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
     Dependencies:
         - Either PHITS Tools must be installed via `pip` (which automatically handles this) or your
                 PYTHONPATH environmental variable must be set and one entry must contain the directory
-                which contains the vital &#34;MC_materials/Compiled_MC_materials.json&#34; file.
+                which contains PHITS Tools and the vital &#34;MC_materials/Compiled_MC_materials.json&#34; file.
 
     Inputs:
        (required to enter `matid` OR `matname`, with `matid` taking priority if conflicting)
 
-       - `matid` = ID number in the &#34;Compiled_MC_materials&#34; file
-       - `matname` = exact name of material in &#34;Compiled_MC_materials&#34; file
-       - `matsource` = exact source of material in &#34;Compiled_MC_materials&#34; file, only used when multiple
+       - `matid` = ID number in the database specified by `database_filename`
+       - `matname` = exact name of material in the database specified by `database_filename`
+       - `matsource` = exact source of material in the database specified by `database_filename`, only used when multiple
                 materials have identical names
        - `concentration_type` = selection between `&#39;weight fraction&#39;` (default if no chemical formula is present in database; e.g., &#34;Incoloy-800&#34;) and
                 `&#39;atom fraction&#39;` (default if a chemical formula is present; e.g. &#34;Ethane&#34; (Formula = C2H6)) to be returned
@@ -3605,7 +3605,15 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
        - `matdict` = dictionary object of same format as entries in materials database; if this is provided, 
                 `matname` and `database_filename` are ignored, using the provided material dictionary entry instead.
        - `database_filename` = (D=`&#39;Compiled_MC_materials&#39;`) File basename of the database file to be pulled from.
-       
+       - `prefer_user_data_folder` = (D=`True`) Boolean denoting whether this function should prioritize the local 
+                MC materials databases in your local [`&#34;$HOME`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home)`/.PHITS-Tools/&#34;` 
+                directory over those in the PHITS Tools distribution, if the local user directory exists. For information 
+                on creation and modification of this local MC materials directory, see the [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html).
+                If `False` (or if `True` but no local user MC_materials directory exists), the MC_materials directory 
+                distributed with PHITS Tools will be used instead, searching for the location first using 
+                [`pkgutil.get_loader`](https://docs.python.org/3/library/pkgutil.html#pkgutil.get_loader)`(&#34;PHITS_tools&#34;).get_filename()`
+                then, failing that, the PYTHONPATH environmental variable.
+                
     Outputs:
        - `mat_str` = string containing the material&#39;s information, ready to be inserted directly into a PHITS/MCNP input file
     &#39;&#39;&#39;
@@ -3618,26 +3626,40 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
         return None
     
     if matdict is None:
-        # First, locate and open materials library
-        try:
-            lib_file = None
-            try: # First, check MC_materials folder distributed with PHITS Tools
-                phits_tools_module_path = pkgutil.get_loader(&#34;PHITS_tools&#34;).get_filename()
-                mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, &#39;MC_materials/&#39;)
-                if mc_materials_dir_path.exists():
-                    lib_file = Path(mc_materials_dir_path,database_filename)
-                else:
-                    print(&#39;Could not find the &#34;PHITS-Tools/MC_materials/&#34; directory containing the materials library JSON file.&#39;)
-            except: # Failing that, check PYTHONPATH
-                user_paths = os.environ[&#39;PYTHONPATH&#39;].split(os.pathsep)
-                for i in user_paths:
-                    if &#39;phits_tools&#39; in i.lower() or &#39;phits-tools&#39; in i.lower():
-                        lib_file = i + r&#39;\MC_materials\\&#39; + database_filename
-                if not lib_file:
-                    print(&#39;Could not find &#34;PHITS_tools&#34; folder in PYTHONPATH; this folder contains the vital &#34;MC_materials/Compiled_MC_materials.pkl&#34; file.&#39;)
-        except KeyError:
-            print(&#39;The PYTHONPATH environmental variable must be defined and contain the path to the directory holding &#34;MC_materials/Compiled_MC_materials.pkl&#34;&#39;)
-            return None
+        # First, check if a local directory exists and contains this file
+        user_data_dir = Path.home() / &#39;.PHITS-Tools&#39; / &#39;MC_materials/&#39;
+        if prefer_user_data_folder and user_data_dir.exists():
+            lib_file = Path(user_data_dir, database_filename)
+            lib_file_json = Path(user_data_dir, database_filename + &#39;.json&#39;)
+            if not lib_file_json.exists():
+                print(&#39;ERROR: Could not find the materials library JSON file:&#39;, lib_file_json)
+                return None
+        else:  # Otherwise, try to locate and open materials library from distribution files
+            try:
+                lib_file = None
+                try: # First, check MC_materials folder distributed with PHITS Tools
+                    phits_tools_module_path = pkgutil.get_loader(&#34;PHITS_tools&#34;).get_filename()
+                    mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, &#39;MC_materials/&#39;)
+                    if mc_materials_dir_path.exists():
+                        lib_file = Path(mc_materials_dir_path,database_filename)
+                        lib_file_json = lib_file.parent / (lib_file.stem + &#39;.json&#39;)
+                        if not lib_file_json.exists():
+                            print(&#39;ERROR: Could not find the materials library JSON file:&#39;, lib_file_json)
+                            return None
+                    else:
+                        print(&#39;ERROR: Could not find the &#34;PHITS-Tools/MC_materials/&#34; directory containing the materials library JSON file.&#39;)
+                        return None
+                except: # Failing that, check PYTHONPATH
+                    user_paths = os.environ[&#39;PYTHONPATH&#39;].split(os.pathsep)
+                    for i in user_paths:
+                        if &#39;phits_tools&#39; in i.lower() or &#39;phits-tools&#39; in i.lower():
+                            lib_file = i + r&#39;\MC_materials\\&#39; + database_filename
+                    if not lib_file:
+                        print(&#39;ERROR: Could not find &#34;PHITS_tools&#34; folder in PYTHONPATH; this folder contains the vital &#34;MC_materials/Compiled_MC_materials.json&#34; file.&#39;)
+                        return None
+            except KeyError:
+                print(&#39;ERROR: If PHITS Tools is not installed with pip, the PYTHONPATH environmental variable must be defined and contain the path to the directory holding &#34;MC_materials/Compiled_MC_materials.json&#34;&#39;)
+                return None
     
         # Load materials library
         lib_file = Path(lib_file)
@@ -3771,6 +3793,7 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
     entry_text  += cc+&#39;*&#39;*banner_width + &#39;\n&#39;
 
     return entry_text
+
 
 def ICRP116_effective_dose_coeff(E=1.0,particle=&#39;photon&#39;,geometry=&#39;AP&#39;,interp_scale=&#39;log&#39;,interp_type=&#39;cubic&#39;,extrapolation_on=False):
     &#39;&#39;&#39;
@@ -6625,7 +6648,6 @@ def extract_tally_outputs_from_phits_input(phits_input, use_path_and_string_mode
                     dump_files_for_this_tally = list(set(file_path.parent.glob(file_path.stem+&#34;_dmp*&#34;))-set(file_path.parent.glob(file_path.stem+&#34;*.pickle*&#34;)))
                     files_dict[&#39;dump_output&#39;] += dump_files_for_this_tally
     return files_dict
-
 
 
 
@@ -11474,7 +11496,7 @@ the <code>sns.relplot()</code> call) using a default DPI of 300 (controlled by t
 </details>
 </dd>
 <dt id="PHITS_tools.fetch_MC_material"><code class="name flex">
-<span>def <span class="ident">fetch_MC_material</span></span>(<span>matid=None, matname=None, matsource=None, concentration_type=None, particle=None, matdict=None, database_filename='Compiled_MC_materials')</span>
+<span>def <span class="ident">fetch_MC_material</span></span>(<span>matid=None, matname=None, matsource=None, concentration_type=None, particle=None, matdict=None, database_filename='Compiled_MC_materials', prefer_user_data_folder=True)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="description">Description</h2>
@@ -11487,14 +11509,14 @@ for more detailed information and instructions on managing the materials databas
 <ul>
 <li>Either PHITS Tools must be installed via <code>pip</code> (which automatically handles this) or your
 PYTHONPATH environmental variable must be set and one entry must contain the directory
-which contains the vital "MC_materials/Compiled_MC_materials.json" file.</li>
+which contains PHITS Tools and the vital "MC_materials/Compiled_MC_materials.json" file.</li>
 </ul>
 <h2 id="inputs">Inputs</h2>
 <p>(required to enter <code>matid</code> OR <code>matname</code>, with <code>matid</code> taking priority if conflicting)</p>
 <ul>
-<li><code>matid</code> = ID number in the "Compiled_MC_materials" file</li>
-<li><code>matname</code> = exact name of material in "Compiled_MC_materials" file</li>
-<li><code>matsource</code> = exact source of material in "Compiled_MC_materials" file, only used when multiple
+<li><code>matid</code> = ID number in the database specified by <code>database_filename</code></li>
+<li><code>matname</code> = exact name of material in the database specified by <code>database_filename</code></li>
+<li><code>matsource</code> = exact source of material in the database specified by <code>database_filename</code>, only used when multiple
 materials have identical names</li>
 <li><code>concentration_type</code> = selection between <code>'weight fraction'</code> (default if no chemical formula is present in database; e.g., "Incoloy-800") and
 <code>'atom fraction'</code> (default if a chemical formula is present; e.g. "Ethane" (Formula = C2H6)) to be returned</li>
@@ -11503,6 +11525,14 @@ Note that if "enriched" or "depleted" appears in the material's name, particle=<
 <li><code>matdict</code> = dictionary object of same format as entries in materials database; if this is provided,
 <code>matname</code> and <code>database_filename</code> are ignored, using the provided material dictionary entry instead.</li>
 <li><code>database_filename</code> = (D=<code>'Compiled_MC_materials'</code>) File basename of the database file to be pulled from.</li>
+<li><code>prefer_user_data_folder</code> = (D=<code>True</code>) Boolean denoting whether this function should prioritize the local
+MC materials databases in your local <a href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.home"><code>"$HOME</code></a><code>/.PHITS-Tools/"</code>
+directory over those in the PHITS Tools distribution, if the local user directory exists. For information
+on creation and modification of this local MC materials directory, see the <a href="https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html"><strong><code>PHITS_tools.manage_mc_materials</code> submodule documentation</strong></a>.
+If <code>False</code> (or if <code>True</code> but no local user MC_materials directory exists), the MC_materials directory
+distributed with PHITS Tools will be used instead, searching for the location first using
+<a href="https://docs.python.org/3/library/pkgutil.html#pkgutil.get_loader"><code>pkgutil.get_loader</code></a><code>("PHITS_tools").get_filename()</code>
+then, failing that, the PYTHONPATH environmental variable.</li>
 </ul>
 <h2 id="outputs">Outputs</h2>
 <ul>
@@ -11513,7 +11543,7 @@ Note that if "enriched" or "depleted" appears in the material's name, particle=<
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=None,particle=None,matdict=None,
-                      database_filename=&#39;Compiled_MC_materials&#39;):
+                      database_filename=&#39;Compiled_MC_materials&#39;,prefer_user_data_folder=True):
     &#39;&#39;&#39;
     Description:
         Returns a materials definition string formatted for use in PHITS or MCNP (including a density estimate);
@@ -11525,14 +11555,14 @@ Note that if "enriched" or "depleted" appears in the material's name, particle=<
     Dependencies:
         - Either PHITS Tools must be installed via `pip` (which automatically handles this) or your
                 PYTHONPATH environmental variable must be set and one entry must contain the directory
-                which contains the vital &#34;MC_materials/Compiled_MC_materials.json&#34; file.
+                which contains PHITS Tools and the vital &#34;MC_materials/Compiled_MC_materials.json&#34; file.
 
     Inputs:
        (required to enter `matid` OR `matname`, with `matid` taking priority if conflicting)
 
-       - `matid` = ID number in the &#34;Compiled_MC_materials&#34; file
-       - `matname` = exact name of material in &#34;Compiled_MC_materials&#34; file
-       - `matsource` = exact source of material in &#34;Compiled_MC_materials&#34; file, only used when multiple
+       - `matid` = ID number in the database specified by `database_filename`
+       - `matname` = exact name of material in the database specified by `database_filename`
+       - `matsource` = exact source of material in the database specified by `database_filename`, only used when multiple
                 materials have identical names
        - `concentration_type` = selection between `&#39;weight fraction&#39;` (default if no chemical formula is present in database; e.g., &#34;Incoloy-800&#34;) and
                 `&#39;atom fraction&#39;` (default if a chemical formula is present; e.g. &#34;Ethane&#34; (Formula = C2H6)) to be returned
@@ -11541,7 +11571,15 @@ Note that if "enriched" or "depleted" appears in the material's name, particle=<
        - `matdict` = dictionary object of same format as entries in materials database; if this is provided, 
                 `matname` and `database_filename` are ignored, using the provided material dictionary entry instead.
        - `database_filename` = (D=`&#39;Compiled_MC_materials&#39;`) File basename of the database file to be pulled from.
-       
+       - `prefer_user_data_folder` = (D=`True`) Boolean denoting whether this function should prioritize the local 
+                MC materials databases in your local [`&#34;$HOME`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home)`/.PHITS-Tools/&#34;` 
+                directory over those in the PHITS Tools distribution, if the local user directory exists. For information 
+                on creation and modification of this local MC materials directory, see the [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html).
+                If `False` (or if `True` but no local user MC_materials directory exists), the MC_materials directory 
+                distributed with PHITS Tools will be used instead, searching for the location first using 
+                [`pkgutil.get_loader`](https://docs.python.org/3/library/pkgutil.html#pkgutil.get_loader)`(&#34;PHITS_tools&#34;).get_filename()`
+                then, failing that, the PYTHONPATH environmental variable.
+                
     Outputs:
        - `mat_str` = string containing the material&#39;s information, ready to be inserted directly into a PHITS/MCNP input file
     &#39;&#39;&#39;
@@ -11554,26 +11592,40 @@ Note that if "enriched" or "depleted" appears in the material's name, particle=<
         return None
     
     if matdict is None:
-        # First, locate and open materials library
-        try:
-            lib_file = None
-            try: # First, check MC_materials folder distributed with PHITS Tools
-                phits_tools_module_path = pkgutil.get_loader(&#34;PHITS_tools&#34;).get_filename()
-                mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, &#39;MC_materials/&#39;)
-                if mc_materials_dir_path.exists():
-                    lib_file = Path(mc_materials_dir_path,database_filename)
-                else:
-                    print(&#39;Could not find the &#34;PHITS-Tools/MC_materials/&#34; directory containing the materials library JSON file.&#39;)
-            except: # Failing that, check PYTHONPATH
-                user_paths = os.environ[&#39;PYTHONPATH&#39;].split(os.pathsep)
-                for i in user_paths:
-                    if &#39;phits_tools&#39; in i.lower() or &#39;phits-tools&#39; in i.lower():
-                        lib_file = i + r&#39;\MC_materials\\&#39; + database_filename
-                if not lib_file:
-                    print(&#39;Could not find &#34;PHITS_tools&#34; folder in PYTHONPATH; this folder contains the vital &#34;MC_materials/Compiled_MC_materials.pkl&#34; file.&#39;)
-        except KeyError:
-            print(&#39;The PYTHONPATH environmental variable must be defined and contain the path to the directory holding &#34;MC_materials/Compiled_MC_materials.pkl&#34;&#39;)
-            return None
+        # First, check if a local directory exists and contains this file
+        user_data_dir = Path.home() / &#39;.PHITS-Tools&#39; / &#39;MC_materials/&#39;
+        if prefer_user_data_folder and user_data_dir.exists():
+            lib_file = Path(user_data_dir, database_filename)
+            lib_file_json = Path(user_data_dir, database_filename + &#39;.json&#39;)
+            if not lib_file_json.exists():
+                print(&#39;ERROR: Could not find the materials library JSON file:&#39;, lib_file_json)
+                return None
+        else:  # Otherwise, try to locate and open materials library from distribution files
+            try:
+                lib_file = None
+                try: # First, check MC_materials folder distributed with PHITS Tools
+                    phits_tools_module_path = pkgutil.get_loader(&#34;PHITS_tools&#34;).get_filename()
+                    mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, &#39;MC_materials/&#39;)
+                    if mc_materials_dir_path.exists():
+                        lib_file = Path(mc_materials_dir_path,database_filename)
+                        lib_file_json = lib_file.parent / (lib_file.stem + &#39;.json&#39;)
+                        if not lib_file_json.exists():
+                            print(&#39;ERROR: Could not find the materials library JSON file:&#39;, lib_file_json)
+                            return None
+                    else:
+                        print(&#39;ERROR: Could not find the &#34;PHITS-Tools/MC_materials/&#34; directory containing the materials library JSON file.&#39;)
+                        return None
+                except: # Failing that, check PYTHONPATH
+                    user_paths = os.environ[&#39;PYTHONPATH&#39;].split(os.pathsep)
+                    for i in user_paths:
+                        if &#39;phits_tools&#39; in i.lower() or &#39;phits-tools&#39; in i.lower():
+                            lib_file = i + r&#39;\MC_materials\\&#39; + database_filename
+                    if not lib_file:
+                        print(&#39;ERROR: Could not find &#34;PHITS_tools&#34; folder in PYTHONPATH; this folder contains the vital &#34;MC_materials/Compiled_MC_materials.json&#34; file.&#39;)
+                        return None
+            except KeyError:
+                print(&#39;ERROR: If PHITS Tools is not installed with pip, the PYTHONPATH environmental variable must be defined and contain the path to the directory holding &#34;MC_materials/Compiled_MC_materials.json&#34;&#39;)
+                return None
     
         # Load materials library
         lib_file = Path(lib_file)
