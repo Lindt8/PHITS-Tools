@@ -12,7 +12,7 @@ import subprocess
 
 # PHITS Tools version number for PyPI release and appearing in the documentation.
 # https://packaging.python.org/en/latest/specifications/version-specifiers/#pre-releases
-VERSION_NUMBER = '1.6.0b1'
+VERSION_NUMBER = '1.6.0b2'
 
 build_release = True  # If True, execute "py -m build" at the end of this script
 
