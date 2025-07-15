@@ -7,9 +7,14 @@ and organizing of files for builing of a release of PHITS Tools.
 import pdoc
 import shutil
 import re
+import sys
+import subprocess
 
 # PHITS Tools version number for PyPI release and appearing in the documentation.
-VERSION_NUMBER = '1.6.0-beta.1'
+# https://packaging.python.org/en/latest/specifications/version-specifiers/#pre-releases
+VERSION_NUMBER = '1.6.0b1'
+
+build_release = True  # If True, execute "py -m build" at the end of this script
 
 # Build documentation following pdoc instructions: https://pdoc3.github.io/pdoc/doc/pdoc/#programmatic-usage
 modules = ['PHITS_tools']
@@ -54,3 +59,7 @@ with open('pyproject.toml','r') as file:
             lines[li] = 'version = "' + VERSION_NUMBER + '"\n'
 with open('pyproject.toml', 'w') as file:
     file.writelines(lines)
+    
+# Build the release
+if build_release:
+    subprocess.run([sys.executable, "-m", "build"])
