@@ -653,6 +653,33 @@ def setup_local_mc_materials_directory(phits_tools_module_path=None):
             # and then copy contents of the distributed MC_materials directory into it
             shutil.copytree(mc_materials_dist_path, user_data_dir, ignore=shutil.ignore_patterns('__*__'))
             print('Copied contents of', mc_materials_dist_path, 'to new local directory', user_data_dir)
+            
+            # With only JSON files distributed, go ahead and create the text files for the local database
+            print('Creating local .txt versions of default MC materials databases...')
+            # PNNL base library
+            #mat_list = pnnl_lib_csv_to_dict_list(path_to_materials_compendium_csv=mc_materials_dist_path/'materials_compendium.csv')
+            #materials_dict_list_to_json(mat_list, json_filepath=mc_materials_dist_path/'PNNL_materials_compendium.json')
+            mat_list = materials_json_to_dict_list(json_filepath=user_data_dir/'PNNL_materials_compendium.json')
+            header_text = 'This file was assembled from the Compendium of Material Composition Data for' + '\n'
+            header_text += 'Radiation Transport Modeling (Rev. 1), PNNL-15870 Rev. 1, published by the' + '\n'
+            header_text += 'Pacific Northwest National Laboratory.' + '\n'
+            header_text += 'This file seeks to just compile the core information of the compendium in an' + '\n'
+            header_text += 'easily accessible plain-text format.  The full document can be found at: ' + '\n'
+            header_text += r'https://www.pnnl.gov/main/publications/external/technical_reports/PNNL-15870Rev1.pdf' + '\n'
+            if not (user_data_dir/'PNNL_materials_compendium.txt').exists():
+                write_descriptive_file(mat_list, lib_filepath=user_data_dir/'PNNL_materials_compendium.txt', header_text=header_text)
+            if not (user_data_dir / 'PNNL_materials_compendium_by_atom_fraction_for_neutrons.txt').exists():
+                write_mc_formated_files(mat_list, lib_filepath=user_data_dir/'PNNL_materials_compendium.txt', header_text=header_text)
+            if not (user_data_dir / 'PNNL_materials_compendium_general.txt').exists():
+                write_general_mc_file(mat_list, lib_filepath=user_data_dir/'PNNL_materials_compendium_general.txt', header_text=header_text)
+            # User-customized library
+            mat_list = materials_json_to_dict_list(json_filepath=user_data_dir/'Compiled_MC_materials.json')
+            if not (user_data_dir/'Compiled_MC_materials.txt').exists():
+                write_descriptive_file(mat_list, lib_filepath=user_data_dir/'Compiled_MC_materials.txt')
+            if not (user_data_dir / 'Compiled_MC_materials_by_atom_fraction_for_neutrons.txt').exists():
+                write_mc_formated_files(mat_list, lib_filepath=user_data_dir/'Compiled_MC_materials.txt')
+            if not (user_data_dir / 'Compiled_MC_materials_general.txt').exists():
+                write_general_mc_file(mat_list, lib_filepath=user_data_dir/'Compiled_MC_materials_general.txt')
     return user_data_dir
 
 
@@ -1078,7 +1105,7 @@ def write_general_mc_file(mat_list,lib_filepath=Path(Path.cwd(),'MC_materials_ge
 
 
 
-
+setup_local_mc_materials_directory()
 '''
 # Generate the JSON file and descriptive text file for the PNNL library
 mat_list = pnnl_lib_csv_to_dict_list()
