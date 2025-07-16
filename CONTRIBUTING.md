@@ -16,6 +16,15 @@ If you find anything in the [PHITS Tools documentation](https://lindt8.github.io
 If you would like to contribute a new function or changes to any existing functions, feel free to fork this repository, make a new branch with your additions/changes, and make a pull request.  (GitHub has a [nice short guide](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project) on this process.)
 
 
+## Note about DCHAIN Tools and Git Submodules
+Note that [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools) is included in PHITS Tools as a [Git Submodule](https://gist.github.com/gitaarik/8735255), and this has some implications.  First, any development for DCHAIN Tools should be pointed at the [DCHAIN Tools repository](https://github.com/Lindt8/DCHAIN-Tools) instead of here.  (Feel free to make suggestions for it in Issues either here or there, though with a preference for the DCHAIN Tools repo.)
+
+If you wish to clone the PHITS-Tools repository and also grab the DCHAIN-Tools files, you need to add the `--recurse-submodules` flag to your `clone` command. 
+
+`gh repo clone https://github.com/Lindt8/PHITS-Tools -- --recurse-submodules`
+
+
+
 <!--
 
 ## Testing, reporting issues, and contributing

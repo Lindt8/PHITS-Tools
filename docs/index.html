@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>PHITS_tools API documentation</title>
-<meta name="description" content="This module contains a variety of tools used for parsing PHITS output files …" />
+<meta name="description" content="This module contains a variety of tools used for parsing PHITS output files and processing their contents …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,7 +22,7 @@
 <h1 class="title">Module <code>PHITS_tools</code> <i><small>(v1.6.0b2)</small></i></h1>
 </header>
 <section id="section-intro">
-<p>This module contains a variety of tools used for parsing PHITS output files.</p>
+<p>This module contains a variety of tools used for parsing PHITS output files and processing their contents.</p>
 <p>Specifically, it seeks to be a (nearly) universal PHITS output parser, supporting output from
 all tallies, both normal "standard" output as well as dump file outputs (in ASCII and binary formats).
 It is also capable of automatically parsing all such PHITS output files in a directory or listed in
@@ -30,7 +30,22 @@ active tallies inside of a PHITS input file.
 If a DCHAIN input file (output from the [T-Dchain] tally) or DCHAIN output <code>*.act</code> file is provided
 to the main tally output processing function, an attempt will be made to import the <a href="https://github.com/Lindt8/DCHAIN-Tools">DCHAIN Tools module</a>
 and process the found DCHAIN output files too.</p>
-<p>The functions contained in this module and brief descriptions of their functions are included below.
+<p>On this note, the PHITS Tools package consists of one main module (this one, <code>PHITS_tools.py</code>) and two submodules,
+listed below with their separate documentation linked. If you have installed the package via <code>pip install PHITS-Tools</code>,
+these should work and be accessed as shown without any additional configuration required.</p>
+<ul>
+<li><a href="https://github.com/Lindt8/DCHAIN-Tools">DCHAIN Tools submodule: <code>dchain_tools.py</code></a><ul>
+<li><a href="https://lindt8.github.io/DCHAIN-Tools/"><strong><code>PHITS_tools.dchain_tools</code> submodule documentation</strong></a></li>
+<li>Can be accessed with: <code>from <a title="PHITS_tools" href="#PHITS_tools">PHITS_tools</a> import dchain_tools</code> </li>
+</ul>
+</li>
+<li><a href="https://github.com/Lindt8/PHITS-Tools/blob/main/MC_materials">Monte Carlo materials management submodule: <code>manage_mc_materials.py</code></a><ul>
+<li><a href="https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html"><strong><code>PHITS_tools.manage_mc_materials</code> submodule documentation</strong></a></li>
+<li>Can be accessed with: <code>from <a title="PHITS_tools" href="#PHITS_tools">PHITS_tools</a> import <a title="manage_mc_materials" href="manage_mc_materials.html">manage_mc_materials</a></code> </li>
+</ul>
+</li>
+</ul>
+<p>The functions contained in this main <code><a title="PHITS_tools" href="#PHITS_tools">PHITS_tools</a></code> module and brief descriptions of their functions are included below.
 However, provided first is a description of the three different ways one can use and interface with this module.</p>
 <h3 id="how-to-use-the-phits_toolspy-module"><strong>How to use the PHITS_tools.py module</strong></h3>
 <p>There are three main ways one can use this Python module:</p>
@@ -279,7 +294,7 @@ also including an entry with a dictionary of information on the corresponding PH
 </summary>
 <pre><code class="python">r&#39;&#39;&#39;
 
-This module contains a variety of tools used for parsing PHITS output files.
+This module contains a variety of tools used for parsing PHITS output files and processing their contents.
 
 Specifically, it seeks to be a (nearly) universal PHITS output parser, supporting output from
 all tallies, both normal &#34;standard&#34; output as well as dump file outputs (in ASCII and binary formats).
@@ -289,7 +304,18 @@ If a DCHAIN input file (output from the [T-Dchain] tally) or DCHAIN output `*.ac
 to the main tally output processing function, an attempt will be made to import the [DCHAIN Tools module](https://github.com/Lindt8/DCHAIN-Tools)
 and process the found DCHAIN output files too.
 
-The functions contained in this module and brief descriptions of their functions are included below.
+On this note, the PHITS Tools package consists of one main module (this one, `PHITS_tools.py`) and two submodules, 
+listed below with their separate documentation linked. If you have installed the package via `pip install PHITS-Tools`, 
+these should work and be accessed as shown without any additional configuration required.
+
+- [DCHAIN Tools submodule: `dchain_tools.py`](https://github.com/Lindt8/DCHAIN-Tools)
+    - [**`PHITS_tools.dchain_tools` submodule documentation**](https://lindt8.github.io/DCHAIN-Tools/)
+    - Can be accessed with: `from PHITS_tools import dchain_tools` 
+- [Monte Carlo materials management submodule: `manage_mc_materials.py`](https://github.com/Lindt8/PHITS-Tools/blob/main/MC_materials)
+    - [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html)
+    - Can be accessed with: `from PHITS_tools import manage_mc_materials` 
+
+The functions contained in this main `PHITS_tools` module and brief descriptions of their functions are included below.
 However, provided first is a description of the three different ways one can use and interface with this module.
 
 ### **How to use the PHITS_tools.py module**
@@ -871,7 +897,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        
        For more control over settings for processing DCHAIN output, you can manually use the separate suite of parsing
        functions included in the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools) module (and also available within 
-       PHITS Tools as `import PHITS_tools.dchain_tools as dchain_tools`).
+       PHITS Tools as `import PHITS_tools.dchain_tools as dchain_tools` / `from PHITS_tools import dchain_tools`).
        
 
     &#39;&#39;&#39;
@@ -7856,7 +7882,7 @@ are found, then only the <code>*_dtrk.pickle[.xz]</code>/<code>*_dyld.pickle[.xz
 saved if present when the <code>*.act</code> file is found too.)</p>
 <p>For more control over settings for processing DCHAIN output, you can manually use the separate suite of parsing
 functions included in the <a href="https://github.com/Lindt8/DCHAIN-Tools">DCHAIN Tools</a> module (and also available within
-PHITS Tools as <code>import PHITS_tools.dchain_tools as dchain_tools</code>).</p></div>
+PHITS Tools as <code>import PHITS_tools.dchain_tools as dchain_tools</code> / <code>from <a title="PHITS_tools" href="#PHITS_tools">PHITS_tools</a> import dchain_tools</code>).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -8187,7 +8213,7 @@ PHITS Tools as <code>import PHITS_tools.dchain_tools as dchain_tools</code>).</p
        
        For more control over settings for processing DCHAIN output, you can manually use the separate suite of parsing
        functions included in the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools) module (and also available within 
-       PHITS Tools as `import PHITS_tools.dchain_tools as dchain_tools`).
+       PHITS Tools as `import PHITS_tools.dchain_tools as dchain_tools` / `from PHITS_tools import dchain_tools`).
        
 
     &#39;&#39;&#39;
