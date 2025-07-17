@@ -603,7 +603,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        
        For more control over settings for processing DCHAIN output, you can manually use the separate suite of parsing
        functions included in the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools) module (and also available within 
-       PHITS Tools as `import PHITS_tools.dchain_tools as dchain_tools` / `from PHITS_tools import dchain_tools`).
+       PHITS Tools as `from PHITS_tools import dchain_tools` / `from PHITS_tools.dchain_tools import *`).
        
 
     '''
