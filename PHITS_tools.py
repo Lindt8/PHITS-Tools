@@ -67,8 +67,8 @@ functions return the data objects they produce for your own further analyses.
 - `ZZZAAAM_to_nuclide_plain_str`    : returns a nuclide plaintext string for a given "ZZZAAAM" number (1000Z+10A+M)
 - `nuclide_plain_str_to_ZZZAAAM`    : returns a "ZZZAAAM" number (1000Z+10A+M) for a given nuclide plaintext string 
 - `nuclide_plain_str_to_latex_str`  : convert a plaintext string for a nuclide to a LaTeX formatted raw string
-- `Element_Z_to_Sym`                : return an elemental symbol string given its proton number Z
-- `Element_Sym_to_Z`                : returns an atomic number Z provided the elemental symbol
+- `element_Z_to_symbol`             : return an elemental symbol string given its proton number Z
+- `element_symbol_to_Z`             : returns an atomic number Z provided the elemental symbol
 - `kfcode_to_common_name`           : converts a particle kf-code to a plaintext string
 - `is_number`                       : returns Boolean denoting whether provided string is that of a number
 - `find`                            : return index of the first instance of a value in a list
@@ -3515,7 +3515,7 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
 
         Z = int(str(ZZZAAA)[:-3])
         A = str(ZZZAAA)[-3:]
-        sym = Element_Z_to_Sym(Z)
+        sym = element_Z_to_symbol(Z)
         if A != '000':
             isotope = sym+'-'+A.lstrip('0')
         else:
@@ -3889,7 +3889,7 @@ def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter=
         Converts a plaintext string of a nuclide from an integer ZZZAAAM = 10000&ast;Z + 10&ast;A + M
 
     Dependencies:
-        `Element_Z_to_Sym` (function within the "PHITS Tools" package)
+        `element_Z_to_symbol` (function within the "PHITS Tools" package)
 
     Input:
        - `ZZZAAAM` = integer equal to 10000&ast;Z + 10&ast;A + M, where M designates the metastable state (0=ground)
@@ -3906,7 +3906,7 @@ def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter=
     m = ZZZAAAM % 10
     A = (ZZZAAAM % 10000) // 10
     Z = ZZZAAAM // 10000
-    symbol = Element_Z_to_Sym(Z)
+    symbol = element_Z_to_symbol(Z)
 
     m_str = ''
     if m>0:
@@ -3925,7 +3925,7 @@ def nuclide_plain_str_to_ZZZAAAM(nuc_str):
         Converts a plaintext string of a nuclide to an integer ZZZAAAM = 10000\*Z + 10\*A + M
 
     Dependencies:
-        `Element_Z_to_Sym`
+        `element_Z_to_symbol`
 
     Inputs:
        - `nuc_str` = string to be converted; a huge variety of formats are supported, but they all must follow the following rules:
@@ -4023,7 +4023,7 @@ def nuclide_plain_str_to_ZZZAAAM(nuc_str):
     elif symbol == 'p' or symbol == 'd' or symbol == 't':
         Z = 1
     else:
-        Z = Element_Sym_to_Z(symbol)
+        Z = element_symbol_to_Z(symbol)
 
     A = int(mass)
 
@@ -4055,7 +4055,7 @@ def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
         Note: if you already have the Z, A, and isomeric state information determined, the "nuclide_to_Latex_form" function can be used instead
 
     Dependencies:
-        - `Element_Z_to_Sym` (function within the "PHITS Tools" package) (only required if `include_Z = True`)
+        - `element_Z_to_symbol` (function within the "PHITS Tools" package) (only required if `include_Z = True`)
 
     Input:
         (required)
@@ -4166,7 +4166,7 @@ def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
         elif symbol == 'p' or symbol == 'd' or symbol == 't':
             Z = 1
         else:
-            Z = Element_Sym_to_Z(symbol)
+            Z = element_symbol_to_Z(symbol)
         Z = str(int(Z))
         tex_str = r"$^{{{}{}}}_{{{}}}$".format(mass,isost,Z) + "{}".format(symbol)
     else:
@@ -4175,7 +4175,7 @@ def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
     return tex_str
 
 
-def Element_Z_to_Sym(Z):
+def element_Z_to_symbol(Z):
     '''
     Description:
         Returns elemental symbol for a provided atomic number Z
@@ -4205,7 +4205,7 @@ def Element_Z_to_Sym(Z):
         return None
     return elms[i].strip()
 
-def Element_Sym_to_Z(sym):
+def element_symbol_to_Z(sym):
     '''
     Description:
         Returns atomic number Z for a provided elemental symbol
@@ -4253,6 +4253,8 @@ def Element_Sym_to_Z(sym):
         return -1
 
     return Z
+
+
 
 def kfcode_to_common_name(kf_code):
     '''
@@ -6382,7 +6384,17 @@ def extract_tally_outputs_from_phits_input(phits_input, use_path_and_string_mode
     return files_dict
 
 
+def Element_Z_to_Sym(Z):
+    '''
+    This function is a wrapper for `element_Z_to_symbol`
+    '''
+    return element_Z_to_symbol(Z)
 
+def Element_Sym_to_Z(sym):
+    '''
+    This function is a wrapper for `element_symbol_to_Z`
+    '''
+    return element_symbol_to_Z(sym)
 
 
 
