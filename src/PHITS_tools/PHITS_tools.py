@@ -44,6 +44,17 @@ There are three main ways one can use this Python module:
           a GUI will be launched to step you through selecting what "mode" you would like to run PHITS Tools in (`STANDARD`, `DUMP`, `DIRECTORY`, or `INPUT_FILE`),
           selecting a file to be parsed (or a directory containing multiple files to be parsed), and the various options for each mode.
 
+Furthermore, if you have installed PHITS Tools via `pip install PHITS-Tools`, you will have access to the following 
+commands that can be used in place of `python PHITS_tools.py` in the terminal: 
+
+- `PHITS-Tools`, `PHITS_tools`, and `phits-tools`
+
+Additionally, an executable called `PHITS-Tools-GUI` is also created which can be ran (either in terminal or via 
+double-clicking it like any other executable file) to launch the GUI.  If you prefer using the GUI, it may be convenient 
+to create a shortcut to this executable and place the shortcut somewhere easily accessible like your Desktop. 
+The executable will be located in your Python installation's "Scripts" folder; you can find it easily with `where PHITS-Tools-GUI` (Windows), 
+`which PHITS-Tools-GUI` (macOS/Linux), or `python -c "import sysconfig; print(sysconfig.get_paths()['scripts'])"` (all platforms).
+
 The CLI and GUI options result in the parsed file's contents being saved to a pickle file, which can be reopened
 and used later in a Python script.  When using the main functions below within a Python script which has imported the PHITS_tools
 module, you can optionally choose not to save the pickle files (if desired) and only have the tally output/dump parsing
@@ -149,12 +160,17 @@ On Windows, using "phits/bin/phits.bat":
 - Scroll down toward the bottom of the script, to the section with the line `rem - Your file processing starts here.`
 - After the if statement (right before the `rem - Your file processing ends here` line), insert a new line with the following command:
 - `python "C:\path\locating\PHITS_Tools\PHITS_tools.py" "%%~nxF" -po -m -d -ddir -ddeg -lzma -p -pa`
+- Or, if PHITS Tools was installed with `pip`, `python "C:\path\locating\PHITS_Tools\PHITS_tools.py"` can be replaced with `phits-tools` as:
+    - `phits-tools "%%~nxF" -po -m -d -ddir -ddeg -lzma -p -pa`
 
 On Linux/Mac, using "phits/bin/phits.sh":
 
 - Scroll down toward the bottom of the script, to the section titled `# Run PHITS`
 - On the line after the end of the if statement `fi`, add the following command:
 - `python "/path/locating/PHITS_Tools/PHITS_tools.py" $1 -po -m -d -ddir -ddeg -lzma -p -pa`
+- Or, if PHITS Tools was installed with `pip`, `python "/path/locating/PHITS_Tools/PHITS_tools.py"` can be replaced with `phits-tools` as:
+    - `phits-tools $1 -po -m -d -ddir -ddeg -lzma -p -pa`
+
 
 (Of course, if necessary, replace "`python`" with however you typically call python in your environment, e.g. `py`, `python3`, etc.)
 
@@ -6398,7 +6414,27 @@ def Element_Sym_to_Z(sym):
 
 
 
-if run_with_CLI_inputs:
+
+
+
+
+def run_PHITS_tools_CLI_or_GUI():
+    '''
+    Determines whether the GUI or CLI will be used and launches it
+    '''
+    if len(sys.argv) == 1:
+        run_PHITS_tools_GUI()
+    elif '-g' in sys.argv or '--GUI' in sys.argv:
+        run_PHITS_tools_GUI()
+    else:
+        run_PHITS_tools_CLI()
+    return None
+
+def run_PHITS_tools_CLI():
+    '''
+    Runs PHITS Tools via the CLI, interpreting command-line arguments
+    '''
+    import argparse
     def validate_file(arg):
         if (file := Path(arg)).is_file():
             return file
@@ -6564,8 +6600,12 @@ if run_with_CLI_inputs:
                                     prefer_reading_existing_pickle=prefer_reading_existing_pickle,
                                     compress_pickle_with_lzma=compress_pickle_with_lzma,
                                     autoplot_tally_output=autoplot_tally_output)
+    return None
 
-elif launch_GUI:
+def run_PHITS_tools_GUI():
+    '''
+    Runs PHITS Tools via the GUI, allowing user to select/specify inputs and settings via GUI
+    '''
     import tkinter as tk
     from tkinter import filedialog
     from tkinter import messagebox
@@ -7000,9 +7040,13 @@ elif launch_GUI:
 
     else:
         raise ValueError('ERROR: Main mode for PHITS Tools not selected correctly in first GUI')
+    return None
 
 
-
+if run_with_CLI_inputs:
+    run_PHITS_tools_CLI()
+elif launch_GUI:
+    run_PHITS_tools_GUI()
 
 
 

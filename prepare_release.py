@@ -12,9 +12,9 @@ import subprocess
 
 # PHITS Tools version number for PyPI release and appearing in the documentation.
 # https://packaging.python.org/en/latest/specifications/version-specifiers/#pre-releases
-VERSION_NUMBER = '1.6.0b2'
+VERSION_NUMBER = '1.6.0b3'
 
-build_release = False #True  # If True, execute "py -m build" at the end of this script
+build_release = True  # If True, execute "py -m build" at the end of this script
 
 # Build documentation following pdoc instructions: https://pdoc3.github.io/pdoc/doc/pdoc/#programmatic-usage
 modules = ['PHITS_tools']
