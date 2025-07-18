@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>PHITS_tools</code> <i><small>(v1.6.0b3)</small></i></h1>
+<h1 class="title">Module <code>PHITS_tools</code> <i><small>(v1.6.0b4)</small></i></h1>
 </header>
 <section id="section-intro">
 <p>This module contains a variety of tools used for parsing PHITS output files and processing their contents.</p>
@@ -4258,13 +4258,17 @@ def nuclide_plain_str_to_ZZZAAAM(nuc_str):
 
     Inputs:
        - `nuc_str` = string to be converted; a huge variety of formats are supported, but they all must follow the following rules:
+           + `nuc_str` must begin with either the atomic mass number or the elemental symbol.
+           + `nuc_str` should NOT contain the atomic/proton number (Z).
            + Isomeric/metastable state characters must always immediately follow the atomic mass characters.
-               Isomeric state labels MUST either:
-               - (1) be a single lower-case character OR
-               - (2) begin with any non-numeric character and end with a number
-           + Atomic mass numbers must be nonnegative integers OR the string &#34;nat&#34; (in which case no metastable states can be written)
-           + Elemental symbols MUST begin with an upper-case character
-
+               Isomeric state labels must either:
+               - (1) be a single lower-case character in `[&#39;g&#39;,&#39;m&#39;,&#39;n&#39;,&#39;o&#39;,&#39;p&#39;,&#39;q&#39;]` OR
+               - (2) be `&#39;m&#39;` followed by a number from 1 to 5, in `[&#39;m1&#39;,&#39;m2&#39;,&#39;m3&#39;,&#39;m4&#39;,&#39;m5&#39;]`
+           + Atomic mass numbers must be nonnegative integers OR the string `&#34;nat&#34;` (in which case no metastable states 
+             can be written and A=0); if omitted, `&#34;nat&#34;` is assumed.
+           + Elemental symbols must begin with an upper-case character
+               - `&#39;n&#39;`, `&#39;p&#39;`, `&#39;d&#39;`, and `&#39;t&#39;` can also be specified for neutron, proton, deuteron, and triton, respectively.
+           + Space `&#39; &#39;`, hyphen `&#39;-&#39;`, and underscore `&#39;_&#39;` can be used anywhere in `nuc_str`; they will be ignored. 
 
     Outputs:
         - ZZZAAAM integer
@@ -4275,20 +4279,29 @@ def nuclide_plain_str_to_ZZZAAAM(nuc_str):
     for dc in delete_characters_list:
         nuc_str = nuc_str.replace(dc,&#39;&#39;)
 
+    if &#39;nat&#39; in nuc_str:
+        print(&#39;WARNING: specifying natural abundances via &#34;nat&#34; sets A=0 in the ZZZAAAM integer&#39;)
+        nuc_str = nuc_str.replace(&#39;nat&#39;,&#39;0&#39;)
+        # print(&#39;Must specify a specific nuclide, not natural abundances&#39;)
+        # return None
+
     # determine which characters are letters versus numbers
     isalpha_list = []
     isdigit_list = []
     for c in nuc_str:
         isalpha_list.append(c.isalpha())
         isdigit_list.append(c.isdigit())
-
+    
+    if not any(isdigit_list):
+        print(&#39;WARNING: No mass value is present in the provided string, assuming natural abundances.&#39;)
+        nuc_str += &#39;0&#39;
+        isalpha_list.append(False)
+        isdigit_list.append(True)
+    
     symbol = &#39;&#39;
     mass = &#39;&#39;
     isost = &#39;&#39;
 
-    if &#39;nat&#39; in nuc_str:
-        print(&#39;Must specify a specific nuclide, not natural abundances&#39;)
-        return None
 
     # string MUST begin with either mass number or elemental symbol
     if isdigit_list[0]: # mass first
@@ -4346,15 +4359,21 @@ def nuclide_plain_str_to_ZZZAAAM(nuc_str):
         symbol = isost
         isost = &#39;&#39;
 
-
-    if symbol == &#39;n&#39;:
-        Z = 0
-    elif symbol == &#39;p&#39; or symbol == &#39;d&#39; or symbol == &#39;t&#39;:
-        Z = 1
+    if symbol in [&#39;n&#39;, &#39;p&#39;, &#39;d&#39;, &#39;t&#39;]:
+        if symbol == &#39;n&#39;:
+            Z, A = 0, 1
+        elif symbol == &#39;p&#39;:
+            Z, A = 1, 1
+        elif symbol == &#39;d&#39;: 
+            Z, A = 1, 2
+        elif symbol == &#39;t&#39;:
+            Z, A = 1, 3
     else:
         Z = element_symbol_to_Z(symbol)
-
-    A = int(mass)
+        if Z == -1:
+            print(&#39;ERROR: The identified element symbol &#34;{}&#34; is not recognized as a valid element&#39;.format(symbol))
+            return None
+        A = int(mass)
 
     if isost.strip()==&#39;&#39; or isost==&#39;g&#39;:
         M = 0
@@ -4381,7 +4400,8 @@ def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
     &#39;&#39;&#39;
     Description:
         Converts a plaintext string of a nuclide to a LaTeX-formatted raw string
-        Note: if you already have the Z, A, and isomeric state information determined, the &#34;nuclide_to_Latex_form&#34; function can be used instead
+        Note: if you already have the Z, A, and isomeric state information determined, the [`dchain_tools.nuclide_to_Latex_form`](https://lindt8.github.io/DCHAIN-Tools/#dchain_tools.nuclide_to_Latex_form) 
+        function can be used instead.
 
     Dependencies:
         - `element_Z_to_symbol` (function within the &#34;PHITS Tools&#34; package) (only required if `include_Z = True`)
@@ -4390,12 +4410,15 @@ def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
         (required)
 
        - `nuc_str` = string to be converted; a huge variety of formats are supported, but they all must follow the following rules:
+           + `nuc_str` must begin with either the atomic mass number or the elemental symbol.
+           + `nuc_str` should NOT contain the atomic/proton number (Z).
            + Isomeric/metastable state characters must always immediately follow the atomic mass characters.
-               Isomeric state labels MUST either:
+               Isomeric state labels must either:
                - (1) be a single lower-case character OR
                - (2) begin with any non-numeric character and end with a number
            + Atomic mass numbers must be nonnegative integers OR the string `&#34;nat&#34;` (in which case no metastable states can be written)
-           + Elemental symbols MUST begin with an upper-case character
+           + Elemental symbols must begin with an upper-case character
+           + Space `&#39; &#39;`, hyphen `&#39;-&#39;`, and underscore `&#39;_&#39;` can be used anywhere in `nuc_str`; they will be ignored. 
 
     Input:
        (optional)
@@ -4418,6 +4441,12 @@ def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
     for c in nuc_str:
         isalpha_list.append(c.isalpha())
         isdigit_list.append(c.isdigit())
+
+    if not any(isdigit_list):
+        print(&#39;WARNING: No mass value is present in the provided string, assuming natural abundances.&#39;)
+        nuc_str += &#39;0&#39;
+        isalpha_list.append(False)
+        isdigit_list.append(True)
 
     symbol = &#39;&#39;
     mass = &#39;&#39;
@@ -4487,17 +4516,28 @@ def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
     if symbol == &#39;&#39; and isost != &#39;&#39;:
         symbol = isost
         isost = &#39;&#39;
+    
+    if symbol in [&#39;n&#39;, &#39;p&#39;, &#39;d&#39;, &#39;t&#39;]:
+        if symbol == &#39;n&#39;:
+            Z, mass = &#39;0&#39;, &#39;1&#39;
+        elif symbol == &#39;p&#39;:
+            Z, mass = &#39;1&#39;, &#39;1&#39;
+        elif symbol == &#39;d&#39;:
+            Z, mass = &#39;1&#39;, &#39;2&#39;
+        elif symbol == &#39;t&#39;:
+            Z, mass = &#39;1&#39;, &#39;3&#39;
 
     # Now assemble LaTeX string for nuclides
     if include_Z:
-        if symbol == &#39;n&#39;:
-            Z = 0
-        elif symbol == &#39;p&#39; or symbol == &#39;d&#39; or symbol == &#39;t&#39;:
-            Z = 1
-        else:
+        if symbol not in [&#39;n&#39;, &#39;p&#39;, &#39;d&#39;, &#39;t&#39;]:
             Z = element_symbol_to_Z(symbol)
+            if Z == -1:
+                print(&#39;ERROR: The identified element symbol &#34;{}&#34; is not recognized as a valid element&#39;.format(symbol))
+                return None
         Z = str(int(Z))
         tex_str = r&#34;$^{{{}{}}}_{{{}}}$&#34;.format(mass,isost,Z) + &#34;{}&#34;.format(symbol)
+    elif mass == &#39;0&#39;:
+        tex_str = &#34;{}&#34;.format(symbol)
     else:
         tex_str = r&#34;$^{{{}{}}}$&#34;.format(mass,isost) + &#34;{}&#34;.format(symbol)
 
@@ -4529,7 +4569,7 @@ def element_Z_to_symbol(Z):
             &#34;Md&#34;,&#34;No&#34;,&#34;Lr&#34;,&#34;Rf&#34;,&#34;Db&#34;,&#34;Sg&#34;,&#34;Bh&#34;,&#34;Hs&#34;,&#34;Mt&#34;,&#34;Ds&#34;,\
             &#34;Rg&#34;,&#34;Cn&#34;,&#34;Nh&#34;,&#34;Fl&#34;,&#34;Mc&#34;,&#34;Lv&#34;,&#34;Ts&#34;,&#34;Og&#34;]
     i = int(Z)
-    if i &lt; 0 or i &gt; len(elms):
+    if i &lt; 0 or i &gt;= len(elms):
         print(&#39;Z={} is not valid, please select a number from 0 to 118 (inclusive).&#39;.format(str(Z)))
         return None
     return elms[i].strip()
@@ -4543,10 +4583,13 @@ def element_symbol_to_Z(sym):
         `find` (function within the &#34;PHITS Tools&#34; package)
 
     Inputs:
-        - `sym` = string of elemental symbol for element of atomic number Z
+        - `sym` = string of elemental symbol for element of atomic number Z 
 
     Outputs:
         - `Z` = atomic number
+        
+    Note:
+        `&#39;XX&#39;` returns `0` for neutrons, avoiding clash with `&#39;N&#39;` for nitrogen.
     &#39;&#39;&#39;
     elms = [&#34;n &#34;,\
             &#34;H &#34;,&#34;He&#34;,&#34;Li&#34;,&#34;Be&#34;,&#34;B &#34;,&#34;C &#34;,&#34;N &#34;,&#34;O &#34;,&#34;F &#34;,&#34;Ne&#34;,\
@@ -4599,7 +4642,7 @@ def kfcode_to_common_name(kf_code):
     kf_code = int(kf_code)
     named_kf_codes =     [2212    ,2112     ,22      ,11        ,-11       ,211    ,111    ,-211   ,-13    ,13     ,321    ,311    ,-321   ]
     named_kf_code_strs = [&#39;proton&#39;,&#39;neutron&#39;,&#39;photon&#39;,&#39;electron&#39;,&#39;positron&#39;,&#39;pion+&#39;,&#39;pion0&#39;,&#39;pion-&#39;,&#39;muon+&#39;,&#39;muon-&#39;,&#39;kaon+&#39;,&#39;kaon0&#39;,&#39;kaon-&#39;]
-    if abs(kf_code) &lt; 1000000:
+    if abs(kf_code) &lt;= 1000000:
         # specifically named particles
         if kf_code in named_kf_codes:
             i = find(kf_code,named_kf_codes)
@@ -12399,14 +12442,21 @@ with default settings except <code>save_namedtuple_list=True</code> and
 <h2 id="inputs">Inputs</h2>
 <ul>
 <li><code>nuc_str</code> = string to be converted; a huge variety of formats are supported, but they all must follow the following rules:<ul>
+<li><code>nuc_str</code> must begin with either the atomic mass number or the elemental symbol.</li>
+<li><code>nuc_str</code> should NOT contain the atomic/proton number (Z).</li>
 <li>Isomeric/metastable state characters must always immediately follow the atomic mass characters.
-Isomeric state labels MUST either:<ul>
-<li>(1) be a single lower-case character OR</li>
-<li>(2) begin with any non-numeric character and end with a number</li>
+Isomeric state labels must either:<ul>
+<li>(1) be a single lower-case character in <code>['g','m','n','o','p','q']</code> OR</li>
+<li>(2) be <code>'m'</code> followed by a number from 1 to 5, in <code>['m1','m2','m3','m4','m5']</code></li>
 </ul>
 </li>
-<li>Atomic mass numbers must be nonnegative integers OR the string "nat" (in which case no metastable states can be written)</li>
-<li>Elemental symbols MUST begin with an upper-case character</li>
+<li>Atomic mass numbers must be nonnegative integers OR the string <code>"nat"</code> (in which case no metastable states
+can be written and A=0); if omitted, <code>"nat"</code> is assumed.</li>
+<li>Elemental symbols must begin with an upper-case character<ul>
+<li><code>'n'</code>, <code>'p'</code>, <code>'d'</code>, and <code>'t'</code> can also be specified for neutron, proton, deuteron, and triton, respectively.</li>
+</ul>
+</li>
+<li>Space <code>' '</code>, hyphen <code>'-'</code>, and underscore <code>'_'</code> can be used anywhere in <code>nuc_str</code>; they will be ignored. </li>
 </ul>
 </li>
 </ul>
@@ -12428,13 +12478,17 @@ Isomeric state labels MUST either:<ul>
 
     Inputs:
        - `nuc_str` = string to be converted; a huge variety of formats are supported, but they all must follow the following rules:
+           + `nuc_str` must begin with either the atomic mass number or the elemental symbol.
+           + `nuc_str` should NOT contain the atomic/proton number (Z).
            + Isomeric/metastable state characters must always immediately follow the atomic mass characters.
-               Isomeric state labels MUST either:
-               - (1) be a single lower-case character OR
-               - (2) begin with any non-numeric character and end with a number
-           + Atomic mass numbers must be nonnegative integers OR the string &#34;nat&#34; (in which case no metastable states can be written)
-           + Elemental symbols MUST begin with an upper-case character
-
+               Isomeric state labels must either:
+               - (1) be a single lower-case character in `[&#39;g&#39;,&#39;m&#39;,&#39;n&#39;,&#39;o&#39;,&#39;p&#39;,&#39;q&#39;]` OR
+               - (2) be `&#39;m&#39;` followed by a number from 1 to 5, in `[&#39;m1&#39;,&#39;m2&#39;,&#39;m3&#39;,&#39;m4&#39;,&#39;m5&#39;]`
+           + Atomic mass numbers must be nonnegative integers OR the string `&#34;nat&#34;` (in which case no metastable states 
+             can be written and A=0); if omitted, `&#34;nat&#34;` is assumed.
+           + Elemental symbols must begin with an upper-case character
+               - `&#39;n&#39;`, `&#39;p&#39;`, `&#39;d&#39;`, and `&#39;t&#39;` can also be specified for neutron, proton, deuteron, and triton, respectively.
+           + Space `&#39; &#39;`, hyphen `&#39;-&#39;`, and underscore `&#39;_&#39;` can be used anywhere in `nuc_str`; they will be ignored. 
 
     Outputs:
         - ZZZAAAM integer
@@ -12445,20 +12499,29 @@ Isomeric state labels MUST either:<ul>
     for dc in delete_characters_list:
         nuc_str = nuc_str.replace(dc,&#39;&#39;)
 
+    if &#39;nat&#39; in nuc_str:
+        print(&#39;WARNING: specifying natural abundances via &#34;nat&#34; sets A=0 in the ZZZAAAM integer&#39;)
+        nuc_str = nuc_str.replace(&#39;nat&#39;,&#39;0&#39;)
+        # print(&#39;Must specify a specific nuclide, not natural abundances&#39;)
+        # return None
+
     # determine which characters are letters versus numbers
     isalpha_list = []
     isdigit_list = []
     for c in nuc_str:
         isalpha_list.append(c.isalpha())
         isdigit_list.append(c.isdigit())
-
+    
+    if not any(isdigit_list):
+        print(&#39;WARNING: No mass value is present in the provided string, assuming natural abundances.&#39;)
+        nuc_str += &#39;0&#39;
+        isalpha_list.append(False)
+        isdigit_list.append(True)
+    
     symbol = &#39;&#39;
     mass = &#39;&#39;
     isost = &#39;&#39;
 
-    if &#39;nat&#39; in nuc_str:
-        print(&#39;Must specify a specific nuclide, not natural abundances&#39;)
-        return None
 
     # string MUST begin with either mass number or elemental symbol
     if isdigit_list[0]: # mass first
@@ -12516,15 +12579,21 @@ Isomeric state labels MUST either:<ul>
         symbol = isost
         isost = &#39;&#39;
 
-
-    if symbol == &#39;n&#39;:
-        Z = 0
-    elif symbol == &#39;p&#39; or symbol == &#39;d&#39; or symbol == &#39;t&#39;:
-        Z = 1
+    if symbol in [&#39;n&#39;, &#39;p&#39;, &#39;d&#39;, &#39;t&#39;]:
+        if symbol == &#39;n&#39;:
+            Z, A = 0, 1
+        elif symbol == &#39;p&#39;:
+            Z, A = 1, 1
+        elif symbol == &#39;d&#39;: 
+            Z, A = 1, 2
+        elif symbol == &#39;t&#39;:
+            Z, A = 1, 3
     else:
         Z = element_symbol_to_Z(symbol)
-
-    A = int(mass)
+        if Z == -1:
+            print(&#39;ERROR: The identified element symbol &#34;{}&#34; is not recognized as a valid element&#39;.format(symbol))
+            return None
+        A = int(mass)
 
     if isost.strip()==&#39;&#39; or isost==&#39;g&#39;:
         M = 0
@@ -12553,7 +12622,8 @@ Isomeric state labels MUST either:<ul>
 <dd>
 <div class="desc"><h2 id="description">Description</h2>
 <p>Converts a plaintext string of a nuclide to a LaTeX-formatted raw string
-Note: if you already have the Z, A, and isomeric state information determined, the "nuclide_to_Latex_form" function can be used instead</p>
+Note: if you already have the Z, A, and isomeric state information determined, the <a href="https://lindt8.github.io/DCHAIN-Tools/#dchain_tools.nuclide_to_Latex_form"><code>dchain_tools.nuclide_to_Latex_form</code></a>
+function can be used instead.</p>
 <h2 id="dependencies">Dependencies</h2>
 <ul>
 <li><code><a title="PHITS_tools.element_Z_to_symbol" href="#PHITS_tools.element_Z_to_symbol">element_Z_to_symbol()</a></code> (function within the "PHITS Tools" package) (only required if <code>include_Z = True</code>)</li>
@@ -12562,14 +12632,17 @@ Note: if you already have the Z, A, and isomeric state information determined, t
 <p>(required)</p>
 <ul>
 <li><code>nuc_str</code> = string to be converted; a huge variety of formats are supported, but they all must follow the following rules:<ul>
+<li><code>nuc_str</code> must begin with either the atomic mass number or the elemental symbol.</li>
+<li><code>nuc_str</code> should NOT contain the atomic/proton number (Z).</li>
 <li>Isomeric/metastable state characters must always immediately follow the atomic mass characters.
-Isomeric state labels MUST either:<ul>
+Isomeric state labels must either:<ul>
 <li>(1) be a single lower-case character OR</li>
 <li>(2) begin with any non-numeric character and end with a number</li>
 </ul>
 </li>
 <li>Atomic mass numbers must be nonnegative integers OR the string <code>"nat"</code> (in which case no metastable states can be written)</li>
-<li>Elemental symbols MUST begin with an upper-case character</li>
+<li>Elemental symbols must begin with an upper-case character</li>
+<li>Space <code>' '</code>, hyphen <code>'-'</code>, and underscore <code>'_'</code> can be used anywhere in <code>nuc_str</code>; they will be ignored. </li>
 </ul>
 </li>
 </ul>
@@ -12590,7 +12663,8 @@ Isomeric state labels MUST either:<ul>
     &#39;&#39;&#39;
     Description:
         Converts a plaintext string of a nuclide to a LaTeX-formatted raw string
-        Note: if you already have the Z, A, and isomeric state information determined, the &#34;nuclide_to_Latex_form&#34; function can be used instead
+        Note: if you already have the Z, A, and isomeric state information determined, the [`dchain_tools.nuclide_to_Latex_form`](https://lindt8.github.io/DCHAIN-Tools/#dchain_tools.nuclide_to_Latex_form) 
+        function can be used instead.
 
     Dependencies:
         - `element_Z_to_symbol` (function within the &#34;PHITS Tools&#34; package) (only required if `include_Z = True`)
@@ -12599,12 +12673,15 @@ Isomeric state labels MUST either:<ul>
         (required)
 
        - `nuc_str` = string to be converted; a huge variety of formats are supported, but they all must follow the following rules:
+           + `nuc_str` must begin with either the atomic mass number or the elemental symbol.
+           + `nuc_str` should NOT contain the atomic/proton number (Z).
            + Isomeric/metastable state characters must always immediately follow the atomic mass characters.
-               Isomeric state labels MUST either:
+               Isomeric state labels must either:
                - (1) be a single lower-case character OR
                - (2) begin with any non-numeric character and end with a number
            + Atomic mass numbers must be nonnegative integers OR the string `&#34;nat&#34;` (in which case no metastable states can be written)
-           + Elemental symbols MUST begin with an upper-case character
+           + Elemental symbols must begin with an upper-case character
+           + Space `&#39; &#39;`, hyphen `&#39;-&#39;`, and underscore `&#39;_&#39;` can be used anywhere in `nuc_str`; they will be ignored. 
 
     Input:
        (optional)
@@ -12627,6 +12704,12 @@ Isomeric state labels MUST either:<ul>
     for c in nuc_str:
         isalpha_list.append(c.isalpha())
         isdigit_list.append(c.isdigit())
+
+    if not any(isdigit_list):
+        print(&#39;WARNING: No mass value is present in the provided string, assuming natural abundances.&#39;)
+        nuc_str += &#39;0&#39;
+        isalpha_list.append(False)
+        isdigit_list.append(True)
 
     symbol = &#39;&#39;
     mass = &#39;&#39;
@@ -12696,17 +12779,28 @@ Isomeric state labels MUST either:<ul>
     if symbol == &#39;&#39; and isost != &#39;&#39;:
         symbol = isost
         isost = &#39;&#39;
+    
+    if symbol in [&#39;n&#39;, &#39;p&#39;, &#39;d&#39;, &#39;t&#39;]:
+        if symbol == &#39;n&#39;:
+            Z, mass = &#39;0&#39;, &#39;1&#39;
+        elif symbol == &#39;p&#39;:
+            Z, mass = &#39;1&#39;, &#39;1&#39;
+        elif symbol == &#39;d&#39;:
+            Z, mass = &#39;1&#39;, &#39;2&#39;
+        elif symbol == &#39;t&#39;:
+            Z, mass = &#39;1&#39;, &#39;3&#39;
 
     # Now assemble LaTeX string for nuclides
     if include_Z:
-        if symbol == &#39;n&#39;:
-            Z = 0
-        elif symbol == &#39;p&#39; or symbol == &#39;d&#39; or symbol == &#39;t&#39;:
-            Z = 1
-        else:
+        if symbol not in [&#39;n&#39;, &#39;p&#39;, &#39;d&#39;, &#39;t&#39;]:
             Z = element_symbol_to_Z(symbol)
+            if Z == -1:
+                print(&#39;ERROR: The identified element symbol &#34;{}&#34; is not recognized as a valid element&#39;.format(symbol))
+                return None
         Z = str(int(Z))
         tex_str = r&#34;$^{{{}{}}}_{{{}}}$&#34;.format(mass,isost,Z) + &#34;{}&#34;.format(symbol)
+    elif mass == &#39;0&#39;:
+        tex_str = &#34;{}&#34;.format(symbol)
     else:
         tex_str = r&#34;$^{{{}{}}}$&#34;.format(mass,isost) + &#34;{}&#34;.format(symbol)
 
@@ -12756,7 +12850,7 @@ Isomeric state labels MUST either:<ul>
             &#34;Md&#34;,&#34;No&#34;,&#34;Lr&#34;,&#34;Rf&#34;,&#34;Db&#34;,&#34;Sg&#34;,&#34;Bh&#34;,&#34;Hs&#34;,&#34;Mt&#34;,&#34;Ds&#34;,\
             &#34;Rg&#34;,&#34;Cn&#34;,&#34;Nh&#34;,&#34;Fl&#34;,&#34;Mc&#34;,&#34;Lv&#34;,&#34;Ts&#34;,&#34;Og&#34;]
     i = int(Z)
-    if i &lt; 0 or i &gt; len(elms):
+    if i &lt; 0 or i &gt;= len(elms):
         print(&#39;Z={} is not valid, please select a number from 0 to 118 (inclusive).&#39;.format(str(Z)))
         return None
     return elms[i].strip()</code></pre>
@@ -12772,12 +12866,14 @@ Isomeric state labels MUST either:<ul>
 <p><code><a title="PHITS_tools.find" href="#PHITS_tools.find">find()</a></code> (function within the "PHITS Tools" package)</p>
 <h2 id="inputs">Inputs</h2>
 <ul>
-<li><code>sym</code> = string of elemental symbol for element of atomic number Z</li>
+<li><code>sym</code> = string of elemental symbol for element of atomic number Z </li>
 </ul>
 <h2 id="outputs">Outputs</h2>
 <ul>
 <li><code>Z</code> = atomic number</li>
-</ul></div>
+</ul>
+<h2 id="note">Note</h2>
+<p><code>'XX'</code> returns <code>0</code> for neutrons, avoiding clash with <code>'N'</code> for nitrogen.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -12791,10 +12887,13 @@ Isomeric state labels MUST either:<ul>
         `find` (function within the &#34;PHITS Tools&#34; package)
 
     Inputs:
-        - `sym` = string of elemental symbol for element of atomic number Z
+        - `sym` = string of elemental symbol for element of atomic number Z 
 
     Outputs:
         - `Z` = atomic number
+        
+    Note:
+        `&#39;XX&#39;` returns `0` for neutrons, avoiding clash with `&#39;N&#39;` for nitrogen.
     &#39;&#39;&#39;
     elms = [&#34;n &#34;,\
             &#34;H &#34;,&#34;He&#34;,&#34;Li&#34;,&#34;Be&#34;,&#34;B &#34;,&#34;C &#34;,&#34;N &#34;,&#34;O &#34;,&#34;F &#34;,&#34;Ne&#34;,\
@@ -12864,7 +12963,7 @@ Isomeric state labels MUST either:<ul>
     kf_code = int(kf_code)
     named_kf_codes =     [2212    ,2112     ,22      ,11        ,-11       ,211    ,111    ,-211   ,-13    ,13     ,321    ,311    ,-321   ]
     named_kf_code_strs = [&#39;proton&#39;,&#39;neutron&#39;,&#39;photon&#39;,&#39;electron&#39;,&#39;positron&#39;,&#39;pion+&#39;,&#39;pion0&#39;,&#39;pion-&#39;,&#39;muon+&#39;,&#39;muon-&#39;,&#39;kaon+&#39;,&#39;kaon0&#39;,&#39;kaon-&#39;]
-    if abs(kf_code) &lt; 1000000:
+    if abs(kf_code) &lt;= 1000000:
         # specifically named particles
         if kf_code in named_kf_codes:
             i = find(kf_code,named_kf_codes)
