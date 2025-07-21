@@ -3584,12 +3584,13 @@ def ICRP116_effective_dose_coeff(E=1.0,particle='photon',geometry='AP',interp_sc
                                               technically, any options available for scipy.interpolate.interp1d() can be used: `['linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic', 'previous']`
        - `extrapolation_on` = boolean designating whether values outside of the tabulated energies will be extrapolated (D=`False`)
 
-             |                      |                                                                       |
-             | -------------------- | --------------------------------------------------------------------- |
-             | if False & E < E_min | f(E) = 0                                                              |
-             | if False & E > E_max | f(E) = f(E_max)                                                       |
-             | if True  & E < E_min | f(E) is linearly interpolated between (0,0) and (E_min,f(E_min))      |
-             | if True  & E > E_max | f(E) is extrapolated using the specified interpolation scale and type |
+             |                           |                                                                       |
+             | ------------------------- | --------------------------------------------------------------------- |
+             | if `False` & `E` < E_min, | f(`E`) = 0                                                              |
+             | if `False` & `E` > E_max, | f(`E`) = f(E_max)                                                       |
+             | if `True`  & `E` < E_min, | f(`E`) is linearly interpolated between (0,0) and (E_min,f(E_min))      |
+             | if `True`  & `E` > E_max, | f(`E`) is extrapolated using the specified interpolation scale and type |
+    
     Outputs:
        - `f` = effective dose conversion coefficient in pSv*cm^2
     '''

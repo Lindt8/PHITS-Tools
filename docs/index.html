@@ -3897,12 +3897,13 @@ def ICRP116_effective_dose_coeff(E=1.0,particle=&#39;photon&#39;,geometry=&#39;A
                                               technically, any options available for scipy.interpolate.interp1d() can be used: `[&#39;linear&#39;, &#39;nearest&#39;, &#39;zero&#39;, &#39;slinear&#39;, &#39;quadratic&#39;, &#39;cubic&#39;, &#39;previous&#39;]`
        - `extrapolation_on` = boolean designating whether values outside of the tabulated energies will be extrapolated (D=`False`)
 
-             |                      |                                                                       |
-             | -------------------- | --------------------------------------------------------------------- |
-             | if False &amp; E &lt; E_min | f(E) = 0                                                              |
-             | if False &amp; E &gt; E_max | f(E) = f(E_max)                                                       |
-             | if True  &amp; E &lt; E_min | f(E) is linearly interpolated between (0,0) and (E_min,f(E_min))      |
-             | if True  &amp; E &gt; E_max | f(E) is extrapolated using the specified interpolation scale and type |
+             |                           |                                                                       |
+             | ------------------------- | --------------------------------------------------------------------- |
+             | if `False` &amp; `E` &lt; E_min, | f(`E`) = 0                                                              |
+             | if `False` &amp; `E` &gt; E_max, | f(`E`) = f(E_max)                                                       |
+             | if `True`  &amp; `E` &lt; E_min, | f(`E`) is linearly interpolated between (0,0) and (E_min,f(E_min))      |
+             | if `True`  &amp; `E` &gt; E_max, | f(`E`) is extrapolated using the specified interpolation scale and type |
+    
     Outputs:
        - `f` = effective dose conversion coefficient in pSv*cm^2
     &#39;&#39;&#39;
@@ -11989,22 +11990,22 @@ technically, any options available for scipy.interpolate.interp1d() can be used:
 </thead>
 <tbody>
 <tr>
-<td>if False &amp; E &lt; E_min</td>
-<td>f(E) = 0</td>
+<td>if <code>False</code> &amp; <code>E</code> &lt; E_min,</td>
+<td>f(<code>E</code>) = 0</td>
 </tr>
 <tr>
-<td>if False &amp; E &gt; E_max</td>
-<td>f(E) = f(E_max)</td>
+<td>if <code>False</code> &amp; <code>E</code> &gt; E_max,</td>
+<td>f(<code>E</code>) = f(E_max)</td>
 </tr>
 <tr>
-<td>if True
-&amp; E &lt; E_min</td>
-<td>f(E) is linearly interpolated between (0,0) and (E_min,f(E_min))</td>
+<td>if <code>True</code>
+&amp; <code>E</code> &lt; E_min,</td>
+<td>f(<code>E</code>) is linearly interpolated between (0,0) and (E_min,f(E_min))</td>
 </tr>
 <tr>
-<td>if True
-&amp; E &gt; E_max</td>
-<td>f(E) is extrapolated using the specified interpolation scale and type</td>
+<td>if <code>True</code>
+&amp; <code>E</code> &gt; E_max,</td>
+<td>f(<code>E</code>) is extrapolated using the specified interpolation scale and type</td>
 </tr>
 </tbody>
 </table>
@@ -12041,12 +12042,13 @@ technically, any options available for scipy.interpolate.interp1d() can be used:
                                               technically, any options available for scipy.interpolate.interp1d() can be used: `[&#39;linear&#39;, &#39;nearest&#39;, &#39;zero&#39;, &#39;slinear&#39;, &#39;quadratic&#39;, &#39;cubic&#39;, &#39;previous&#39;]`
        - `extrapolation_on` = boolean designating whether values outside of the tabulated energies will be extrapolated (D=`False`)
 
-             |                      |                                                                       |
-             | -------------------- | --------------------------------------------------------------------- |
-             | if False &amp; E &lt; E_min | f(E) = 0                                                              |
-             | if False &amp; E &gt; E_max | f(E) = f(E_max)                                                       |
-             | if True  &amp; E &lt; E_min | f(E) is linearly interpolated between (0,0) and (E_min,f(E_min))      |
-             | if True  &amp; E &gt; E_max | f(E) is extrapolated using the specified interpolation scale and type |
+             |                           |                                                                       |
+             | ------------------------- | --------------------------------------------------------------------- |
+             | if `False` &amp; `E` &lt; E_min, | f(`E`) = 0                                                              |
+             | if `False` &amp; `E` &gt; E_max, | f(`E`) = f(E_max)                                                       |
+             | if `True`  &amp; `E` &lt; E_min, | f(`E`) is linearly interpolated between (0,0) and (E_min,f(E_min))      |
+             | if `True`  &amp; `E` &gt; E_max, | f(`E`) is extrapolated using the specified interpolation scale and type |
+    
     Outputs:
        - `f` = effective dose conversion coefficient in pSv*cm^2
     &#39;&#39;&#39;
