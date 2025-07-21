@@ -76,8 +76,22 @@ def test_tally():
 
 
 def test_rebinner():
-    input_ybins = []
-    input_xbins = []
-    
-    output_xbins = []
-    assert rebinner(output_xbins, input_xbins, input_ybins) == []
+    input_xbins = [0, 2, 4, 6, 8, 10]
+    input_ybins = [ 1, 2, 4, 8, 16]
+
+    output_xbins = [0, 10]
+    assert all(rebinner(output_xbins, input_xbins, input_ybins) == [31])
+    output_xbins = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    assert all(rebinner(output_xbins, input_xbins, input_ybins) == [0.5, 0.5, 1, 1, 2, 2, 4, 4, 8, 8])
+    output_xbins = [0, 8, 10]
+    assert all(rebinner(output_xbins, input_xbins, input_ybins) == [15, 16])
+    output_xbins = [2, 6]
+    assert all(rebinner(output_xbins, input_xbins, input_ybins) == [6])
+    output_xbins = [1, 5, 7]
+    assert all(rebinner(output_xbins, input_xbins, input_ybins) == [4.5, 6])
+    output_xbins = [-1, 5, 11]
+    assert all(rebinner(output_xbins, input_xbins, input_ybins) == [5, 26])
+    output_xbins = [8, 8.5, 9, 10]
+    assert all(rebinner(output_xbins, input_xbins, input_ybins) == [4, 4, 8])
+    output_xbins = [8, 8.5, 9, 10, 20, 30, 40]
+    assert all(rebinner(output_xbins, input_xbins, input_ybins) == [4, 4, 8, 0, 0, 0])

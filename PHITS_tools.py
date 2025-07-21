@@ -2373,15 +2373,16 @@ def rebinner(output_xbins,input_xbins,input_ybins):
     Description:
         The purpose of this function is to rebin a set of y values corresponding to a set of x bins to a new set of x bins.
         The function seeks to be as generalized as possible, meaning bin sizes do not need to be consistent nor do the
-        new bin edges necessarily need to line up exactly with the old bin edges.
+        new bin edges necessarily need to line up exactly with the old bin edges.  It does assume that the value within 
+        each input bin is evenly (flatly) distributed across its bin width.
 
     Dependencies:
         `import numpy as np`
 
     Inputs:
-      - `output_xbins` = output array containing bounds of x bins of length N; first entry is leftmost bin boundary
-      - `input_xbins`  = input array containing bounds of x bins of length M; first entry is leftmost bin boundary
-      - `input_ybins`  = input array containing y values of length M-1
+      - `output_xbins` = output list/array containing bounds of x bins of length N; first entry is leftmost bin boundary
+      - `input_xbins`  = input list/array containing bounds of x bins of length M; first entry is leftmost bin boundary
+      - `input_ybins`  = input list/array containing y values of length M-1
 
     Outputs:
       - `output_ybins` = output array containing y values of length N-1
