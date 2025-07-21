@@ -2274,12 +2274,21 @@ def tally(data, bin_edges=[], min_bin_left_edge=None, max_bin_right_edge=None, n
         Regarding the binning structure, this function only needs to be provided `bin_edges` directly (takes priority)
         or the information needed to calculate `bin_edges`, that is: `min_bin_left_edge` and `max_bin_right_edge` and
         either `nbins` or `bin_width`.  (Priority is given to `nbins` if both are provided.)
+        
+        All bins (except the last) are "half-open", meaning the bin's left edge is included in the bin but the right
+        edge is not, `[bin_min, bin_max)`; the last bin includes both its lower and upper edges.
+        
+        If `return_event_indices_histogram=True` is set, this function will use its own (slower) rebinning algorithm. 
+        Otherwise, the faster [`numpy.histogram`](https://numpy.org/doc/stable/reference/generated/numpy.histogram.html)
+        function is used.  Note that `place_overflow_at_ends=True` still works as -/+ infinity are temporarily added to
+        the extremes of the bin edges given to the `np.histogram()` call to collect rather than discard the values 
+        outside the bounds of the specified bin edges.
 
     Outputs:
         - `tallied_hist` = N-length list of tallied data
         - `bin_edges` = list of N+1 bin edge values for a tally of N bins
-        - `tallied_hist_err` = (optional) N-length list of statistical uncertainties of tallied data
-        - `tallied_event_indicies` = (optional) N-length list of, for each bin, a list of the event indices populating it
+        - `tallied_hist_err` = (optional, if `return_uncertainties=True`) N-length list of statistical uncertainties of tallied data
+        - `tallied_event_indicies` = (optional, if `return_event_indices_histogram=True`) N-length list of, for each bin, a list of the event indices populating it
     '''
 
     normalization_valid_entries = [None, 'unity-sum', 'unity-max-val']
@@ -2322,7 +2331,15 @@ def tally(data, bin_edges=[], min_bin_left_edge=None, max_bin_right_edge=None, n
 
 
     else:
-        tallied_hist, bins = np.histogram(data,bins=bin_edges)
+        if place_overflow_at_ends:
+            temp_bin_edges = np.array([-np.inf] + list(bin_edges) + [np.inf])
+            tallied_hist, bins = np.histogram(data, bins=temp_bin_edges)
+            bins = bin_edges  # temp_bin_edges[1:-1]
+            tallied_hist[1] += tallied_hist[0]
+            tallied_hist[-2] += tallied_hist[-1]
+            tallied_hist = tallied_hist[1:-1]
+        else:
+            tallied_hist, bins = np.histogram(data, bins=bin_edges)
 
     if return_uncertainties:
         tallied_hist_err = np.sqrt(tallied_hist)
