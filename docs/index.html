@@ -3917,7 +3917,7 @@ def ICRP116_effective_dose_coeff(E=1.0,particle=&#39;photon&#39;,geometry=&#39;A
     if particle not in pars_list or geometry not in geo_list_all:
         pstr = &#39;Please select a valid particle and geometry.\n&#39;
         pstr += &#34;Particle selected = {}, options include: [&#39;photon&#39;,&#39;electron&#39;,&#39;positron&#39;,&#39;neutron&#39;,&#39;proton&#39;,&#39;negmuon&#39;,&#39;posmuon&#39;,&#39;negpion&#39;,&#39;pospion&#39;,&#39;He3ion&#39;]&#34;.format(particle)
-        pstr += &#34;Geometry selected = {}, options include: [&#39;AP&#39;,&#39;PA&#39;,&#39;LLAT&#39;,&#39;RLAT&#39;,&#39;ROT&#39;,&#39;ISO&#39;] (&#39;LLAT&#39;,&#39;RLAT&#39;,&#39;ROT&#39; only available for photon, proton, and neutron)&#34;
+        pstr += &#34;Geometry selected = {}, options include: [&#39;AP&#39;,&#39;PA&#39;,&#39;LLAT&#39;,&#39;RLAT&#39;,&#39;ROT&#39;,&#39;ISO&#39;] (&#39;LLAT&#39;,&#39;RLAT&#39;,&#39;ROT&#39; only available for photon, proton, and neutron)&#34;.format(geometry)
         print(pstr)
         return None
 
@@ -12062,7 +12062,7 @@ technically, any options available for scipy.interpolate.interp1d() can be used:
     if particle not in pars_list or geometry not in geo_list_all:
         pstr = &#39;Please select a valid particle and geometry.\n&#39;
         pstr += &#34;Particle selected = {}, options include: [&#39;photon&#39;,&#39;electron&#39;,&#39;positron&#39;,&#39;neutron&#39;,&#39;proton&#39;,&#39;negmuon&#39;,&#39;posmuon&#39;,&#39;negpion&#39;,&#39;pospion&#39;,&#39;He3ion&#39;]&#34;.format(particle)
-        pstr += &#34;Geometry selected = {}, options include: [&#39;AP&#39;,&#39;PA&#39;,&#39;LLAT&#39;,&#39;RLAT&#39;,&#39;ROT&#39;,&#39;ISO&#39;] (&#39;LLAT&#39;,&#39;RLAT&#39;,&#39;ROT&#39; only available for photon, proton, and neutron)&#34;
+        pstr += &#34;Geometry selected = {}, options include: [&#39;AP&#39;,&#39;PA&#39;,&#39;LLAT&#39;,&#39;RLAT&#39;,&#39;ROT&#39;,&#39;ISO&#39;] (&#39;LLAT&#39;,&#39;RLAT&#39;,&#39;ROT&#39; only available for photon, proton, and neutron)&#34;.format(geometry)
         print(pstr)
         return None
 

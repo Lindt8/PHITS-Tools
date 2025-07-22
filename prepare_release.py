@@ -17,7 +17,7 @@ VERSION_NUMBER = '1.6.0b4'
 build_release = False  # If True, execute "py -m build" at the end of this script
 
 # Build documentation following pdoc instructions: https://pdoc3.github.io/pdoc/doc/pdoc/#programmatic-usage
-modules = ['PHITS_tools']
+modules = [pdoc.import_module('PHITS_tools/PHITS_tools.py')] #  ['PHITS_tools']
 modules += [pdoc.import_module('MC_materials/manage_mc_materials.py')]
 context = pdoc.Context()
 modules = [pdoc.Module(mod, context=context) for mod in modules]
@@ -43,13 +43,6 @@ for mod in modules:
         html = html.replace('</code></h1>','</code> <i><small>(v'+VERSION_NUMBER+')</small></i></h1>', 1)
         with open('docs/'+html_file_name, 'w') as f:
             f.write(html)
-
-
-# Copy all .py files to src/PHITS_tools/ directory for dist building
-destination_dir = 'src/PHITS_tools/'
-shutil.copy2('PHITS_tools.py', destination_dir)
-shutil.copy2('DCHAIN-Tools/dchain_tools.py', destination_dir)
-shutil.copy2('MC_materials/manage_mc_materials.py', destination_dir)
 
 # Update version number in pyproject.toml
 with open('pyproject.toml','r') as file:
