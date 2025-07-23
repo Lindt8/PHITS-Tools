@@ -33,7 +33,7 @@ One may use the functions by first placing the `PHITS_tools.py` Python script in
 
 The short list of required package/library dependencies for PHITS Tools (and DCHAIN Tools) can be found in `requirements.txt` and installed by executing `pip install -r requirements.txt`.
 
-To also be able to use the included [submodules](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#submodules), download the latest source distribution (`.zip`/`.tar.gz`) from [PyPI](https://pypi.org/project/PHITS-Tools/#files) (_includes only the minimum required source files_) or [the latest release](https://github.com/Lindt8/PHITS-Tools/releases/latest) (_includes source plus example, tests, and docs_), extract the files, and make sure the folder containing them is placed in your `PYTHONPATH` system variable (or active directory).
+To also be able to use the included [submodules](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#submodules), download the latest source distribution (`.zip`/`.tar.gz`) from [PyPI](https://pypi.org/project/PHITS-Tools/#files) (_includes only the minimum required source files_) or [the latest release](https://github.com/Lindt8/PHITS-Tools/releases/latest) (_includes source plus example, tests, and docs_), extract the contents, relocate the extracted directory of the package contents if desired, and make sure that directory is placed in your `PYTHONPATH` system variable (or active directory).
 
 ## Primary usage/interfaces
 There are three main ways one can use this Python module:
