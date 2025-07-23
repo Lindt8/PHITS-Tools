@@ -62,8 +62,8 @@ Executing <code><a title="manage_mc_materials.update_materials_database_files" h
 <li>(if <code>prefer_user_data_folder=True</code>) <code><a title="manage_mc_materials.setup_local_mc_materials_directory" href="#manage_mc_materials.setup_local_mc_materials_directory">setup_local_mc_materials_directory()</a></code> is executed, doing the following:<ul>
 <li>Confirmation of existence of a local <code>MC_materials</code> directory; if not found:</li>
 <li>Creation of local <code>MC_materials</code> directory:<ul>
-<li>In the same directory as <code>PHITS_tools.py</code> is a <code>MC_materials</code> directory. If it does not exist already,
-a new local directory, outside the PHITS Tools installation, will be created at
+<li>In the same directory as <code>PHITS_tools.py</code> (or one directory higher) is a <code>MC_materials</code> directory. If it does
+not exist already, a new local directory, outside the PHITS Tools installation, will be created at
 <a href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.home"><code>pathlib.Path.home()</code></a><code>/ '.PHITS-Tools' / 'MC_materials'</code>.<ul>
 <li>On Windows, this defaults to <code>C:\Users\USERNAME\.PHITS-Tools\MC_materials</code></li>
 <li>On MacOS and Linux, this defaults to <code>/home/USERNAME/.PHITS-Tools/MC_materials</code></li>
@@ -231,8 +231,8 @@ Executing `update_materials_database_files` with information with a new material
 1. (if `prefer_user_data_folder=True`) `setup_local_mc_materials_directory` is executed, doing the following:
     - Confirmation of existence of a local `MC_materials` directory; if not found:
     - Creation of local `MC_materials` directory:
-        - In the same directory as `PHITS_tools.py` is a `MC_materials` directory. If it does not exist already, 
-            a new local directory, outside the PHITS Tools installation, will be created at 
+        - In the same directory as `PHITS_tools.py` (or one directory higher) is a `MC_materials` directory. If it does 
+            not exist already, a new local directory, outside the PHITS Tools installation, will be created at 
             [`pathlib.Path.home()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home)` / &#39;.PHITS-Tools&#39; / &#39;MC_materials&#39;`.
             - On Windows, this defaults to `C:\Users\USERNAME\.PHITS-Tools\MC_materials`
             - On MacOS and Linux, this defaults to `/home/USERNAME/.PHITS-Tools/MC_materials`
@@ -361,7 +361,7 @@ import csv
 import sys
 import json
 from pathlib import Path
-from PHITS_tools import Element_Z_to_Sym, Element_Sym_to_Z, fetch_MC_material, nuclide_plain_str_to_ZZZAAAM
+#from PHITS_tools import Element_Z_to_Sym, Element_Sym_to_Z, fetch_MC_material, nuclide_plain_str_to_ZZZAAAM
 
 
 def update_materials_database_files(json_filepath,name,mat_str,matid=None,density=None,source=None,
@@ -383,8 +383,8 @@ def update_materials_database_files(json_filepath,name,mat_str,matid=None,densit
             - if `prefer_user_data_folder=True`: your local [`&#34;$HOME`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home)`/.PHITS-Tools/&#34;` 
                     directory, creating it and copying the distributed MC_materials data to it if not yet existing via 
                     the `setup_local_mc_materials_directory` function.
-            - if `prefer_user_data_folder=False`: the same directory as the PHITS_tools.py module (which requires
-                    either PHITS Tools to be installed via `pip` or locatable within your PYTHONPATH system variable).
+            - if `prefer_user_data_folder=False`: the same directory as the PHITS_tools.py module (or one directory up), 
+                    which requires either PHITS Tools to be installed via `pip` or locatable within your PYTHONPATH system variable).
                 The JSON libraries that are shipped with PHITS Tools by default are titled `&#39;Compiled_MC_materials&#39;` 
                 and `&#39;PNNL_materials_compendium&#39;`.
         - `name` = string of the name of the material to be added / updated.  See the &#34;Notes&#34; section further below for 
@@ -447,6 +447,7 @@ def update_materials_database_files(json_filepath,name,mat_str,matid=None,densit
     import datetime
     import tkinter
     from tkinter import messagebox
+    from PHITS_tools import Element_Z_to_Sym, Element_Sym_to_Z, nuclide_plain_str_to_ZZZAAAM
     
     add_new_material = True
     rewrite_existing_material = False
@@ -468,21 +469,31 @@ def update_materials_database_files(json_filepath,name,mat_str,matid=None,densit
             try: # First, check MC_materials folder distributed with PHITS Tools
                 phits_tools_module_path = pkgutil.get_loader(&#34;PHITS_tools&#34;).get_filename()
                 mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, &#39;MC_materials/&#39;)
+                mc_materials_updir_path = Path(Path(phits_tools_module_path).parent, &#39;..&#39;, &#39;MC_materials/&#39;)
                 if mc_materials_dir_path.exists():
                     lib_file = Path(mc_materials_dir_path,database_filename)
+                elif mc_materials_updir_path.exists():
+                    lib_file = Path(mc_materials_updir_path, database_filename)
                 else:
-                    print(&#39;Could not find the &#34;PHITS-Tools/MC_materials/&#34; directory via pkgutil.get_loader(&#34;PHITS_tools&#34;).&#39;)
+                    print(&#39;Could not find the &#34;MC_materials/&#34; directory via pkgutil.get_loader(&#34;PHITS_tools&#34;).&#39;)
                     raise FileNotFoundError(mc_materials_dir_path)
             except: # Failing that, check PYTHONPATH
                 user_paths = os.environ[&#39;PYTHONPATH&#39;].split(os.pathsep)
-                for i in user_paths:
-                    if &#39;phits_tools&#39; in i.lower() or &#39;phits-tools&#39; in i.lower():
-                        lib_file = Path(i + r&#39;\MC_materials\\&#39; + database_filename)
+                for i in user_paths:  # first try looking explicitly for MC_materials dir in PYTHONPATH
+                    if &#39;MC_materials&#39; in i:
+                        lib_file = Path(i, database_filename)
+                if lib_file is None:  # check for PHITS Tools in general
+                    for i in user_paths:
+                        if &#39;phits_tools&#39; in i.lower() or &#39;phits-tools&#39; in i.lower():
+                            lib_file = Path(i, &#39;MC_materials&#39;, database_filename)
                 if lib_file is None:
-                    print(&#39;Could not find &#34;PHITS-Tools&#34; folder in PYTHONPATH; this folder contains the vital &#34;MC_materials/&#34; directory where the JSON libraries are stored.&#39;)
-                    raise FileNotFoundError(&#39;$PYTHONPATH/PHITS-Tools/MC_materials/&#39;+database_filename)
+                    print(&#39;Could not find &#34;PHITS-Tools&#34;, &#34;PHITS_tools&#34;, nor &#34;MC_materials&#34; folders in PYTHONPATH; this folder contains the vital &#34;MC_materials/&#34; directory where the JSON libraries are stored.&#39;)
+                    raise FileNotFoundError(&#39;$PYTHONPATH/PHITS-Tools/MC_materials/&#39;+database_filename+
+                                            &#39; nor &#39;+&#39;$PYTHONPATH/PHITS_tools/MC_materials/&#39;+database_filename+
+                                            &#39; nor &#39;+&#39;$PYTHONPATH/MC_materials/&#39;+database_filename)
         except:
-            print(&#39;Failed to locate &#34;PHITS-Tools/MC_materials/&#34; directory.&#39;)
+            print(&#39;Failed to locate &#34;MC_materials/&#34; directory.&#39;)
+            print(&#39;ERROR: If PHITS Tools is not installed with pip, the PYTHONPATH environmental variable must be defined and contain the path to the directory holding &#34;MC_materials/*.json&#34; files&#39;)
             return None
         json_filepath = lib_file
     else:
@@ -812,8 +823,8 @@ def setup_local_mc_materials_directory(phits_tools_module_path=None):
          
         - Confirmation of existence of a local `MC_materials` directory; if not found:
         - Creation of local `MC_materials` directory:
-            - In the same directory as `PHITS_tools.py` is a `MC_materials` directory. If it does not exist already, 
-                a new local directory, outside the PHITS Tools installation, will be created at 
+            - In the same directory as `PHITS_tools.py` (or one directory up) is a `MC_materials/` directory. If it does
+                not exist already, a new local directory, outside the PHITS Tools installation, will be created at 
                 [`pathlib.Path.home()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home)` / &#39;.PHITS-Tools&#39; / &#39;MC_materials&#39;`.
                 - On Windows, this defaults to `C:\Users\USERNAME\.PHITS-Tools\MC_materials`
                 - On MacOS and Linux, this defaults to `/home/USERNAME/.PHITS-Tools/MC_materials`
@@ -836,8 +847,11 @@ def setup_local_mc_materials_directory(phits_tools_module_path=None):
         import pkgutil
         import shutil
         # First check to see if MC_materials distributed directory exists (this script should be sitting in it...)
-        phits_tools_module_path = pkgutil.get_loader(&#34;PHITS_tools&#34;).get_filename()
+        if phits_tools_module_path is None:
+            phits_tools_module_path = pkgutil.get_loader(&#34;PHITS_tools&#34;).get_filename()
         mc_materials_dist_path = Path(Path(phits_tools_module_path).parent, &#39;MC_materials/&#39;)
+        if not mc_materials_dist_path.exists():
+            mc_materials_dist_path = Path(Path(phits_tools_module_path).parent, &#39;..&#39;, &#39;MC_materials/&#39;)
         if mc_materials_dist_path.exists():
             # Need to create initial local user data directory
             #user_data_dir.mkdir(parents=True, exist_ok=True)
@@ -1090,6 +1104,7 @@ def write_mc_material_entry(mat,mati,particle_format=&#39;neutrons&#39;,concentr
     Outputs:
         - `entry_text` = a string of MCNP/PHITS-formatted text with material composition information
     &#39;&#39;&#39;
+    from PHITS_tools import Element_Z_to_Sym
     concentration_formats = [&#39;atom fraction&#39;, &#39;weight fraction&#39;]
     particle_formats = [&#39;neutrons&#39;, &#39;photons&#39;]
     par = particle_format
@@ -1272,6 +1287,7 @@ def write_general_mc_file(mat_list,lib_filepath=Path(Path.cwd(),&#39;MC_material
     Outputs:
         - `None`; the materials text data will be saved to `lib_filepath`.
     &#39;&#39;&#39;
+    from PHITS_tools import fetch_MC_material
     cc = comment_char 
     if header_text==&#39;&#39;:
         header_text = cc + &#39;  &#39; + &#39;This file was assembled from a variety of sources over time;&#39; + &#39;\n&#39;
@@ -1295,8 +1311,6 @@ def write_general_mc_file(mat_list,lib_filepath=Path(Path.cwd(),&#39;MC_material
 
 
 
-
-setup_local_mc_materials_directory()
 &#39;&#39;&#39;
 # Generate the JSON file and descriptive text file for the PNNL library
 mat_list = pnnl_lib_csv_to_dict_list()
@@ -1405,8 +1419,8 @@ in a directory called "MC_materials" located in<ul>
 <li>if <code>prefer_user_data_folder=True</code>: your local <a href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.home"><code>"$HOME</code></a><code>/.PHITS-Tools/"</code>
 directory, creating it and copying the distributed MC_materials data to it if not yet existing via
 the <code><a title="manage_mc_materials.setup_local_mc_materials_directory" href="#manage_mc_materials.setup_local_mc_materials_directory">setup_local_mc_materials_directory()</a></code> function.</li>
-<li>if <code>prefer_user_data_folder=False</code>: the same directory as the PHITS_tools.py module (which requires
-either PHITS Tools to be installed via <code>pip</code> or locatable within your PYTHONPATH system variable).
+<li>if <code>prefer_user_data_folder=False</code>: the same directory as the PHITS_tools.py module (or one directory up),
+which requires either PHITS Tools to be installed via <code>pip</code> or locatable within your PYTHONPATH system variable).
 The JSON libraries that are shipped with PHITS Tools by default are titled <code>'Compiled_MC_materials'</code>
 and <code>'PNNL_materials_compendium'</code>.</li>
 </ul>
@@ -1490,8 +1504,8 @@ of the entry and asking for confirmation on whether the existing entry should be
             - if `prefer_user_data_folder=True`: your local [`&#34;$HOME`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home)`/.PHITS-Tools/&#34;` 
                     directory, creating it and copying the distributed MC_materials data to it if not yet existing via 
                     the `setup_local_mc_materials_directory` function.
-            - if `prefer_user_data_folder=False`: the same directory as the PHITS_tools.py module (which requires
-                    either PHITS Tools to be installed via `pip` or locatable within your PYTHONPATH system variable).
+            - if `prefer_user_data_folder=False`: the same directory as the PHITS_tools.py module (or one directory up), 
+                    which requires either PHITS Tools to be installed via `pip` or locatable within your PYTHONPATH system variable).
                 The JSON libraries that are shipped with PHITS Tools by default are titled `&#39;Compiled_MC_materials&#39;` 
                 and `&#39;PNNL_materials_compendium&#39;`.
         - `name` = string of the name of the material to be added / updated.  See the &#34;Notes&#34; section further below for 
@@ -1554,6 +1568,7 @@ of the entry and asking for confirmation on whether the existing entry should be
     import datetime
     import tkinter
     from tkinter import messagebox
+    from PHITS_tools import Element_Z_to_Sym, Element_Sym_to_Z, nuclide_plain_str_to_ZZZAAAM
     
     add_new_material = True
     rewrite_existing_material = False
@@ -1575,21 +1590,31 @@ of the entry and asking for confirmation on whether the existing entry should be
             try: # First, check MC_materials folder distributed with PHITS Tools
                 phits_tools_module_path = pkgutil.get_loader(&#34;PHITS_tools&#34;).get_filename()
                 mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, &#39;MC_materials/&#39;)
+                mc_materials_updir_path = Path(Path(phits_tools_module_path).parent, &#39;..&#39;, &#39;MC_materials/&#39;)
                 if mc_materials_dir_path.exists():
                     lib_file = Path(mc_materials_dir_path,database_filename)
+                elif mc_materials_updir_path.exists():
+                    lib_file = Path(mc_materials_updir_path, database_filename)
                 else:
-                    print(&#39;Could not find the &#34;PHITS-Tools/MC_materials/&#34; directory via pkgutil.get_loader(&#34;PHITS_tools&#34;).&#39;)
+                    print(&#39;Could not find the &#34;MC_materials/&#34; directory via pkgutil.get_loader(&#34;PHITS_tools&#34;).&#39;)
                     raise FileNotFoundError(mc_materials_dir_path)
             except: # Failing that, check PYTHONPATH
                 user_paths = os.environ[&#39;PYTHONPATH&#39;].split(os.pathsep)
-                for i in user_paths:
-                    if &#39;phits_tools&#39; in i.lower() or &#39;phits-tools&#39; in i.lower():
-                        lib_file = Path(i + r&#39;\MC_materials\\&#39; + database_filename)
+                for i in user_paths:  # first try looking explicitly for MC_materials dir in PYTHONPATH
+                    if &#39;MC_materials&#39; in i:
+                        lib_file = Path(i, database_filename)
+                if lib_file is None:  # check for PHITS Tools in general
+                    for i in user_paths:
+                        if &#39;phits_tools&#39; in i.lower() or &#39;phits-tools&#39; in i.lower():
+                            lib_file = Path(i, &#39;MC_materials&#39;, database_filename)
                 if lib_file is None:
-                    print(&#39;Could not find &#34;PHITS-Tools&#34; folder in PYTHONPATH; this folder contains the vital &#34;MC_materials/&#34; directory where the JSON libraries are stored.&#39;)
-                    raise FileNotFoundError(&#39;$PYTHONPATH/PHITS-Tools/MC_materials/&#39;+database_filename)
+                    print(&#39;Could not find &#34;PHITS-Tools&#34;, &#34;PHITS_tools&#34;, nor &#34;MC_materials&#34; folders in PYTHONPATH; this folder contains the vital &#34;MC_materials/&#34; directory where the JSON libraries are stored.&#39;)
+                    raise FileNotFoundError(&#39;$PYTHONPATH/PHITS-Tools/MC_materials/&#39;+database_filename+
+                                            &#39; nor &#39;+&#39;$PYTHONPATH/PHITS_tools/MC_materials/&#39;+database_filename+
+                                            &#39; nor &#39;+&#39;$PYTHONPATH/MC_materials/&#39;+database_filename)
         except:
-            print(&#39;Failed to locate &#34;PHITS-Tools/MC_materials/&#34; directory.&#39;)
+            print(&#39;Failed to locate &#34;MC_materials/&#34; directory.&#39;)
+            print(&#39;ERROR: If PHITS Tools is not installed with pip, the PYTHONPATH environmental variable must be defined and contain the path to the directory holding &#34;MC_materials/*.json&#34; files&#39;)
             return None
         json_filepath = lib_file
     else:
@@ -1919,8 +1944,8 @@ it does the following:</p>
 <ul>
 <li>Confirmation of existence of a local <code>MC_materials</code> directory; if not found:</li>
 <li>Creation of local <code>MC_materials</code> directory:<ul>
-<li>In the same directory as <code>PHITS_tools.py</code> is a <code>MC_materials</code> directory. If it does not exist already,
-a new local directory, outside the PHITS Tools installation, will be created at
+<li>In the same directory as <code>PHITS_tools.py</code> (or one directory up) is a <code>MC_materials/</code> directory. If it does
+not exist already, a new local directory, outside the PHITS Tools installation, will be created at
 <a href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.home"><code>pathlib.Path.home()</code></a><code>/ '.PHITS-Tools' / 'MC_materials'</code>.<ul>
 <li>On Windows, this defaults to <code>C:\Users\USERNAME\.PHITS-Tools\MC_materials</code></li>
 <li>On MacOS and Linux, this defaults to <code>/home/USERNAME/.PHITS-Tools/MC_materials</code></li>
@@ -1957,8 +1982,8 @@ If this is left as <code>None</code>, an attempt will be made to find it automat
          
         - Confirmation of existence of a local `MC_materials` directory; if not found:
         - Creation of local `MC_materials` directory:
-            - In the same directory as `PHITS_tools.py` is a `MC_materials` directory. If it does not exist already, 
-                a new local directory, outside the PHITS Tools installation, will be created at 
+            - In the same directory as `PHITS_tools.py` (or one directory up) is a `MC_materials/` directory. If it does
+                not exist already, a new local directory, outside the PHITS Tools installation, will be created at 
                 [`pathlib.Path.home()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home)` / &#39;.PHITS-Tools&#39; / &#39;MC_materials&#39;`.
                 - On Windows, this defaults to `C:\Users\USERNAME\.PHITS-Tools\MC_materials`
                 - On MacOS and Linux, this defaults to `/home/USERNAME/.PHITS-Tools/MC_materials`
@@ -1981,8 +2006,11 @@ If this is left as <code>None</code>, an attempt will be made to find it automat
         import pkgutil
         import shutil
         # First check to see if MC_materials distributed directory exists (this script should be sitting in it...)
-        phits_tools_module_path = pkgutil.get_loader(&#34;PHITS_tools&#34;).get_filename()
+        if phits_tools_module_path is None:
+            phits_tools_module_path = pkgutil.get_loader(&#34;PHITS_tools&#34;).get_filename()
         mc_materials_dist_path = Path(Path(phits_tools_module_path).parent, &#39;MC_materials/&#39;)
+        if not mc_materials_dist_path.exists():
+            mc_materials_dist_path = Path(Path(phits_tools_module_path).parent, &#39;..&#39;, &#39;MC_materials/&#39;)
         if mc_materials_dist_path.exists():
             # Need to create initial local user data directory
             #user_data_dir.mkdir(parents=True, exist_ok=True)
@@ -2340,6 +2368,7 @@ select either <code>'weight fraction'</code> or <code>'atom fraction'</code>.</l
     Outputs:
         - `entry_text` = a string of MCNP/PHITS-formatted text with material composition information
     &#39;&#39;&#39;
+    from PHITS_tools import Element_Z_to_Sym
     concentration_formats = [&#39;atom fraction&#39;, &#39;weight fraction&#39;]
     particle_formats = [&#39;neutrons&#39;, &#39;photons&#39;]
     par = particle_format
@@ -2600,6 +2629,7 @@ If left blank (<code>''</code>), a default header string as defined at the start
     Outputs:
         - `None`; the materials text data will be saved to `lib_filepath`.
     &#39;&#39;&#39;
+    from PHITS_tools import fetch_MC_material
     cc = comment_char 
     if header_text==&#39;&#39;:
         header_text = cc + &#39;  &#39; + &#39;This file was assembled from a variety of sources over time;&#39; + &#39;\n&#39;

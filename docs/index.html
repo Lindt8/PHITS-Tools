@@ -3719,6 +3719,8 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
                 try: # First, check MC_materials folder distributed with PHITS Tools
                     phits_tools_module_path = pkgutil.get_loader(&#34;PHITS_tools&#34;).get_filename()
                     mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, &#39;MC_materials/&#39;)
+                    if not mc_materials_dir_path.exists():
+                        mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, &#39;..&#39;, &#39;MC_materials/&#39;)
                     if mc_materials_dir_path.exists():
                         lib_file = Path(mc_materials_dir_path,database_filename)
                         lib_file_json = lib_file.parent / (lib_file.stem + &#39;.json&#39;)
@@ -3730,11 +3732,15 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
                         return None
                 except: # Failing that, check PYTHONPATH
                     user_paths = os.environ[&#39;PYTHONPATH&#39;].split(os.pathsep)
-                    for i in user_paths:
-                        if &#39;phits_tools&#39; in i.lower() or &#39;phits-tools&#39; in i.lower():
-                            lib_file = i + r&#39;\MC_materials\\&#39; + database_filename
-                    if not lib_file:
-                        print(&#39;ERROR: Could not find &#34;PHITS_tools&#34; folder in PYTHONPATH; this folder contains the vital &#34;MC_materials/Compiled_MC_materials.json&#34; file.&#39;)
+                    for i in user_paths:  # first try looking explicitly for MC_materials dir in PYTHONPATH
+                        if &#39;MC_materials&#39; in i:
+                            lib_file = Path(i, database_filename)
+                    if lib_file is None:  # check for PHITS Tools in general
+                        for i in user_paths:
+                            if &#39;phits_tools&#39; in i.lower() or &#39;phits-tools&#39; in i.lower():
+                                lib_file = Path(i, &#39;MC_materials&#39;, database_filename)
+                    if lib_file is None:
+                        print(&#39;ERROR: Could not find &#34;PHITS_tools&#34; nor &#34;MC_materials&#34; folders in PYTHONPATH; this folder contains the vital &#34;MC_materials/Compiled_MC_materials.json&#34; file.&#39;)
                         return None
             except KeyError:
                 print(&#39;ERROR: If PHITS Tools is not installed with pip, the PYTHONPATH environmental variable must be defined and contain the path to the directory holding &#34;MC_materials/Compiled_MC_materials.json&#34;&#39;)
@@ -11797,6 +11803,8 @@ then, failing that, the PYTHONPATH environmental variable.</li>
                 try: # First, check MC_materials folder distributed with PHITS Tools
                     phits_tools_module_path = pkgutil.get_loader(&#34;PHITS_tools&#34;).get_filename()
                     mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, &#39;MC_materials/&#39;)
+                    if not mc_materials_dir_path.exists():
+                        mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, &#39;..&#39;, &#39;MC_materials/&#39;)
                     if mc_materials_dir_path.exists():
                         lib_file = Path(mc_materials_dir_path,database_filename)
                         lib_file_json = lib_file.parent / (lib_file.stem + &#39;.json&#39;)
@@ -11808,11 +11816,15 @@ then, failing that, the PYTHONPATH environmental variable.</li>
                         return None
                 except: # Failing that, check PYTHONPATH
                     user_paths = os.environ[&#39;PYTHONPATH&#39;].split(os.pathsep)
-                    for i in user_paths:
-                        if &#39;phits_tools&#39; in i.lower() or &#39;phits-tools&#39; in i.lower():
-                            lib_file = i + r&#39;\MC_materials\\&#39; + database_filename
-                    if not lib_file:
-                        print(&#39;ERROR: Could not find &#34;PHITS_tools&#34; folder in PYTHONPATH; this folder contains the vital &#34;MC_materials/Compiled_MC_materials.json&#34; file.&#39;)
+                    for i in user_paths:  # first try looking explicitly for MC_materials dir in PYTHONPATH
+                        if &#39;MC_materials&#39; in i:
+                            lib_file = Path(i, database_filename)
+                    if lib_file is None:  # check for PHITS Tools in general
+                        for i in user_paths:
+                            if &#39;phits_tools&#39; in i.lower() or &#39;phits-tools&#39; in i.lower():
+                                lib_file = Path(i, &#39;MC_materials&#39;, database_filename)
+                    if lib_file is None:
+                        print(&#39;ERROR: Could not find &#34;PHITS_tools&#34; nor &#34;MC_materials&#34; folders in PYTHONPATH; this folder contains the vital &#34;MC_materials/Compiled_MC_materials.json&#34; file.&#39;)
                         return None
             except KeyError:
                 print(&#39;ERROR: If PHITS Tools is not installed with pip, the PYTHONPATH environmental variable must be defined and contain the path to the directory holding &#34;MC_materials/Compiled_MC_materials.json&#34;&#39;)
