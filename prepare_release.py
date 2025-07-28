@@ -17,8 +17,9 @@ VERSION_NUMBER = '1.6.0b4'
 build_release = False  # If True, execute "py -m build" at the end of this script
 
 # Build documentation following pdoc instructions: https://pdoc3.github.io/pdoc/doc/pdoc/#programmatic-usage
-modules = [pdoc.import_module('PHITS_tools/PHITS_tools.py')] #  ['PHITS_tools']
-modules += [pdoc.import_module('MC_materials/manage_mc_materials.py')]
+#modules = [pdoc.import_module('PHITS_tools/PHITS_tools.py')] #  ['PHITS_tools']
+modules = ['PHITS_tools/PHITS_tools.py'] #  ['PHITS_tools']
+modules += ['MC_materials/manage_mc_materials.py']
 context = pdoc.Context()
 modules = [pdoc.Module(mod, context=context) for mod in modules]
 pdoc.link_inheritance(context)

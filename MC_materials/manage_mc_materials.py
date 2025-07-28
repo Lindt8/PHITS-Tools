@@ -170,7 +170,6 @@ import csv
 import sys
 import json
 from pathlib import Path
-#from PHITS_tools import Element_Z_to_Sym, Element_Sym_to_Z, fetch_MC_material, nuclide_plain_str_to_ZZZAAAM
 
 
 def update_materials_database_files(json_filepath,name,mat_str,matid=None,density=None,source=None,
@@ -277,8 +276,8 @@ def update_materials_database_files(json_filepath,name,mat_str,matid=None,densit
         try:
             try: # First, check MC_materials folder distributed with PHITS Tools
                 phits_tools_module_path = pkgutil.get_loader("PHITS_tools").get_filename()
-                mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, 'MC_materials/')
-                mc_materials_updir_path = Path(Path(phits_tools_module_path).parent, '..', 'MC_materials/')
+                mc_materials_dir_path = Path(phits_tools_module_path).parent / 'MC_materials/'
+                mc_materials_updir_path = Path(phits_tools_module_path).parent / '..' / 'MC_materials/'
                 if mc_materials_dir_path.exists():
                     lib_file = Path(mc_materials_dir_path,database_filename)
                 elif mc_materials_updir_path.exists():
@@ -658,9 +657,9 @@ def setup_local_mc_materials_directory(phits_tools_module_path=None):
         # First check to see if MC_materials distributed directory exists (this script should be sitting in it...)
         if phits_tools_module_path is None:
             phits_tools_module_path = pkgutil.get_loader("PHITS_tools").get_filename()
-        mc_materials_dist_path = Path(Path(phits_tools_module_path).parent, 'MC_materials/')
+        mc_materials_dist_path = Path(phits_tools_module_path).parent / 'MC_materials/'
         if not mc_materials_dist_path.exists():
-            mc_materials_dist_path = Path(Path(phits_tools_module_path).parent, '..', 'MC_materials/')
+            mc_materials_dist_path = Path(phits_tools_module_path).parent / '..' / 'MC_materials/'
         if mc_materials_dist_path.exists():
             # Need to create initial local user data directory
             #user_data_dir.mkdir(parents=True, exist_ok=True)

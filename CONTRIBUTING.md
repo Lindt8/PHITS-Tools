@@ -15,6 +15,7 @@ If you find anything in the [PHITS Tools documentation](https://lindt8.github.io
 ## Contributing new/modified code
 If you would like to contribute a new function or changes to any existing functions, feel free to fork this repository, make a new branch with your additions/changes, and make a pull request.  (GitHub has a [nice short guide](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project) on this process.)
 
+Owing to the slightly complicated/unorthodox approach used for integrating/structuring the `dchain_tools` and `manage_mc_materials` submodules (see [`pyproject.toml`](https://github.com/Lindt8/PHITS-Tools/blob/main/pyproject.toml) and [`PHITS_tools/__init__.py`](https://github.com/Lindt8/PHITS-Tools/blob/main/PHITS_tools/__init__.py)), any additions/changes to them should be made to their respective module files (with those to [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools) made in its repository).  Otherwise, source development should occur within the `PHITS_tools/` directory.
 
 ## Note about DCHAIN Tools and Git Submodules
 Note that [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools) is included in PHITS Tools as a [Git Submodule](https://gist.github.com/gitaarik/8735255), and this has some implications.  First, any development for DCHAIN Tools should be pointed at the [DCHAIN Tools repository](https://github.com/Lindt8/DCHAIN-Tools) instead of here.  (Feel free to make suggestions for it in Issues either here or there, though with a preference for the DCHAIN Tools repo.)
