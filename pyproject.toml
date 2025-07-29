@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "PHITS-Tools"
-version = "1.6.0b4"
+dynamic = ["version"]
 description = 'Python module for parsing and post-processing output from the PHITS code'
 readme = "README.md"
 license = "MPL-2.0"
@@ -32,6 +32,9 @@ PHITS-Tools-GUI = "PHITS_tools:run_PHITS_tools_GUI"
 Documentation = "https://github.com/Lindt8/PHITS-Tools#readme"
 Issues = "https://github.com/Lindt8/PHITS-Tools/issues"
 Source = "https://github.com/Lindt8/PHITS-Tools"
+
+[tool.hatch.version]
+path = "PHITS_tools/PHITS_tools.py"
 
 [tool.hatch.build]
 packages = ["PHITS_tools"]
