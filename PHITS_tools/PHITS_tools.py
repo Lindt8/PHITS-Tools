@@ -255,6 +255,9 @@ import sys
 import os
 import numpy as np
 from pathlib import Path
+import functools
+import inspect
+import warnings
 
 __version__ = '1.6.0b5'
 
@@ -292,7 +295,27 @@ if in_debug_mode:
 
 
 
-# use Path, get extension, check for existence of filename_err.extension
+def _deprecated_alias(new_func_name):
+    '''@private
+    Decorator for backward-compatible aliasing of renamed functions.
+    '''
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            stack = inspect.stack()
+            try:
+                caller_module = inspect.getmodule(stack[1][0])
+                this_module = inspect.getmodule(stack[0][0])
+                if caller_module is not this_module:
+                    warnings.warn(
+                        f"'{func.__name__}' is deprecated. It retains its original functionality, but is now just a wrapper for '{new_func_name}'.",
+                        FutureWarning, stacklevel=2
+                    )
+            finally:
+                del stack
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
 def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calculate_absolute_errors = True,
@@ -6472,13 +6495,14 @@ def extract_tally_outputs_from_phits_input(phits_input, use_path_and_string_mode
                     files_dict['dump_output'] += dump_files_for_this_tally
     return files_dict
 
-
+@_deprecated_alias('element_Z_to_symbol()')
 def Element_Z_to_Sym(Z):
     '''
     This function is a wrapper for `element_Z_to_symbol`
     '''
     return element_Z_to_symbol(Z)
 
+@_deprecated_alias('element_symbol_to_Z()')
 def Element_Sym_to_Z(sym):
     '''
     This function is a wrapper for `element_symbol_to_Z`
