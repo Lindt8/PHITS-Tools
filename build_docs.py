@@ -8,7 +8,13 @@ import re
 
 # PHITS Tools version number appearing in the documentation.
 # https://packaging.python.org/en/latest/specifications/version-specifiers/#pre-releases
-VERSION_NUMBER = '1.5.1'
+def get_version_from_module(path):
+    with open(path, 'r', encoding='utf-8') as f:
+        for line in f:
+            if line.strip().startswith("__version__ ="):
+                return line.split("=", 1)[1].strip().strip("\"'")
+    raise RuntimeError("Version string not found.")
+VERSION_NUMBER = get_version_from_module('PHITS_tools/PHITS_tools.py')
 
 output_dir = "build/docs"
 os.makedirs(output_dir, exist_ok=True)
