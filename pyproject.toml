@@ -18,7 +18,32 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent",
 ]
-dependencies = ["numpy>=2.2.1", "pandas>=2.2.3", "scipy>=1.14.1", "matplotlib>=3.10.0", "seaborn>=0.13.2"]
+dependencies = [
+  "numpy>=2.2.1", 
+  "pandas>=2.2.3", 
+  "scipy>=1.14.1", 
+  "matplotlib>=3.10.0", 
+  "seaborn>=0.13.2"
+]
+
+[project.optional-dependencies]
+extras = [
+  'munch>=2.5.0',
+  'pyvista>=0.44.2'
+]
+test = [
+	"pytest", 
+	"pytest-cov",
+]
+build = [
+	"hatchling",
+]
+doc = [
+  "pdoc3==0.10.0"
+]
+develop = [
+	"PHITS-Tools[test,doc]",
+]
 
 [project.scripts]
 PHITS-Tools = "PHITS_tools:run_PHITS_tools_CLI_or_GUI"
