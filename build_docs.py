@@ -4,6 +4,7 @@ This script serves to automate production of HTML documentation for PHITS Tools 
 
 import pdoc
 import os
+import re
 
 # PHITS Tools version number appearing in the documentation.
 # https://packaging.python.org/en/latest/specifications/version-specifiers/#pre-releases
@@ -13,9 +14,8 @@ output_dir = "build/docs"
 os.makedirs(output_dir, exist_ok=True)
 
 # Build documentation following pdoc instructions: https://pdoc3.github.io/pdoc/doc/pdoc/#programmatic-usage
-modules = [pdoc.import_module('PHITS_tools.py')]
-#modules = [pdoc.import_module('PHITS_tools/PHITS_tools.py')] #  uncomment and replace above line after repo restructure
-#modules += [pdoc.import_module('MC_materials/manage_mc_materials.py')]
+modules = ['PHITS_tools/PHITS_tools.py'] 
+modules += ['MC_materials/manage_mc_materials.py']
 context = pdoc.Context()
 modules = [pdoc.Module(mod, context=context) for mod in modules]
 pdoc.link_inheritance(context)
@@ -34,6 +34,9 @@ for mod in modules:
         html = html.replace('width:70%;max-width:100ch;', 'width:70%;max-width:120ch;',1)  # make page contents wider
         if module_name == 'manage_mc_materials':
             html = html.replace('<h1 class="title">Module <code>manage_mc_materials</code></h1>','<h1 class="title">Submodule <code>manage_mc_materials</code></h1>',1)
+            # Replace text where pdoc evaluated function arguments prematurely
+            html = re.sub('=WindowsPath?(.*?)b/PHITS-Tools/', "=(Path.cwd()/'", html, flags=re.DOTALL)
+            html = re.sub('=PosixPath?(.*?)/PHITS-Tools/', "=(Path.cwd()/'", html, flags=re.DOTALL)
         # add version number
         html = html.replace('</code></h1>','</code> <i><small>(v'+VERSION_NUMBER+')</small></i></h1>', 1)
         with open(os.path.join(output_dir, html_file_name), 'w') as f:
