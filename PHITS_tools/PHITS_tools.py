@@ -6518,6 +6518,7 @@ def run_PHITS_tools_CLI():
                 raise FileNotFoundError(arg)
     parser = argparse.ArgumentParser()
     parser.add_argument("file", type=validate_file, help="path to PHITS output file to parse or directory (or PHITS input or phits.out file) containing files to parse (relative or absolute path)")
+    parser.add_argument("-v", "--version", action="version", version=__version__, help='show the version number of PHITS Tools and exit')
     # Flags for standard output files
     parser.add_argument("-g", "--GUI", help="Launch the PHITS Tools GUI and ignore all other command line inputs", action="store_true")
     parser.add_argument("-np", "--disable_PandasDF", help="[standard output] disable automatic creation of Pandas DataFrame of PHITS output", action="store_true")
@@ -6685,7 +6686,8 @@ def run_PHITS_tools_GUI():
     from tkinter import ttk
     import warnings
     import sys
-
+    
+    version_append_str = ' (v{:})'.format(__version__)
 
     # Function to issue a warning on unexpected closure and then exit the program
     def on_closing(window):
@@ -6990,7 +6992,7 @@ def run_PHITS_tools_GUI():
     #root.eval('tk::PlaceWindow . center')
     #root.geometry("+%d+%d" % (30, 10))
     
-    root.title('PHITS Tools')
+    root.title('PHITS Tools'+version_append_str)
 
     # protocol for main menu window to issue warning and exit if closed
     root.protocol("WM_DELETE_WINDOW", lambda: on_closing(root))
