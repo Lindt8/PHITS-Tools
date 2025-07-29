@@ -3406,6 +3406,8 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
                 try: # First, check MC_materials folder distributed with PHITS Tools
                     phits_tools_module_path = pkgutil.get_loader("PHITS_tools").get_filename()
                     mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, 'MC_materials/')
+                    if not mc_materials_dir_path.exists():
+                        mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, '..', 'MC_materials/')
                     if mc_materials_dir_path.exists():
                         lib_file = Path(mc_materials_dir_path,database_filename)
                         lib_file_json = lib_file.parent / (lib_file.stem + '.json')
@@ -3417,11 +3419,15 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
                         return None
                 except: # Failing that, check PYTHONPATH
                     user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
-                    for i in user_paths:
-                        if 'phits_tools' in i.lower() or 'phits-tools' in i.lower():
-                            lib_file = i + r'\MC_materials\\' + database_filename
-                    if not lib_file:
-                        print('ERROR: Could not find "PHITS_tools" folder in PYTHONPATH; this folder contains the vital "MC_materials/Compiled_MC_materials.json" file.')
+                    for i in user_paths:  # first try looking explicitly for MC_materials dir in PYTHONPATH
+                        if 'MC_materials' in i:
+                            lib_file = Path(i, database_filename)
+                    if lib_file is None:  # check for PHITS Tools in general
+                        for i in user_paths:
+                            if 'phits_tools' in i.lower() or 'phits-tools' in i.lower():
+                                lib_file = Path(i, 'MC_materials', database_filename)
+                    if lib_file is None:
+                        print('ERROR: Could not find "PHITS_tools" nor "MC_materials" folders in PYTHONPATH; this folder contains the vital "MC_materials/Compiled_MC_materials.json" file.')
                         return None
             except KeyError:
                 print('ERROR: If PHITS Tools is not installed with pip, the PYTHONPATH environmental variable must be defined and contain the path to the directory holding "MC_materials/Compiled_MC_materials.json"')
@@ -3604,7 +3610,7 @@ def ICRP116_effective_dose_coeff(E=1.0,particle='photon',geometry='AP',interp_sc
     if particle not in pars_list or geometry not in geo_list_all:
         pstr = 'Please select a valid particle and geometry.\n'
         pstr += "Particle selected = {}, options include: ['photon','electron','positron','neutron','proton','negmuon','posmuon','negpion','pospion','He3ion']".format(particle)
-        pstr += "Geometry selected = {}, options include: ['AP','PA','LLAT','RLAT','ROT','ISO'] ('LLAT','RLAT','ROT' only available for photon, proton, and neutron)"
+        pstr += "Geometry selected = {}, options include: ['AP','PA','LLAT','RLAT','ROT','ISO'] ('LLAT','RLAT','ROT' only available for photon, proton, and neutron)".format(geometry)
         print(pstr)
         return None
 

@@ -34,6 +34,7 @@ Issues = "https://github.com/Lindt8/PHITS-Tools/issues"
 Source = "https://github.com/Lindt8/PHITS-Tools"
 
 [tool.hatch.build]
+packages = ["PHITS_tools"]
 exclude = [
   "/.github",
   "/.idea",
@@ -46,3 +47,21 @@ exclude = [
   "/example/*.eps",
   "/MC_materials/*.txt"
 ]
+
+[tool.hatch.build.targets.wheel.force-include]
+  "DCHAIN-Tools/dchain_tools.py" = "PHITS_tools/DCHAIN-Tools/dchain_tools.py"
+  "DCHAIN-Tools/readme.md" = "PHITS_tools/DCHAIN-Tools/readme.md"
+  "MC_materials/manage_mc_materials.py" = "PHITS_tools/MC_materials/manage_mc_materials.py"
+  "MC_materials/README.md" = "PHITS_tools/MC_materials/README.md"
+  "MC_materials/PNNL_materials_compendium.json" = "PHITS_tools/MC_materials/PNNL_materials_compendium.json"
+  "MC_materials/Compiled_MC_materials.json" = "PHITS_tools/MC_materials/Compiled_MC_materials.json" 
+  "MC_materials/materials_compendium.csv" = "PHITS_tools/MC_materials/materials_compendium.csv"
+
+[tool.hatch.build.targets.sdist.force-include]
+  "DCHAIN-Tools/dchain_tools.py" = "DCHAIN-Tools/dchain_tools.py"
+  "DCHAIN-Tools/readme.md" = "DCHAIN-Tools/readme.md"
+  "MC_materials/manage_mc_materials.py" = "MC_materials/manage_mc_materials.py"
+  "MC_materials/README.md" = "MC_materials/README.md"
+  "MC_materials/PNNL_materials_compendium.json" = "MC_materials/PNNL_materials_compendium.json"
+  "MC_materials/Compiled_MC_materials.json" = "MC_materials/Compiled_MC_materials.json" 
+  "MC_materials/materials_compendium.csv" = "MC_materials/materials_compendium"
