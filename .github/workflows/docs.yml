@@ -58,3 +58,15 @@ jobs:
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
+      
+    - name: Trigger DCHAIN-Tools docs build
+      if: success()
+      env:
+        GH_PAT: ${{ secrets.DCHAIN_TRIGGER_PAT }}
+      run: |
+        curl -X POST \
+          -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: token $GH_PAT" \
+          https://api.github.com/repos/Lindt8/DCHAIN-Tools/dispatches \
+          -d '{"event_type":"trigger-docs"}'
+
