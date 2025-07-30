@@ -1,6 +1,7 @@
 import pytest 
 from PHITS_tools import is_number, split_str_of_equalities, parse_group_string, extract_data_from_header_line, data_row_to_num_list
 
+@pytest.mark.unit
 @pytest.mark.parametrize("test_item,expected", [
     (1, True),
     ('1', True),
@@ -19,6 +20,7 @@ from PHITS_tools import is_number, split_str_of_equalities, parse_group_string, 
 def test_is_number(test_item,expected):
     assert is_number(test_item) == expected
 
+@pytest.mark.unit
 def test_split_str_of_equalities():
     assert split_str_of_equalities('x = 1') == ['x = 1']
     assert split_str_of_equalities('x = 1 y = 2') == ['x = 1', 'y = 2']
@@ -30,6 +32,7 @@ def test_split_str_of_equalities():
     assert split_str_of_equalities('  no. =*** nx=7') == ['no. = 999999999', 'nx = 7']
     assert split_str_of_equalities('(nx, ny = 1, 2)') == ['nx = 1', 'ny = 2']
 
+@pytest.mark.unit
 def test_parse_group_string():
     assert parse_group_string('1 2 3 4') == ['1', '2', '3', '4']
     assert parse_group_string('proton neutron photon') == ['proton', 'neutron', 'photon']
@@ -39,7 +42,8 @@ def test_parse_group_string():
     assert parse_group_string('( 1 4 ) 9 -20') == ['(1 4)', '9', '-20']
     assert parse_group_string('1 2 ( 3 4 ) all') == ['1', '2', '(3 4)', 'all']
     assert parse_group_string('{ 1 - 4 } ( 1 4 )') == ['1', '2', '3', '4', '(1 4)']
-    
+
+@pytest.mark.unit
 def test_extract_data_from_header_line():
     result = extract_data_from_header_line('     unit =    3            # unit is [1/source] : only for output=deposit')
     assert result == ('unit', 3)
@@ -47,7 +51,8 @@ def test_extract_data_from_header_line():
     assert result == ('rdel', 2.5)
     result = extract_data_from_header_line('   output = deposit     ')
     assert result == ('output', 'deposit')
-    
+
+@pytest.mark.unit
 def test_data_row_to_num_list():
     line = ''
     assert data_row_to_num_list(line) == []

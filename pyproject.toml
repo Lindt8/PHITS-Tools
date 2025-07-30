@@ -32,7 +32,7 @@ extras = [
   'pyvista>=0.44.2'
 ]
 test = [
-	"pytest", 
+	"pytest>=6.0", 
 	"pytest-cov",
 ]
 build = [
@@ -94,18 +94,72 @@ exclude = [
   "MC_materials/Compiled_MC_materials.json" = "MC_materials/Compiled_MC_materials.json" 
   "MC_materials/materials_compendium.csv" = "MC_materials/materials_compendium"
 
+
+
+
+# Testing
+[tool.pytest.ini_options]
+# Test discovery and execution
+testpaths = ["tests"]  # Only run unit tests by default
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+# Add useful markers
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "deprecated: marks tests for deprecated functions that issue warnings",
+]
+# Minimum version requirement
+minversion = "6.0"
+# Add useful command line options by default
+addopts = [
+    "--strict-markers",  # Treat unregistered markers as errors
+    "--strict-config",   # Treat config issues as errors
+    "--verbose",         # Verbose output
+    "-ra",              # Show extra test summary for all except passed
+#    "--cov=PHITS_tools", # Enable coverage by default
+#    "--cov-report=html", # Generate HTML report by default
+#    "--cov-report=term-missing", # Also show terminal report
+]
+# Filter warnings 
+filterwarnings = [
+    "error",  # Treat warnings as errors (remove if too strict)
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+    "ignore::FutureWarning:PHITS_tools.*", # Only ignore from PHITS_tools module
+]
+
 [tool.coverage.run]
 source = ["PHITS_tools"]
 branch = true
+# Omit test files from coverage
+omit = [
+    "tests/*",
+    "test/*",
+    "*/tests/*",
+    "*/test/*",
+    "build_docs.py",
+]
 
 [tool.coverage.report]
+# Terminal report settings
 show_missing = true
-skip_covered = true
+skip_covered = false
+skip_empty = true
+precision = 2
 exclude_lines = [
     "pragma: no cover",
-    "if __name__ == '__main__':"
+    "if __name__ == '__main__':",
+    "if False:",
 ]
+# Set coverage thresholds
+fail_under = 80
 
 [tool.coverage.html]
 directory = "htmlcov"
 title = "PHITS-Tools Test Coverage"
+skip_covered = false
+skip_empty = false
+#show_contexts = true

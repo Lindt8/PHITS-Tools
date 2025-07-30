@@ -6607,7 +6607,7 @@ def Element_Sym_to_Z(sym):
 
 
 
-def run_PHITS_tools_CLI_or_GUI():
+def run_PHITS_tools_CLI_or_GUI():  # pragma: no cover
     '''
     Determines whether the GUI or CLI will be used and launches it
     '''
@@ -6619,7 +6619,7 @@ def run_PHITS_tools_CLI_or_GUI():
         run_PHITS_tools_CLI()
     return None
 
-def run_PHITS_tools_CLI():
+def run_PHITS_tools_CLI():  # pragma: no cover
     '''
     Runs PHITS Tools via the CLI, interpreting command-line arguments
     '''
@@ -6792,7 +6792,7 @@ def run_PHITS_tools_CLI():
                                     autoplot_tally_output=autoplot_tally_output)
     return None
 
-def run_PHITS_tools_GUI():
+def run_PHITS_tools_GUI():  # pragma: no cover
     '''
     Runs PHITS Tools via the GUI, allowing user to select/specify inputs and settings via GUI
     '''
@@ -7242,7 +7242,7 @@ elif launch_GUI:
 
 
 
-
+# pragma: no cover start
 elif test_explicit_files_dirs:
     base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\\'
     #output_file_path = Path(base_path + 't-deposit\deposit_reg.out')
@@ -7521,10 +7521,4 @@ elif test_explicit_files_dirs:
 
     #ic = tally_metadata['nuclide_ZZZAAAM_list'].index(10020)
     #print(tally_data[1, 0, 0, 0, 0, 0, 0, 0, ic, 0])
-
-
-
-
-
-
-
+# pragma: no cover stop

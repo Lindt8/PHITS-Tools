@@ -4,6 +4,7 @@ from PHITS_tools import ZZZAAAM_to_nuclide_plain_str, nuclide_plain_str_to_ZZZAA
 from PHITS_tools import nuclide_Z_and_A_to_latex_str, element_Z_or_symbol_to_name, element_Z_or_symbol_to_mass
 from PHITS_tools import Element_Z_to_Sym, Element_Sym_to_Z
 
+@pytest.mark.unit
 def test_element_Z_to_symbol():
     assert element_Z_to_symbol(1) == 'H'
     assert element_Z_to_symbol(92) == 'U'
@@ -15,6 +16,7 @@ def test_element_Z_to_symbol():
     assert element_Z_to_symbol(-1) is None
     assert element_Z_to_symbol(119) is None
 
+@pytest.mark.unit
 def test_element_symbol_to_Z():
     assert element_symbol_to_Z('H') == 1
     assert element_symbol_to_Z('U') == 92
@@ -27,6 +29,7 @@ def test_element_symbol_to_Z():
     assert element_symbol_to_Z('AA') == -1
     assert element_symbol_to_Z('oG') == 118
 
+@pytest.mark.unit
 def test_kfcode_to_common_name():
     assert kfcode_to_common_name(2112) == 'neutron'
     assert kfcode_to_common_name(2212) == 'proton'
@@ -37,6 +40,7 @@ def test_kfcode_to_common_name():
     assert kfcode_to_common_name(1000000) == '1000000'
     assert kfcode_to_common_name(123456) == '123456'
 
+@pytest.mark.unit
 def test_ZZZAAAM_to_nuclide_plain_str():
     assert ZZZAAAM_to_nuclide_plain_str(80160) == 'O-16'
     assert ZZZAAAM_to_nuclide_plain_str(8016, ZZZAAA=True) == 'O-16'
@@ -44,6 +48,7 @@ def test_ZZZAAAM_to_nuclide_plain_str():
     assert ZZZAAAM_to_nuclide_plain_str(430991) == 'Tc-99m1'
     assert ZZZAAAM_to_nuclide_plain_str(430991, include_Z=True) == '43-Tc-99m1'
 
+@pytest.mark.unit
 def test_nuclide_plain_str_to_ZZZAAAM():
     assert nuclide_plain_str_to_ZZZAAAM('O-16') == 80160
     assert nuclide_plain_str_to_ZZZAAAM('O-nat') == 80000
@@ -75,6 +80,7 @@ def test_nuclide_plain_str_to_ZZZAAAM():
     assert nuclide_plain_str_to_ZZZAAAM('t') == 10030
     assert nuclide_plain_str_to_ZZZAAAM('Oo-16') == None
 
+@pytest.mark.unit
 def test_nuclide_plain_str_to_latex_str():
     assert nuclide_plain_str_to_latex_str('O-16') == r'$^{16}$O'
     assert nuclide_plain_str_to_latex_str('O') == r'O'
@@ -99,6 +105,7 @@ def test_nuclide_plain_str_to_latex_str():
     assert nuclide_plain_str_to_latex_str('d', include_Z=True) == r'$^{2}_{1}$d'
     assert nuclide_plain_str_to_latex_str('t', include_Z=True) == r'$^{3}_{1}$t'
 
+@pytest.mark.unit
 def test_nuclide_Z_and_A_to_latex_str():
     assert nuclide_Z_and_A_to_latex_str(8, 16) == r'$^{16}$O'
     assert nuclide_Z_and_A_to_latex_str(8, 'nat') == r'$^{nat}$O'
@@ -111,6 +118,7 @@ def test_nuclide_Z_and_A_to_latex_str():
     assert nuclide_Z_and_A_to_latex_str('O', 52816) == r'$^{52816}$O'
     assert nuclide_Z_and_A_to_latex_str(0, 1) == r'$^{1}$n'
 
+@pytest.mark.unit
 def test_element_Z_or_symbol_to_name():
     assert element_Z_or_symbol_to_name(0) == 'neutron'
     assert element_Z_or_symbol_to_name(1) == 'Hydrogen'
@@ -122,6 +130,7 @@ def test_element_Z_or_symbol_to_name():
     assert element_Z_or_symbol_to_name(118) == 'Oganesson'
     assert element_Z_or_symbol_to_name('Og') == 'Oganesson'
 
+@pytest.mark.unit
 def test_element_Z_or_symbol_to_mass():
     assert element_Z_or_symbol_to_mass(0) == 1.008664
     assert element_Z_or_symbol_to_mass(1) == 1.007
@@ -133,6 +142,8 @@ def test_element_Z_or_symbol_to_mass():
     assert element_Z_or_symbol_to_mass(118) == 294
     assert element_Z_or_symbol_to_mass('Og') == 294
 
+@pytest.mark.filterwarnings("ignore::FutureWarning")
+@pytest.mark.unit
 def test_Element_Z_to_Sym():
     assert Element_Z_to_Sym(1) == 'H'
     assert Element_Z_to_Sym(92) == 'U'
@@ -144,6 +155,8 @@ def test_Element_Z_to_Sym():
     assert Element_Z_to_Sym(-1) is None
     assert Element_Z_to_Sym(119) is None
 
+@pytest.mark.filterwarnings("ignore::FutureWarning")
+@pytest.mark.unit
 def test_Element_Sym_to_Z():
     assert Element_Sym_to_Z('H') == 1
     assert Element_Sym_to_Z('U') == 92
