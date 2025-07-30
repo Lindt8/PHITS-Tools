@@ -2,3 +2,5 @@
 /build/
 /docs/index.html
 /docs/manage_mc_materials.html
+/test.log
+/.coverage

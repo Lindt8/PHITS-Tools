@@ -93,3 +93,19 @@ exclude = [
   "MC_materials/PNNL_materials_compendium.json" = "MC_materials/PNNL_materials_compendium.json"
   "MC_materials/Compiled_MC_materials.json" = "MC_materials/Compiled_MC_materials.json" 
   "MC_materials/materials_compendium.csv" = "MC_materials/materials_compendium"
+
+[tool.coverage.run]
+source = ["PHITS_tools"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == '__main__':"
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
+title = "PHITS-Tools Test Coverage"

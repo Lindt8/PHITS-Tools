@@ -4029,7 +4029,7 @@ def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter=
     return nuc_str
 
 def nuclide_plain_str_to_ZZZAAAM(nuc_str):
-    '''
+    r'''
     Description:
         Converts a plaintext string of a nuclide to an integer ZZZAAAM = 10000\*Z + 10\*A + M
 
@@ -7445,7 +7445,7 @@ elif test_explicit_files_dirs:
         #tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\xyz\W_xyz_target.out')
         #tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\150pH2O.act')
         #tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\150pH2O.out')
-        '''
+        r'''
         #tally_output_dirpath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\\')
         #tally_output_dirpath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\phits.out')
         tally_output_dirpath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\dchain.inp')
