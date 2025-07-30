@@ -4338,7 +4338,10 @@ def nuclide_Z_and_A_to_latex_str(Z,A,m=''):
         - LaTeX-formatted raw string of a nuclide, excellent for plot titles, labels, and auto-generated LaTeX documents
     '''
     if isinstance(A,(int,float)): A = str(int(A))
-    if not isinstance(Z,str): symbol = element_Z_to_symbol(int(Z))
+    if not isinstance(Z,str): 
+        symbol = element_Z_to_symbol(int(Z))
+    else:
+        symbol = Z
     if isinstance(m,float): m = int(m)
     if isinstance(m,int): m = 'm' + str(m)
     latex_str = r"$^{{{}{}}}$".format(A,m) + "{}".format(symbol)

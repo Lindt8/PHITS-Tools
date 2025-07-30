@@ -1,6 +1,7 @@
 import pytest 
 from PHITS_tools import element_Z_to_symbol, element_symbol_to_Z, kfcode_to_common_name
 from PHITS_tools import ZZZAAAM_to_nuclide_plain_str, nuclide_plain_str_to_ZZZAAAM, nuclide_plain_str_to_latex_str
+from PHITS_tools import nuclide_Z_and_A_to_latex_str, element_Z_or_symbol_to_name, element_Z_or_symbol_to_mass
 from PHITS_tools import Element_Z_to_Sym, Element_Sym_to_Z
 
 def test_element_Z_to_symbol():
@@ -97,6 +98,40 @@ def test_nuclide_plain_str_to_latex_str():
     assert nuclide_plain_str_to_latex_str('p', include_Z=True) == r'$^{1}_{1}$p'
     assert nuclide_plain_str_to_latex_str('d', include_Z=True) == r'$^{2}_{1}$d'
     assert nuclide_plain_str_to_latex_str('t', include_Z=True) == r'$^{3}_{1}$t'
+
+def test_nuclide_Z_and_A_to_latex_str():
+    assert nuclide_Z_and_A_to_latex_str(8, 16) == r'$^{16}$O'
+    assert nuclide_Z_and_A_to_latex_str(8, 'nat') == r'$^{nat}$O'
+    assert nuclide_Z_and_A_to_latex_str('O', 'nat') == r'$^{nat}$O'
+    assert nuclide_Z_and_A_to_latex_str(8, 16, m='m') == r'$^{16m}$O'
+    assert nuclide_Z_and_A_to_latex_str(8, 16, m=1) == r'$^{16m1}$O'
+    assert nuclide_Z_and_A_to_latex_str(8, 16, m=1.0) == r'$^{16m1}$O'
+    assert nuclide_Z_and_A_to_latex_str(8, 16, m='meta') == r'$^{16meta}$O'
+    assert nuclide_Z_and_A_to_latex_str(8, 16, m='meta1') == r'$^{16meta1}$O'
+    assert nuclide_Z_and_A_to_latex_str('O', 52816) == r'$^{52816}$O'
+    assert nuclide_Z_and_A_to_latex_str(0, 1) == r'$^{1}$n'
+
+def test_element_Z_or_symbol_to_name():
+    assert element_Z_or_symbol_to_name(0) == 'neutron'
+    assert element_Z_or_symbol_to_name(1) == 'Hydrogen'
+    assert element_Z_or_symbol_to_name('H') == 'Hydrogen'
+    assert element_Z_or_symbol_to_name(8) == 'Oxygen'
+    assert element_Z_or_symbol_to_name('O') == 'Oxygen'
+    assert element_Z_or_symbol_to_name(117) == 'Tennessine'
+    assert element_Z_or_symbol_to_name('Ts') == 'Tennessine'
+    assert element_Z_or_symbol_to_name(118) == 'Oganesson'
+    assert element_Z_or_symbol_to_name('Og') == 'Oganesson'
+
+def test_element_Z_or_symbol_to_mass():
+    assert element_Z_or_symbol_to_mass(0) == 1.008664
+    assert element_Z_or_symbol_to_mass(1) == 1.007
+    assert element_Z_or_symbol_to_mass('H') == 1.007
+    assert element_Z_or_symbol_to_mass(8) == 15.9994
+    assert element_Z_or_symbol_to_mass('O') == 15.9994
+    assert element_Z_or_symbol_to_mass(117) == 294
+    assert element_Z_or_symbol_to_mass('Ts') == 294
+    assert element_Z_or_symbol_to_mass(118) == 294
+    assert element_Z_or_symbol_to_mass('Og') == 294
 
 def test_Element_Z_to_Sym():
     assert Element_Z_to_Sym(1) == 'H'
