@@ -75,14 +75,20 @@ functions return the data objects they produce for your own further analyses.
 - `fetch_MC_material`               : returns a string of a formatted material for PHITS or MCNP (mostly those in [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125)); see [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html) for details on managing the materials database
 - `ICRP116_effective_dose_coeff`    : returns effective dose conversion coefficient of a mono-energetic particle of some species and some geometry; does coefficients are those in [ICRP 116](https://doi.org/10.1016/j.icrp.2011.10.001)
 - `merge_dump_file_pickles`         : merge multiple dump file outputs into a single file (useful for dumps in MPI runs)
+- `is_number`                       : returns Boolean denoting whether provided string is that of a number
+- `find`                            : return index of the first instance of a value in a list
+
+### Nuclide/Particle Information Functions
+
 - `ZZZAAAM_to_nuclide_plain_str`    : returns a nuclide plaintext string for a given "ZZZAAAM" number (1000Z+10A+M)
 - `nuclide_plain_str_to_ZZZAAAM`    : returns a "ZZZAAAM" number (1000Z+10A+M) for a given nuclide plaintext string 
 - `nuclide_plain_str_to_latex_str`  : convert a plaintext string for a nuclide to a LaTeX formatted raw string
+- `nuclide_Z_and_A_to_latex_str`    : form a LaTeX-formatted string of a nuclide provided its Z/A/m information
 - `element_Z_to_symbol`             : return an elemental symbol string given its proton number Z
 - `element_symbol_to_Z`             : returns an atomic number Z provided the elemental symbol
+- `element_Z_or_symbol_to_name`     : returns a string of the name of an element provided its atomic number Z or symbol
+- `element_Z_or_symbol_to_mass`     : returns an element's average atomic mass provided its atomic number Z or symbol
 - `kfcode_to_common_name`           : converts a particle kf-code to a plaintext string
-- `is_number`                       : returns Boolean denoting whether provided string is that of a number
-- `find`                            : return index of the first instance of a value in a list
 
 ### Subfunctions for PHITS output parsing
 (These are meant as dependencies more so than for standalone usage.)
@@ -255,6 +261,9 @@ import sys
 import os
 import numpy as np
 from pathlib import Path
+import functools
+import inspect
+import warnings
 
 __version__ = '1.6.0b5'
 
@@ -292,7 +301,27 @@ if in_debug_mode:
 
 
 
-# use Path, get extension, check for existence of filename_err.extension
+def _deprecated_alias(new_func_name):
+    '''@private
+    Decorator for backward-compatible aliasing of renamed functions.
+    '''
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            stack = inspect.stack()
+            try:
+                caller_module = inspect.getmodule(stack[1][0])
+                this_module = inspect.getmodule(stack[0][0])
+                if caller_module is not this_module:
+                    warnings.warn(
+                        f"'{func.__name__}' is deprecated. It retains its original functionality, but is now just a wrapper for '{new_func_name}'.",
+                        FutureWarning, stacklevel=2
+                    )
+            finally:
+                del stack
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
 def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calculate_absolute_errors = True,
@@ -3927,6 +3956,41 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
     return merge_success
 
 
+def is_number(n):
+    '''
+    Description:
+        Determine if a string is that of a number or not.
+
+    Inputs:
+        - `n` = string to be tested
+
+    Outputs:
+        - `True` if value is a number (can be converted to float() without an error)
+        - `False` otherwise
+    '''
+    try:
+        float(n)
+    except ValueError:
+        return False
+    return True
+
+def find(target, myList):
+    '''
+    Description:
+        Search for and return the index of the first occurance of a value in a list.
+
+    Inputs:
+        - `target` = value to be searched for
+        - `myList` = list of values
+
+    Output:
+        - index of first instance of `target` in `myList`
+    '''
+    for i in range(len(myList)):
+        if myList[i] == target:
+            return i
+
+
 
 def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter='-'):
     '''
@@ -4259,6 +4323,28 @@ def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
 
     return tex_str
 
+def nuclide_Z_and_A_to_latex_str(Z,A,m=''):
+    '''
+    Description:
+        Form a LaTeX-formatted string of a nuclide provided its Z/A/m information
+
+    Inputs:
+        - `Z` = atomic number of nuclide (int, float, or string) or elemental symbol (string)
+        - `A` = atomic mass of nuclide (int, float, or string) or string to go in place of A (ex. `'nat'`)
+        - `m` = metastable state (D=`''`, ground state); this will be appended to the end of A
+              if not a string already, it will be converted into one and appended to `'m'` (ex. `1` -> `'m1'`)
+
+    Outputs:
+        - LaTeX-formatted raw string of a nuclide, excellent for plot titles, labels, and auto-generated LaTeX documents
+    '''
+    if isinstance(A,(int,float)): A = str(int(A))
+    if not isinstance(Z,str): symbol = element_Z_to_symbol(int(Z))
+    if isinstance(m,float): m = int(m)
+    if isinstance(m,int): m = 'm' + str(m)
+    latex_str = r"$^{{{}{}}}$".format(A,m) + "{}".format(symbol)
+    return latex_str
+
+
 
 def element_Z_to_symbol(Z):
     '''
@@ -4343,6 +4429,67 @@ def element_symbol_to_Z(sym):
     return Z
 
 
+def element_Z_or_symbol_to_name(Z):
+    '''
+    Description:
+        Returns an element's name provided its atomic number Z or elemental symbol
+
+    Inputs:
+        - `Z` = string of elemental symbol or atomic number Z
+
+    Outputs:
+        - `name` = element name
+    '''
+    element_names = ['neutron','Hydrogen','Helium','Lithium','Beryllium','Boron','Carbon','Nitrogen','Oxygen','Fluorine',
+                     'Neon','Sodium','Magnesium','Aluminium','Silicon','Phosphorus','Sulfur','Chlorine','Argon',
+                     'Potassium','Calcium','Scandium','Titanium','Vanadium','Chromium','Manganese','Iron','Cobalt',
+                     'Nickel','Copper','Zinc','Gallium','Germanium','Arsenic','Selenium','Bromine','Krypton',
+                     'Rubidium','Strontium','Yttrium','Zirconium','Niobium','Molybdenum','Technetium','Ruthenium',
+                     'Rhodium','Palladium','Silver','Cadmium','Indium','Tin','Antimony','Tellurium','Iodine','Xenon',
+                     'Caesium','Barium','Lanthanum','Cerium','Praseodymium','Neodymium','Promethium','Samarium',
+                     'Europium','Gadolinium','Terbium','Dysprosium','Holmium','Erbium','Thulium','Ytterbium',
+                     'Lutetium','Hafnium','Tantalum','Tungsten','Rhenium','Osmium','Iridium','Platinum','Gold',
+                     'Mercury','Thallium','Lead','Bismuth','Polonium','Astatine','Radon','Francium','Radium',
+                     'Actinium','Thorium','Protactinium','Uranium','Neptunium','Plutonium','Americium','Curium',
+                     'Berkelium','Californium','Einsteinium','Fermium','Mendelevium','Nobelium','Lawrencium',
+                     'Rutherfordium','Dubnium','Seaborgium','Bohrium','Hassium','Meitnerium','Darmstadtium',
+                     'Roentgenium','Copernicium','Nihonium','Flerovium','Moscovium','Livermorium','Tennessine','Oganesson']
+    try:
+        zi = int(Z)
+    except:
+        zi = element_symbol_to_Z(Z)
+    return element_names[zi]
+
+def element_Z_or_symbol_to_mass(Z):
+    '''
+    Description:
+        Returns an element's average atomic mass provided its atomic number Z or elemental symbol
+
+    Inputs:
+        - `Z` = string of elemental symbol or atomic number Z
+
+    Outputs:
+        - `A_avg` = average atomic mass
+    '''
+
+    average_atomic_masses = [1.008664,1.007,4.002602,6.941,9.012182,10.811,12.0107,14.0067,15.9994,18.9984032,
+                             20.1797,22.98976928,24.305,26.9815386,28.0855,30.973762,32.065,35.453,39.948,39.0983,
+                             40.078,44.955912,47.867,50.9415,51.9961,54.938045,55.845,58.933195,58.6934,63.546,65.38,
+                             69.723,72.63,74.9216,78.96,79.904,83.798,85.4678,87.62,88.90585,91.224,92.90638,95.96,98,
+                             101.07,102.9055,106.42,107.8682,112.411,114.818,118.71,121.76,127.6,126.90447,131.293,
+                             132.9054519,137.327,138.90547,140.116,140.90765,144.242,145,150.36,151.964,157.25,
+                             158.92535,162.5,164.93032,167.259,168.93421,173.054,174.9668,178.49,180.94788,183.84,
+                             186.207,190.23,192.217,195.084,196.966569,200.59,204.3833,207.2,208.9804,209,210,222,
+                             223,226,227,232.03806,231.03588,238.02891,237,244,243,247,247,251,252,257,258,259,
+                             266,267,268,269,270,277,278,281,282,285,286,289,290,293,294,294]
+    try:
+        zi = int(Z)
+    except:
+        zi = element_symbol_to_Z(Z)
+    return average_atomic_masses[zi]
+
+
+
 
 def kfcode_to_common_name(kf_code):
     '''
@@ -4372,41 +4519,6 @@ def kfcode_to_common_name(kf_code):
         par_nuc_str = ZZZAAAM_to_nuclide_plain_str(ZZZAAA, ZZZAAA=True)
 
     return par_nuc_str
-
-def is_number(n):
-    '''
-    Description:
-        Determine if a string is that of a number or not.
-
-    Inputs:
-        - `n` = string to be tested
-
-    Outputs:
-        - `True` if value is a number (can be converted to float() without an error)
-        - `False` otherwise
-    '''
-    try:
-        float(n)
-    except ValueError:
-        return False
-    return True
-
-def find(target, myList):
-    '''
-    Description:
-        Search for and return the index of the first occurance of a value in a list.
-
-    Inputs:
-        - `target` = value to be searched for
-        - `myList` = list of values
-
-    Output:
-        - index of first instance of `target` in `myList`
-    '''
-    for i in range(len(myList)):
-        if myList[i] == target:
-            return i
-
 
 
 def determine_PHITS_output_file_type(output_file):
@@ -6472,13 +6584,14 @@ def extract_tally_outputs_from_phits_input(phits_input, use_path_and_string_mode
                     files_dict['dump_output'] += dump_files_for_this_tally
     return files_dict
 
-
+@_deprecated_alias('element_Z_to_symbol()')
 def Element_Z_to_Sym(Z):
     '''
     This function is a wrapper for `element_Z_to_symbol`
     '''
     return element_Z_to_symbol(Z)
 
+@_deprecated_alias('element_symbol_to_Z()')
 def Element_Sym_to_Z(sym):
     '''
     This function is a wrapper for `element_symbol_to_Z`
