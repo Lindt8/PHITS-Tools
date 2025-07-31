@@ -8,7 +8,7 @@ path_to_phits_base_folder = Path(r'C:\phits')
 phits_sample_dir = Path(path_to_phits_base_folder,'sample')
 phits_recommendation_dir = Path(path_to_phits_base_folder,'recommendation')
 test_input_mode_parsing = True  # Determines if [INPUT_FILE mode] of parse_all_tally_output_in_dir() is tested for all input files
-test_autoplotting = False  # Determines if autoplot_tally_results() is tested too for each tally output (notably slows testing)
+test_autoplotting = True  # Determines if autoplot_tally_results() is tested too for each tally output (notably slows testing)
 plot_paths = []
 
 sample_files = phits_sample_dir.rglob('*.out')

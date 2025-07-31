@@ -293,7 +293,7 @@ if __name__ == "__main__":
             import argparse
 
 
-if in_debug_mode:
+if in_debug_mode:   # pragma: no cover
     import pprint
     import time
     # Timer start
@@ -2616,7 +2616,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
         tally_output_list = [tally_output]
     else:  # list of tally output objects and/or pickles
         for i, to in enumerate(tally_output_list): # open any pickle files provided
-            if not isinstance(to, dict):
+            if not isinstance(to, dict):  # pragma: no cover
                 if to is None:
                     print("WARNING: 'None' tally output encountered in tally_output_list in autoplot_tally_results()!")
                     continue
@@ -2676,7 +2676,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                 tot_plot_axes = sum(1 for i in array_axes_lens if i > 1)
                 tot_num_values = np.prod(array_axes_lens)
                 
-                if tot_num_values > max_num_values_to_plot:
+                if tot_num_values > max_num_values_to_plot:  # pragma: no cover
                     print('\tWARNING: Tally output for ',tally_metadata['file'],' is VERY LARGE (',tot_num_values,' elements), deemed too large for automatic plotting.')
                     if return_fg_list: fg_list.append(None)
                     continue
@@ -3022,7 +3022,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                         hue_var = 'value'
                         row_var = plot_axes_sorted[2]
                     '''
-                elif tot_plot_axes==4:
+                elif tot_plot_axes==4:  # pragma: no cover
                     if plot_axes_sorted[0] in num:
                         x_var = plot_axes_sorted[0]
                     else:
@@ -3048,7 +3048,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                         hue_var = 'value'
                         row_var = plot_axes_sorted[2]
                         col_var = plot_axes_sorted[3]
-                elif tot_plot_axes==5:
+                elif tot_plot_axes==5:  # pragma: no cover
                     plot_kind = 'line'
                     if plot_axes_sorted[0] in num:
                         x_var = plot_axes_sorted[0]
@@ -3060,7 +3060,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                     row_var = plot_axes_sorted[2]
                     col_var = plot_axes_sorted[3]
                     style_var = plot_axes_sorted[4]
-                elif tot_plot_axes==6:
+                elif tot_plot_axes==6:  # pragma: no cover
                     plot_kind = 'line'
                     if plot_axes_sorted[0] in num:
                         x_var = plot_axes_sorted[0]
@@ -3073,7 +3073,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                     col_var = plot_axes_sorted[3]
                     style_var = plot_axes_sorted[4]
                     size_var = plot_axes_sorted[5]
-                else:
+                else:  # pragma: no cover
                     print('\tCannot create plot with 7+ variables...')
                     continue
                 '''
@@ -3199,7 +3199,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                             row_var_renamed = row_var
                     if col_var != None: col_var_renamed = ax_labels[col_var]
                     
-                    if in_debug_mode:
+                    if in_debug_mode:  # pragma: no cover
                         print('plot_kind=', plot_kind, 
                               '\ny_var=', y_var, y_var_renamed, 
                               '\nx_var=', x_var, x_var_renamed, 
@@ -3430,7 +3430,7 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
         if prefer_user_data_folder and user_data_dir.exists():
             lib_file = Path(user_data_dir, database_filename)
             lib_file_json = Path(user_data_dir, database_filename + '.json')
-            if not lib_file_json.exists():
+            if not lib_file_json.exists():  # pragma: no cover
                 print('ERROR: Could not find the materials library JSON file:', lib_file_json)
                 return None
         else:  # Otherwise, try to locate and open materials library from distribution files
@@ -3444,13 +3444,14 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
                     if mc_materials_dir_path.exists():
                         lib_file = Path(mc_materials_dir_path,database_filename)
                         lib_file_json = lib_file.parent / (lib_file.stem + '.json')
-                        if not lib_file_json.exists():
+                        if not lib_file_json.exists():  # pragma: no cover
                             print('ERROR: Could not find the materials library JSON file:', lib_file_json)
                             return None
-                    else:
+                    else:  # pragma: no cover
                         print('ERROR: Could not find the "PHITS-Tools/MC_materials/" directory containing the materials library JSON file.')
                         return None
-                except: # Failing that, check PYTHONPATH
+                except:  # pragma: no cover
+                    # Failing that, check PYTHONPATH
                     user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
                     for i in user_paths:  # first try looking explicitly for MC_materials dir in PYTHONPATH
                         if 'MC_materials' in i:
@@ -3462,7 +3463,7 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
                     if lib_file is None:
                         print('ERROR: Could not find "PHITS_tools" nor "MC_materials" folders in PYTHONPATH; this folder contains the vital "MC_materials/Compiled_MC_materials.json" file.')
                         return None
-            except KeyError:
+            except KeyError:  # pragma: no cover
                 print('ERROR: If PHITS Tools is not installed with pip, the PYTHONPATH environmental variable must be defined and contain the path to the directory holding "MC_materials/Compiled_MC_materials.json"')
                 return None
     
@@ -3471,13 +3472,14 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
         try: # Updated version uses JSON file
             with open(Path(lib_file.parent, lib_file.name + '.json'), "r") as f:
                 all_mats_list = json.load(f)
-        except: # Old version uses a pickle file
+        except:  # pragma: no cover
+            # Old version uses a pickle file
             def load_obj(name):
                 with open(name + '.pkl', 'rb') as f:
                     return pickle.load(f)
             print('WARNING: Old pickle file of MC materials is being used; up-to-date version uses a JSON database.')
             all_mats_list = load_obj(str(lib_file))
-    else:
+    else:  # pragma: no cover
         all_mats_list = []
         if matid is None:
             matid = 0
@@ -3499,7 +3501,7 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
                 matching_mi.append(i)
         if len(matching_mi)==1:
             mi = matching_mi[0]
-        elif len(matching_mi)>1:
+        elif len(matching_mi)>1:  # pragma: no cover
             print('Found multiple materials with this identical matname value:')
             for mmi in matching_mi:
                 print('\tmatid={}  matname="{}"  source="{}"'.format(str(mmi+1),all_mats_list[mmi]['name'],all_mats_list[mmi]['source']))
