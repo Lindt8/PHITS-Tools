@@ -276,7 +276,7 @@ test_explicit_files_dirs = False # used for testing specific files at the bottom
 #test_explicit_files_dirs = True
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":   # pragma: no cover
     #in_debug_mode = True
 
     if test_explicit_files_dirs:
@@ -1430,7 +1430,11 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
             else:
                 with open(path_to_recarray_pickle_file, 'rb') as file: records_list = pickle.load(file)
         if return_Pandas_dataframe:
-            records_df = pd.read_pickle(Path(path_to_dump_file.parent,path_to_dump_file.stem + MPI_subdump_num_str + '_Pandas_df.pickle'))
+            path_to_pandas_dataframe_file = pandas_df_pickle_filepath
+            if compress_pickles_with_lzma:
+                with lzma.open(path_to_pandas_dataframe_file, 'rb') as file: records_df = pickle.load(file)
+            else:
+                with open(path_to_pandas_dataframe_file, 'rb') as file: records_df = pickle.load(file)
     else: # Normal (non-split) dump saving
         if save_namedtuple_list:
             path_to_dump_file = Path(path_to_dump_file)
@@ -1735,7 +1739,7 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = Non
             head, tail = os.path.split(tally_output_dirpath)
             tally_output_dirpath = head
             print('\tHowever, it is a valid path to a file; thus, its parent directory will be used:',tally_output_dirpath)
-        else:
+        else:  # pragma: no cover
             print('\tThe provided path to "tally_output_dir" is not a directory:', tally_output_dirpath)
             print('\tNor is it a valid path to a file. ERROR! Aborting...')
             return None
@@ -1878,7 +1882,7 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = Non
                 for tdchain_tally_output in tdchain_tally_outputs:
                     tally_output_pickle_path_list.append(tdchain_tally_output['path_to_pickle_file'])
                     tot_num_values = np.prod(np.shape(tdchain_tally_output['tally_data'])[:-1])
-                    if tot_num_values > max_num_values_to_plot:
+                    if tot_num_values > max_num_values_to_plot:  # pragma: no cover
                         tally_include_in_plotting_list.append(False)
                         if autoplot_all_tally_output_in_dir and not autoplot_tally_output:  # only print this message if not already printed
                             print('\tWARNING: Tally output for ', tdchain_tally_output['tally_metadata']['file'], ' is VERY LARGE (', tot_num_values,
@@ -1891,7 +1895,7 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = Non
                 else:
                     tally_output_pickle_path_list.append(path_to_pickle_file)
                 tot_num_values = np.prod(np.shape(tally_output['tally_data'])[:-1])
-                if tot_num_values > max_num_values_to_plot:
+                if tot_num_values > max_num_values_to_plot:  # pragma: no cover
                     tally_include_in_plotting_list.append(False)
                     if autoplot_all_tally_output_in_dir and not autoplot_tally_output:  # only print this message if not already printed
                         print('\tWARNING: Tally output for ', tally_output['tally_metadata']['file'], ' is VERY LARGE (', tot_num_values,
@@ -5993,7 +5997,8 @@ def initialize_tally_array(tally_metadata,include_abs_err=True):
                 ie_max = tally_metadata['ne1']
             if 'ne2' in tally_metadata:
                 ic_max = tally_metadata['ne2']
-        elif 'e1' in tally_metadata['axis'] or 'e2' in tally_metadata['axis']:  # This should now be redundant?
+        elif 'e1' in tally_metadata['axis'] or 'e2' in tally_metadata['axis']:  # pragma: no cover
+            # This should now be redundant?
             if tally_metadata['axis'] == 'e12':
                 ie_max = tally_metadata['ne1']
                 ic_max = tally_metadata['ne2']
@@ -7244,8 +7249,9 @@ elif launch_GUI:
 
 
 
-# pragma: no cover start
-elif test_explicit_files_dirs:
+
+elif test_explicit_files_dirs:  # pragma: no cover
+    # pragma: no cover start
     base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\\'
     #output_file_path = Path(base_path + 't-deposit\deposit_reg.out')
     #output_file_path = Path(base_path + 't-deposit\deposit_eng_sp-reg.out')
