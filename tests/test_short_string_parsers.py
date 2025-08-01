@@ -31,6 +31,7 @@ def test_split_str_of_equalities():
     assert split_str_of_equalities('# no. =*** nx=') == []
     assert split_str_of_equalities('  no. =*** nx=7') == ['no. = 999999999', 'nx = 7']
     assert split_str_of_equalities('(nx, ny = 1, 2)') == ['nx = 1', 'ny = 2']
+    assert split_str_of_equalities("'no. =  1,  part = proton,  ie =  1'") == ['no. = 1', 'part = proton', 'ie = 1']
 
 @pytest.mark.unit
 def test_parse_group_string():

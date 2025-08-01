@@ -684,7 +684,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
                     from inspect import signature
                     max_num_values_to_plot = signature(autoplot_tally_results).parameters['max_num_values_to_plot'].default  # 1e7
                     tot_num_values = np.prod(np.shape(tally_output['tally_data'])[:-1])
-                    if tot_num_values > max_num_values_to_plot:
+                    if tot_num_values > max_num_values_to_plot:  # pragma: no cover
                         print('\tWARNING: Tally output for ', tally_output['tally_metadata']['file'], ' is VERY LARGE (', tot_num_values,
                               ' elements), deemed too large for automatic plotting (default max of', max_num_values_to_plot, 'elements).')
                     else:
@@ -712,7 +712,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
     else:
         is_val_file = True
 
-    if is_dmp_file:
+    if is_dmp_file:  # pragma: no cover
         print('\tERROR: The provided file is a "dump" output file. Use the function titled "parse_tally_dump_file" to process it instead.')
         return None
 
@@ -725,7 +725,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
             tally_output_filepath = potential_val_file
             is_val_file = True
             is_err_file = False
-        else:
+        else:  # pragma: no cover
             print('\t\t The corresponding file with tally values could not be found, so only these uncertainties will be parsed.')
 
     # Split content of output file into header and content
@@ -766,7 +766,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
         '''
         try:
             from dchain_tools import parse_dtrk_file, parse_dyld_files, Dname_to_ZAM
-        except:
+        except:  # pragma: no cover
             try:
                 from PHITS_tools.dchain_tools import parse_dtrk_file, parse_dyld_files, Dname_to_ZAM
             except:
@@ -872,7 +872,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
                 from inspect import signature
                 max_num_values_to_plot = signature(autoplot_tally_results).parameters['max_num_values_to_plot'].default  # 1e7
                 tot_num_values = np.prod(np.shape(tally_output['tally_data'])[:-1])
-                if tot_num_values > max_num_values_to_plot:
+                if tot_num_values > max_num_values_to_plot:  # pragma: no cover
                     print('\t\tWARNING: Tally output for ', tally_output['tally_metadata']['file'], ' is VERY LARGE (', tot_num_values,
                           ' elements), deemed too large for automatic plotting (default max of',max_num_values_to_plot,'elements).')
                 else:
@@ -905,12 +905,12 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
                 print('\tFailed to find the main DCHAIN *.act output file:',act_filepath)
                 if dtrk_filepath.is_file() or dyld_filepath.is_file():
                     print("\tJust processing found .dtrk/.dyld files instead...")
-                else:
+                else:  # pragma: no cover
                     print('\tNor were the *.dyld or *.dtrk files found. Aborting this process...')
                     return None
         try:
             from dchain_tools import process_dchain_simulation_output
-        except:
+        except:  # pragma: no cover
             try:
                 from PHITS_tools.dchain_tools import process_dchain_simulation_output
             except:
@@ -984,7 +984,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
             else:
                 tally_data = parse_tally_content(tally_data, tally_metadata, err_tally_content, is_err_in_separate_file, err_mode=True)
             if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
-        else:
+        else:  # pragma: no cover
             print('\tWARNING: A separate file ending in "_err" containing uncertainties should exist but was not found.')
             err_data_found = False
     if calculate_absolute_errors:
@@ -992,9 +992,9 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
             if in_debug_mode: print("\nCalculating absolute errors...   ({:0.2f} seconds elapsed)".format(time.time() - start))
             tally_data = calculate_tally_absolute_errors(tally_data)
             if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
-        elif is_err_file:
+        elif is_err_file:  # pragma: no cover
             print('\tWARNING: Absolute errors not calculated since the main tally values file was not found.')
-        else:
+        else:  # pragma: no cover
             print('\tWARNING: Absolute errors not calculated since the _err file was not found.')
     # Generate Pandas dataframe of tally results
     if construct_Pandas_frame_from_array:
@@ -1038,7 +1038,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
             from inspect import signature
             max_num_values_to_plot = signature(autoplot_tally_results).parameters['max_num_values_to_plot'].default  # 1e7
             tot_num_values = np.prod(np.shape(tally_output['tally_data'])[:-1])
-            if tot_num_values > max_num_values_to_plot:
+            if tot_num_values > max_num_values_to_plot:  # pragma: no cover
                 print('\tWARNING: Tally output for ', tally_output['tally_metadata']['file'], ' is VERY LARGE (', tot_num_values,
                       ' elements), deemed too large for automatic plotting (default max of',max_num_values_to_plot,'elements).')
             else:
@@ -1218,7 +1218,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
     if prefer_reading_existing_pickle:
         df_exists = pandas_df_pickle_filepath.is_file()
         read_df_path = pandas_df_pickle_filepath
-        if not df_exists:
+        if not df_exists:  # pragma: no cover
             if compress_pickles_with_lzma: 
                 tmp_path = Path(pandas_df_pickle_filepath.parent, pandas_df_pickle_filepath.name.replace('.xz',''))
             else:
@@ -1229,7 +1229,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
         ra_exists = recarray_pickle_filepath.is_file()
         read_ra_path = recarray_pickle_filepath
         read_ra_uses_lzma = compress_pickles_with_lzma
-        if not ra_exists:
+        if not ra_exists:   # pragma: no cover
             if compress_pickles_with_lzma:
                 tmp_path = Path(recarray_pickle_filepath.parent, recarray_pickle_filepath.name.replace('.xz', ''))
             else:
@@ -1239,7 +1239,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
                 read_ra_path = tmp_path
                 read_ra_uses_lzma = not compress_pickles_with_lzma
         # Perform any desired compression/decompression of pickles
-        if ra_exists:
+        if ra_exists:  # pragma: no cover
             if compress_pickles_with_lzma and read_ra_path.name[-3:]!='.xz' and save_namedtuple_list: # save a compressed version
                 with open(read_ra_path, 'rb') as file: records_list = pickle.load(file)
                 with lzma.open(recarray_pickle_filepath, 'wb') as handle: pickle.dump(records_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -1247,7 +1247,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
                 with lzma.open(read_ra_path, 'rb') as file: records_list = pickle.load(file)
                 with open(recarray_pickle_filepath, 'wb') as handle: pickle.dump(records_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
             save_namedtuple_list = False
-        if df_exists:
+        if df_exists:  # pragma: no cover
             if (compress_pickles_with_lzma and read_df_path.name[-3:]!='.xz' and save_Pandas_dataframe) or \
                     (not compress_pickles_with_lzma and read_df_path.name[-3:]=='.xz' and save_Pandas_dataframe):  # save a compressed or uncompressed version
                 records_df = pd.read_pickle(read_df_path)
@@ -1257,14 +1257,14 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
         if (ra_exists and return_namedtuple_list and not save_namedtuple_list) and (df_exists and return_Pandas_dataframe and not save_Pandas_dataframe):
             if read_ra_uses_lzma:
                 with lzma.open(read_ra_path, 'rb') as file: records_list = pickle.load(file)
-            else:
+            else:  # pragma: no cover
                 with open(read_ra_path, 'rb') as file: records_list = pickle.load(file)
             records_df = pd.read_pickle(read_df_path)
             return records_list, records_df 
         elif (ra_exists and return_namedtuple_list and not save_namedtuple_list):
             if read_ra_uses_lzma:
                 with lzma.open(read_ra_path, 'rb') as file: records_list = pickle.load(file)
-            else:
+            else:  # pragma: no cover
                 with open(read_ra_path, 'rb') as file: records_list = pickle.load(file)
             return records_list 
         elif (df_exists and return_Pandas_dataframe and not save_Pandas_dataframe):
@@ -3214,6 +3214,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                               '\ncol_var=', col_var, col_var_renamed, 
                               '\npseudo_2d_plot=', pseudo_2d_plot)
                         print(df_renamed.columns.values)
+                        print('number of data points in df =',len(df_renamed.index))
 
                     if plot_kind == 'line':
                         fg = sns.relplot(data=df_renamed, kind=plot_kind, #num=figi, 
@@ -3854,7 +3855,7 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
     merge_success = False
     if compress_pickles_with_lzma:
         compression_file_extension = '.xz'
-    else:
+    else:  # pragma: no cover
         compression_file_extension = ''
     # Scan to see what files are available
     namedtuple_list_paths = [] 
@@ -3870,14 +3871,14 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
             nt_found = True 
         else:
             nt_path = Path(fp.parent, filebasename + '_namedtuple_list.pickle')
-            if nt_path.is_file(): 
+            if nt_path.is_file():   # pragma: no cover
                 nt_found = True
         pd_path = Path(fp.parent, filebasename + '_Pandas_df.pickle.xz')
         if pd_path.is_file():
             pd_found = True
         else:
             pd_path = Path(fp.parent, filebasename + '_Pandas_df.pickle')
-            if pd_path.is_file():
+            if pd_path.is_file():  # pragma: no cover
                 pd_found = True
         if not nt_found and not pd_found and fp.is_file():
             parse_tally_dump_file(fp,return_namedtuple_list=False, return_Pandas_dataframe=False, save_namedtuple_list=True, save_Pandas_dataframe=True)
@@ -3890,13 +3891,13 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
     # Merge namedtuple lists
     if len(namedtuple_list_paths) > 1:
         from numpy.lib.recfunctions import stack_arrays
-        if len(namedtuple_list_paths) != len(dump_filepath_list):
+        if len(namedtuple_list_paths) != len(dump_filepath_list):  # pragma: no cover
             print('WARNING: While multiple "_namedtuple_list.pickle[.xz]" files were found, some were missing from provided dump file list.')
         for i, f in enumerate(namedtuple_list_paths):
             if f.suffixes[-1] == '.xz':
                 with lzma.open(f, 'rb') as file: 
                     dump_data_list = pickle.load(file)
-            else:
+            else:  # pragma: no cover
                 with open(f, 'rb') as file:
                     dump_data_list = pickle.load(file)
             if i==0:
@@ -3912,7 +3913,7 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
         if compress_pickles_with_lzma:
             with lzma.open(pickle_path, 'wb') as handle:
                 pickle.dump(records_np_array, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        else:
+        else:  # pragma: no cover
             with open(pickle_path, 'wb') as handle:
                 pickle.dump(records_np_array, handle, protocol=pickle.HIGHEST_PROTOCOL)
         print('\tPickle file written:', pickle_path)
@@ -3923,21 +3924,21 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
                 try:
                     f.unlink()
                     print('\tPickle file deleted:', f)
-                except:
+                except:  # pragma: no cover
                     pass
             print()
 
     # Merge Pandas DataFrames
     if len(pandads_DF_paths) > 1:
         import pandas as pd
-        if len(pandads_DF_paths) != len(dump_filepath_list):
+        if len(pandads_DF_paths) != len(dump_filepath_list):  # pragma: no cover
             print('WARNING: While multiple "_Pandas_df.pickle[.xz]" files were found, some were missing from provided dump file list.')
         dfs_to_concat = []
         for i, f in enumerate(pandads_DF_paths):
             if f.suffixes[-1] == '.xz':
                 with lzma.open(f, 'rb') as file: 
                     dump_dataframe = pickle.load(file)
-            else:
+            else:  # pragma: no cover
                 with open(f, 'rb') as file:
                     dump_dataframe = pickle.load(file)
             dfs_to_concat.append(dump_dataframe)
@@ -3955,7 +3956,7 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
                 try:
                     f.unlink()
                     print('\tPickle file deleted:', f)
-                except:
+                except:  # pragma: no cover
                     pass
             print()
 
@@ -4620,10 +4621,10 @@ def search_for_dump_parameters(output_file):
     else:
         origin_tally_file = Path(output_file.parent, output_file.stem.replace('_dmp','') + output_file.suffix)
     PHITS_file_type = determine_PHITS_output_file_type(origin_tally_file)
-    if PHITS_file_type['file_does_not_exist']:
+    if PHITS_file_type['file_does_not_exist']:  # pragma: no cover
         print("Could not find this dump file's companion original standard tally output file",origin_tally_file)
         return dump_data_number, dump_data_sequence
-    elif not PHITS_file_type['is_standard_tally_output']:
+    elif not PHITS_file_type['is_standard_tally_output']:  # pragma: no cover
         print("Found dump file's suspected companion original standard tally output file, but it does not seem to actually be formatted as a standard tally output file",origin_tally_file)
         return dump_data_number, dump_data_sequence
     tally_header, tally_content = split_into_header_and_content(origin_tally_file)
@@ -4637,7 +4638,7 @@ def search_for_dump_parameters(output_file):
             dump_data_sequence_str_list = tally_header[li+1].strip().split()
             dump_data_sequence = [int(i) for i in dump_data_sequence_str_list]
             break
-    if dump_data_number == None and dump_data_sequence == None:
+    if dump_data_number == None and dump_data_sequence == None:  # pragma: no cover
         print('Was unable to locate dump specification information in tally output file',origin_tally_file)
     return dump_data_number, dump_data_sequence
 
@@ -5544,7 +5545,8 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                                 tdata_ivar_str = tdata_ivar_strs[itdata_axis]
                                 value = str(int(part.split('=')[1].strip()) - 1)
                                 exec(tdata_ivar_str + ' = ' + value, globals())
-                            elif meta['mesh'] == 'r-z':
+                            elif meta['mesh'] == 'r-z':   # pragma: no cover
+                                # Not sure if this ever triggers given enclos = 1 is required for [T-Cross] 2d axis args.
                                 if mesh_char=='r surf':
                                     # imesh = mesh_kind_chars.index('y')
                                     itdata_axis = 0 #1  # mesh_kind_iax[imesh]
@@ -5781,7 +5783,7 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
     else:
         raise ValueError(str(meta['axis_dimensions'])+'axis dimensions is unknown, ERROR!')
 
-    if len(banked_uninterpreted_lines) != 0:
+    if len(banked_uninterpreted_lines) != 0:   # pragma: no cover
         print('The following potentially useful output lines were found but not stored anywhere:')
         for line in banked_uninterpreted_lines:
             print('\t'+line)
@@ -5871,8 +5873,8 @@ def split_str_of_equalities(text):
         equality_str = text_pieces[i] + ' ' + equality_str
         if is_i_equal_sign[i]:
             current_equality_contains_equalsign = True
-        elif current_equality_contains_equalsign: # looking to terminate if next item is numeric
-            if i==0 or (is_i_number[i-1] or text_pieces[i-1][-1]==')'): # either final equality completed or next item belongs to next equality
+        elif current_equality_contains_equalsign: # looking to terminate if next item is numeric OR next series of items is a "part = *" pattern
+            if i==0 or (is_i_number[i-1] or text_pieces[i-1][-1]==')') or (i>=3 and text_pieces[i-2]=='=' and 'part' in text_pieces[i-3]): # either final equality completed or next item belongs to next equality
                 equalities_str_list.insert(0,equality_str.strip())
                 equality_str = ''
                 current_equality_contains_equalsign = False

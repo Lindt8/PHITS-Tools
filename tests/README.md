@@ -8,4 +8,4 @@ Testing was developed with [`pytest`](https://pypi.org/project/pytest/) and [`py
 
 ## Expected coverage
 
-After executing `make test-cov` to run all the tests in this directory, in the produced `htmlcov-unit/function_index.html` coverage report expect something around 18% total coverage (over all of PHITS Tools) but 90% or higher coverage individually for all of the functions tested by the unit tests here.
+After executing `make test-cov` to run all the tests in this directory, in the produced `htmlcov-unit/function_index.html` coverage report expect something around 19% total coverage (over all of PHITS Tools) but 90% or higher coverage individually for all of the functions tested by the unit tests here.
