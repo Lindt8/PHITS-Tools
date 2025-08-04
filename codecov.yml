@@ -34,18 +34,6 @@ comment:
   require_changes: false
   require_base: no
   require_head: yes
-  
-  # Custom comment template
-  template: |
-    ## Coverage Report
-    
-    | Test Suite | Coverage | Change |
-    |------------|----------|--------|
-    | Unit Tests | {{ flags.ci-unittests.coverage }}% | {{ flags.ci-unittests.diff }}% |
-    | Full Suite | {{ flags.full-suite.coverage }}% | {{ flags.full-suite.diff }}% |
-    
-    **Note**: Unit tests cover the standalone functions in PHITS Tools that end-users are likely to utilize themselves.
-    Integration/functional tests require externally distributed PHITS output files not available in CI, see test/README.md.
 
 ignore:
   - "tests/*"
