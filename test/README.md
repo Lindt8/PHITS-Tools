@@ -29,6 +29,14 @@ For some of these tests to pass, you will need to run some of the PHITS/DCHAIN i
 
 ## Expected coverage
 
+[![CI Tests](https://github.com/Lindt8/PHITS-Tools/actions/workflows/ci-tests.yml/badge.svg)](https://github.com/Lindt8/PHITS-Tools/actions/workflows/ci-tests.yml)
+| Unit tests only: [![Unit Tests](https://codecov.io/gh/Lindt8/PHITS-Tools/branch/feature/improve-testing/graph/badge.svg?flag=ci-unittests&label=Unit%20Tests)](https://app.codecov.io/github/lindt8/phits-tools?flags%5B0%5D=ci-unittests)
+| Full test suite: [![Full Suite](https://codecov.io/gh/Lindt8/PHITS-Tools/branch/feature/improve-testing/graph/badge.svg?flag=full-suite&label=Full%20Suite)](https://app.codecov.io/github/lindt8/phits-tools?flags%5B0%5D=full-suite)
+<!--
+| Unit tests [![Unit Tests](https://codecov.io/gh/Lindt8/PHITS-Tools/graph/badge.svg?flag=ci-unittests&label=Unit%20Tests)](https://app.codecov.io/github/lindt8/phits-tools?flags%5B0%5D=ci-unittests)
+| Full test suite [![Full Suite](https://codecov.io/gh/Lindt8/PHITS-Tools/graph/badge.svg?flag=full-suite&label=Full%20Suite)](https://app.codecov.io/github/lindt8/phits-tools?flags%5B0%5D=full-suite)
+/-->
+
 The testing here was performed on the files distributed with PHITS version 3.35.  What code coverage you see will be highly dependent on what PHITS output files you have available in the `phits/sample/` and `phits/recommendation/` directories.  With the tested PHITS version here, both of these directories are distributed largely with outputs already generated; though this could change in the future with any efforts to further reduce the PHITS distribution's file size.  
 
 The main exception is that `phits/sample/tally/` is presently only distributed with input files, no output files.  Given that tallies are the main source of diversity in PHITS outputs, it is crucial for testing to provide as many tally outputs to test as possible.  Thus, for the coverage figures reported here, in addition to the output files already distributed by default with PHITS, all of the PHITS inputs in `phits/sample/tally/` were also ran through PHITS, their outputs thus also included in the comprehensive scans conducted by [`test_overall_functionality.py`](test/test_overall_functionality.py).
