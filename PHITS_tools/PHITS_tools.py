@@ -2211,7 +2211,7 @@ def parse_phitsout_file(phitsout_filepath, include_input_echo=True, save_phitsou
             skip_lines = tesli + eli
             if '=' not in table_text:
                 table_text = column_header_line + '\n' + table_text
-                table_df = pd.read_csv(io.StringIO(table_text.replace(',','.')), comment=':', sep='\s+', on_bad_lines='skip')
+                table_df = pd.read_csv(io.StringIO(table_text.replace(',','.')), comment=':', sep=r'\s+', on_bad_lines='skip')
                 if ':' in table_text:
                     descriptions = [x.split(':', 1)[-1] for x in table_text.split('\n')[1:-1]]
                     table_df['description'] = descriptions
