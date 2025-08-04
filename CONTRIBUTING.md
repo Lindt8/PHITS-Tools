@@ -24,7 +24,7 @@ If you wish to clone the PHITS-Tools repository and also grab the DCHAIN-Tools f
 
 `gh repo clone https://github.com/Lindt8/PHITS-Tools -- --recurse-submodules`
 
-
+If, while developing, you need to update DCHAIN Tools within PHITS Tools to its most recent version, use `git submodule update --remote` from within the PHITS Tools project root directory.
 
 <!--
 
