@@ -4743,6 +4743,8 @@ def parse_tally_header(tally_header,tally_content):
     meta['samepage'] = 'part'
     found_mesh_kinds = []
 
+    current_data_mesh_kind = None
+
     reading_axis_data = False
     reading_regions = False
     in_exceptional_mesh_kind = False
