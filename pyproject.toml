@@ -44,6 +44,7 @@ doc = [
 ]
 develop = [
 	"PHITS-Tools[test,doc]",
+    "codecov-cli",
 ]
 
 [project.scripts]
