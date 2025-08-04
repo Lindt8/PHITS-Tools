@@ -215,7 +215,7 @@ I have extensively tested this module with a rather large number of PHITS output
 
 Likewise, if you have any questions or ideas for improvements / feature suggestions, feel free to submit them as an issue.  If you would like to contribute a new function or changes to any existing functions, feel free to fork this repository, make a new branch with your additions/changes, and make a pull request.  (GitHub has a [nice short guide](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project) on this process.)
 
-For more information on contributing and running tests yourself, please check out [CONTRIBUTING.md](CONTRIBUTING.md), [`tests/`](tests/) for unit tests, and [`tests/`](tests/) for integration/functional tests.
+For more information on contributing and running tests yourself, please check out [CONTRIBUTING.md](CONTRIBUTING.md), [`tests/`](tests/) for unit tests, and [`test/`](test/) for integration/functional tests.
 
 
 -----
