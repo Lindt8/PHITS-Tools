@@ -1,5 +1,5 @@
 # Common Python project Makefile tasks
-.PHONY: test test-cov test-all test-unit clean-cov install clean docs build publish
+.PHONY: test test-cov test-all test-unit clean-cov install clean docs build publish lint
 
 # Just run the tests without coverage reporting
 test:
@@ -22,9 +22,11 @@ clean-cov:
 	rm -rf htmlcov/ htmlcov-unit/ htmlcov-full/ .coverage*
 
 install:
+	git submodule update --init --recursive
 	pip install -e .
 
 install-dev:
+	git submodule update --init --recursive
 	pip install -e ".[dev]"
 
 clean:
@@ -40,3 +42,9 @@ build:
 
 publish:
 	py -m twine upload dist/*
+	
+# Code quality checks (critical errors only)
+lint:
+	@echo "Checking for critical syntax errors..."
+	flake8 PHITS_tools/ tests/ --select=E9,F63,F7,F82,F83 --show-source --statistics
+	@echo "No critical errors found"

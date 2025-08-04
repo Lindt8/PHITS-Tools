@@ -34,6 +34,7 @@ extras = [
 test = [
 	"pytest>=6.0", 
 	"pytest-cov",
+    "flake8",
 ]
 build = [
 	"hatchling",
@@ -157,6 +158,8 @@ exclude_lines = [
     "raise ValueError",
 ]
 # Set coverage thresholds
+# Note: This is overridden in CI with --cov-fail-under=0
+# Local development can use full integration tests (89% coverage)
 fail_under = 80
 
 [tool.coverage.html]
@@ -165,3 +168,6 @@ title = "PHITS-Tools Test Coverage"
 skip_covered = false
 skip_empty = false
 #show_contexts = true
+
+[tool.coverage.xml]
+output = "coverage.xml"
