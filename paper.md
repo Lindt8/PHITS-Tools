@@ -130,17 +130,17 @@ a Pandas DataFrame containing the same numerical information for users preferrin
 
 `PHITS Tools` is also capable of parsing the "dump" output files (both binary and ASCII formats) 
 that are available for some tallies, and it can also automatically detect, parse, and process all PHITS 
-output files listed within a provided directory or PHITS input file, very convenient 
+output files listed in a provided directory or PHITS input file, very convenient 
 for simulations employing multiple tallies, each with its own output file, 
 whose output are to be further studied, e.g., compared to experimental data or other simulations. 
-The `PHITS Tools` module can be used by 
-(1) importing it as a Python module in a script and calling its functions, 
+`PHITS Tools` can be used by 
+(1) importing it as a Python package in a script and calling its functions, 
 (2) running it in the command line via its CLI with a provided PHITS output
  file (or directory/input) and settings flags/options, or 
 (3) running it without any arguments to launch a GUI stepping the user through 
 the various output processing options and settings in `PHITS Tools`.
 
-When used as an imported module, `PHITS Tools` provides a number of supplemental
+When used as an imported package, `PHITS Tools` provides a number of supplemental
 functions aiding with further analyses, such as tools for 
 constructing one's own tally over the history-by-history output of the "dump" files, 
 rebinning histogrammed results to a different desired binning structure, 
