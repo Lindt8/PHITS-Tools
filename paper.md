@@ -70,15 +70,14 @@ any arbitrary irradiation schedule from any radiation source.
 The package presented here automates the time-consuming task of extracting the 
 numerical results and metadata from PHITS/DCHAIN simulations and organizes them into 
 a standardized format, easing and expediting further practical real-world analyses. 
-It also can automatically produce images of plotted tally outputs and 
-provides functions for some of the most common analyses one 
+It also provides functions for some of the most common analyses one 
 may wish to perform on simulation outputs.
 
 
 
 # Statement of need
 
-`PHITS Tools` (and its `DCHAIN Tools` submodule) serve as an interface between the plaintext (and binary) outputs
+`PHITS Tools` and its `DCHAIN Tools` submodule serve as an interface between the plaintext (and binary) outputs
 of the PHITS and DCHAIN codes and Python&mdash;greatly expediting further programmatic analyses, 
 comparisons, and visualization&mdash;and provide some extra analysis tools. 
 The outputs of the PHITS code are, aside from the special binary "dump" files, plaintext files formatted 
@@ -90,7 +89,8 @@ writing a bespoke processing script for most individual simulations,
 possibly preceded by manual data extraction/isolation too. 
 `PHITS Tools` provides universal output parsers for the PHITS and DCHAIN codes, 
 capable of processing all of the relevant output files produced by each code and
-outputting the numerical results and metadata in a consistent, standardized output format.
+outputting the numerical results and metadata in a consistent, standardized output format, 
+along with the ability to automatically produce images of plotted tally outputs too.
 
 The substantial number of combinations within PHITS of geometry specification, 
 scoring axes (spatial, energy, time, angle, LET, etc.), tally types (scoring volumetric and surface crossing 
