@@ -39,8 +39,17 @@ jobs:
           path: paper.pdf
       - name: Commit PDF to repository
         if: github.ref == 'refs/heads/main'
-        uses: EndBug/add-and-commit@v9
+        uses: peter-evans/create-pull-request@v5
         with:
-          message: '(auto) Paper PDF Draft'
-          # This should be the path to the paper within your repo.
-          add: 'paper.pdf' # 'paper/*.pdf' to commit all PDFs in the paper directory
+          token: ${{ secrets.GITHUB_TOKEN }}  # Try default token first
+          commit-message: '(auto) Update paper PDF'
+          title: 'Auto-update paper PDF'
+          body: |
+            This PR was automatically created to update the paper PDF after changes to paper.md.
+            
+            - Generated from commit: ${{ github.sha }}
+            - Triggered by: ${{ github.actor }}
+          branch: auto-pdf-update-${{ github.run_number }}  # Make branch name unique
+          delete-branch: true
+          add-paths: |
+            paper.pdf
