@@ -1,5 +1,5 @@
 ---
-title: 'PHITS & DCHAIN Tools: Python modules for parsing, organizing, and analyzing results from the PHITS radiation transport and DCHAIN activation codes'
+title: 'The PHITS Tools Python package for parsing, organizing, and analyzing results from the PHITS radiation transport and DCHAIN activation codes'
 tags:
   - PHITS
   - DCHAIN
@@ -67,17 +67,17 @@ The DCHAIN code coupled to PHITS specializes in calculating nuclide inventories 
 (such as activity, decay heat, decay gamma-ray emission spectra, and more) as a function of time for 
 any arbitrary irradiation schedule from any radiation source.
 
-The modules presented here automate the time-consuming task of extracting the 
+The package presented here automates the time-consuming task of extracting the 
 numerical results and metadata from PHITS/DCHAIN simulations and organizes them into 
 a standardized format, easing and expediting further practical real-world analyses. 
-They also provide functions for some of the most common analyses one 
+It also provides functions for some of the most common analyses one 
 may wish to perform on simulation outputs.
 
 
 
 # Statement of need
 
-`PHITS Tools` and `DCHAIN Tools` serve as an interface between the plaintext (and binary) outputs
+`PHITS Tools` and its `DCHAIN Tools` submodule serve as an interface between the plaintext (and binary) outputs
 of the PHITS and DCHAIN codes and Python&mdash;greatly expediting further programmatic analyses, 
 comparisons, and visualization&mdash;and provide some extra analysis tools. 
 The outputs of the PHITS code are, aside from the special binary "dump" files, plaintext files formatted 
@@ -87,20 +87,20 @@ code are formatted in a variety of tabular, human-readable structures.  Historic
 extraction and organization of numerical results and metadata from both codes often required 
 writing a bespoke processing script for most individual simulations, 
 possibly preceded by manual data extraction/isolation too. 
-`PHITS Tools` and `DCHAIN Tools` provide universal output parsers for the PHITS and DCHAIN codes, 
+`PHITS Tools` provides universal output parsers for the PHITS and DCHAIN codes, 
 capable of processing all of the relevant output files produced by each code and
-outputting the numerical results and metadata in a consistent, standardized output format.
+outputting the numerical results and metadata in a consistent, standardized output format, 
+also able to automatically make and save plots (PNG/PDF) of tally results too.
 
 The substantial number of combinations within PHITS of geometry specification, 
 scoring axes (spatial, energy, time, angle, LET, etc.), tally types (scoring volumetric and surface crossing 
 particle fluxes, energy deposition, nuclide production, interactions,  DPA, and more), potential 
-particle species, and fair amount of "exceptions" or "edge cases" related to specific tallies and/or their settings 
+particle species, and fair amount of exceptions/edge cases related to specific tallies and/or their settings 
 highlight the utility of such a universal processing code for PHITS. 
-When parsing standard PHITS tally output, `PHITS Tools` will return a metadata dictionary, 
+When parsing standard PHITS tally output, `PHITS Tools` returns a metadata dictionary, 
 a 10-dimensional NumPy array universally accommodating of all possible PHITS tally output
 containing all numerical results (structured as shown in the table below), and 
-a Pandas DataFrame containing the same numerical information, which
-may be more user-friendly to those accustomed to working in Pandas.
+a Pandas DataFrame containing the same numerical information for users preferring working with Pandas.
 
 +------------+---------------------------------------------------------------------------------------+
 | axis       | description                                                                           |
@@ -130,34 +130,34 @@ may be more user-friendly to those accustomed to working in Pandas.
 
 `PHITS Tools` is also capable of parsing the "dump" output files (both binary and ASCII formats) 
 that are available for some tallies, and it can also automatically detect, parse, and process all PHITS 
-output files within a provided directory, very convenient for PHITS simulations employing 
-multiple tallies, each with its own output file, whose output are to be further studied, 
-e.g., compared to experimental data or other simulations. 
-The `PHITS Tools` module can be used by 
-(1) importing it as a Python module in a script and calling its functions, 
+output files listed in a provided directory or PHITS input file, very convenient 
+for simulations employing multiple tallies, each with its own output file, 
+whose output are to be further studied, e.g., compared to experimental data or other simulations. 
+`PHITS Tools` can be used by 
+(1) importing it as a Python package in a script and calling its functions, 
 (2) running it in the command line via its CLI with a provided PHITS output
- file (or directory of files) and settings flags/options, or 
+ file (or directory/input file) path and settings flags/options, or 
 (3) running it without any arguments to launch a GUI stepping the user through 
-the various output processing options and settings within `PHITS Tools`.
+the various output processing options and settings in `PHITS Tools`.
 
-When used as an imported module, `PHITS Tools` provides a number of supplemental
-functions aiding with further analyses, such as tools for constructing one's own 
-tally over the history-by-history output of the "dump" files, rebinning histogrammed 
-results to a different desired binning structure, applying effective dose 
-conversion coefficients from ICRP 116 [@ICRP116_ref_withauthors] to tallied particle 
-fluences, or retrieving a PHITS-input-formatted [Material] section entry (including 
+When used as an imported package, `PHITS Tools` provides a number of supplemental
+functions aiding with further analyses, such as tools for 
+constructing one's own tally over the history-by-history output of the "dump" files, 
+rebinning histogrammed results to a different desired binning structure, 
+applying effective dose conversion coefficients from ICRP 116 [@ICRP116_ref_withauthors] 
+to tallied particle fluences, or 
+retrieving a PHITS-input-formatted [Material] section entry (including 
 its corresponding density) from a large database of over 350 materials (primarily
 consisting of the selection of materials within the PNNL Compendium of Material 
 Composition Data for Radiation Transport Modeling [@PNNL_materials_compendium]),
 among other useful functions.
 
-`DCHAIN Tools` is a separate Python module for handling the outputs of the DCHAIN code and 
-is included as a submodule within the `PHITS Tools` repository.  Its primary function 
+The `DCHAIN Tools` submodule handles the outputs of the DCHAIN code.  Its primary function 
 parses all of the various output files of the DCHAIN code and compiles the metadata
 and numeric results&mdash;the confluence of the specified regions, output time steps, 
 all nuclides and their inventories (and derived quantities), and complex decay chain 
 schemes illustrating the production/destruction mechanisms for all nuclides&mdash;into 
-a single unified dictionary object.  The `DCHAIN Tools` module includes some additional
+a single unified dictionary object.  The `DCHAIN Tools` submodule includes some additional
 useful functions such as retrieving neutron activation cross sections from DCHAIN's built-in 
 nuclear data libraries, calculating flux-weighted single-group activation cross sections, 
 and visualizing and summarizing the most significant nuclides (in terms of activity, 
@@ -165,7 +165,7 @@ decay heat, or gamma-ray dose) as a function of time. If `PHITS Tools` is provid
 files, `DCHAIN Tools` will be automatically imported and its primary function executed
 on the DCHAIN output.
 
-In all, the `PHITS Tools` and `DCHAIN Tools` modules make the results produced by the PHITS and DCHAIN codes 
+In all, the `PHITS Tools` package makes the results produced by the PHITS and DCHAIN codes 
 far more accessible for further use, analyses, comparisons, and visualizations in 
 Python, removing the initial hurdle of parsing and organizing the raw output from these codes, 
 and provides some additional tools for easing further analyses and drawing conclusions from 
