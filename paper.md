@@ -100,7 +100,7 @@ highlight the utility of such a universal processing code for PHITS.
 When parsing standard PHITS tally output, `PHITS Tools` returns a metadata dictionary, 
 a 10-dimensional NumPy array universally accommodating of all possible PHITS tally output
 containing all numerical results (structured as shown in the table below), and 
-a Pandas DataFrame containing the same numerical information for users preferring Pandas.
+a Pandas DataFrame containing the same numerical information for users preferring working with Pandas.
 
 +------------+---------------------------------------------------------------------------------------+
 | axis       | description                                                                           |
@@ -131,14 +131,14 @@ a Pandas DataFrame containing the same numerical information for users preferrin
 `PHITS Tools` is also capable of parsing the "dump" output files (both binary and ASCII formats) 
 that are available for some tallies, and it can also automatically detect, parse, and process all PHITS 
 output files listed within a provided directory or PHITS input file, very convenient 
-for PHITS simulations employing multiple tallies, each with its own output file, 
+for simulations employing multiple tallies, each with its own output file, 
 whose output are to be further studied, e.g., compared to experimental data or other simulations. 
 The `PHITS Tools` module can be used by 
 (1) importing it as a Python module in a script and calling its functions, 
 (2) running it in the command line via its CLI with a provided PHITS output
- file (or directory of files) and settings flags/options, or 
+ file (or directory/input) and settings flags/options, or 
 (3) running it without any arguments to launch a GUI stepping the user through 
-the various output processing options and settings within `PHITS Tools`.
+the various output processing options and settings in `PHITS Tools`.
 
 When used as an imported module, `PHITS Tools` provides a number of supplemental
 functions aiding with further analyses, such as tools for 
