@@ -90,18 +90,17 @@ possibly preceded by manual data extraction/isolation too.
 `PHITS Tools` provides universal output parsers for the PHITS and DCHAIN codes, 
 capable of processing all of the relevant output files produced by each code and
 outputting the numerical results and metadata in a consistent, standardized output format, 
-along with the ability to automatically produce images of plotted tally outputs too.
+also able to automatically make and save plots (PNG/PDF) of tally results too.
 
 The substantial number of combinations within PHITS of geometry specification, 
 scoring axes (spatial, energy, time, angle, LET, etc.), tally types (scoring volumetric and surface crossing 
 particle fluxes, energy deposition, nuclide production, interactions,  DPA, and more), potential 
-particle species, and fair amount of "exceptions" or "edge cases" related to specific tallies and/or their settings 
+particle species, and fair amount of exceptions/edge cases related to specific tallies and/or their settings 
 highlight the utility of such a universal processing code for PHITS. 
-When parsing standard PHITS tally output, `PHITS Tools` will return a metadata dictionary, 
+When parsing standard PHITS tally output, `PHITS Tools` returns a metadata dictionary, 
 a 10-dimensional NumPy array universally accommodating of all possible PHITS tally output
 containing all numerical results (structured as shown in the table below), and 
-a Pandas DataFrame containing the same numerical information, which
-may be more user-friendly to those accustomed to working in Pandas.
+a Pandas DataFrame containing the same numerical information for users preferring Pandas.
 
 +------------+---------------------------------------------------------------------------------------+
 | axis       | description                                                                           |
@@ -131,7 +130,7 @@ may be more user-friendly to those accustomed to working in Pandas.
 
 `PHITS Tools` is also capable of parsing the "dump" output files (both binary and ASCII formats) 
 that are available for some tallies, and it can also automatically detect, parse, and process all PHITS 
-output files within a provided directory or produced by a specified PHITS input file, very convenient 
+output files listed within a provided directory or PHITS input file, very convenient 
 for PHITS simulations employing multiple tallies, each with its own output file, 
 whose output are to be further studied, e.g., compared to experimental data or other simulations. 
 The `PHITS Tools` module can be used by 
