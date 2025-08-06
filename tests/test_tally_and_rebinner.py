@@ -2,6 +2,7 @@ import pytest
 from PHITS_tools import tally, rebinner
 import numpy as np
 
+@pytest.mark.unit
 def test_tally():
     data = [1, 4, 4, 7, 9]
     
@@ -74,7 +75,7 @@ def test_tally():
     assert all(result[0] == expected_result[0])
     assert all(result[2] == expected_result[2])
 
-
+@pytest.mark.unit
 def test_rebinner():
     input_xbins = [0, 2, 4, 6, 8, 10]
     input_ybins = [ 1, 2, 4, 8, 16]

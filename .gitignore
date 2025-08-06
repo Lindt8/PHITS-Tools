@@ -2,3 +2,8 @@
 /build/
 /docs/index.html
 /docs/manage_mc_materials.html
+/test.log
+/.coverage
+/test/test_input_mode_parsing.log
+/test/test_overall_functionality.log
+coverage*.xml

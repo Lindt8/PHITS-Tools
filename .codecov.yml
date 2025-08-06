@@ -1,0 +1,43 @@
+# codecov.yml
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+        base: auto
+      unit-tests:
+        flags:
+          - ci-unittests
+        target: 15%  # Realistic target for unit tests alone
+        threshold: 5%
+      full-suite:
+        flags:
+          - full-suite
+        target: 80%  # Full test suite target, with all conditions met in test/README.md
+        threshold: 2%
+
+flags:
+  ci-unittests:
+    paths:
+      - PHITS_tools/
+    carryforward: false
+    
+  full-suite:
+    paths:
+      - PHITS_tools/
+    carryforward: false
+
+comment:
+  layout: "header, diff, flags, components, footer"
+  behavior: default
+  require_changes: false
+  require_base: no
+  require_head: yes
+
+ignore:
+  - "tests/*"
+  - "test/*"
+  - "scripts/*"
+  - "docs/*"
+  - "build/*"

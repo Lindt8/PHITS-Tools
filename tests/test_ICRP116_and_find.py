@@ -2,6 +2,7 @@ import pytest
 from pytest import approx
 from PHITS_tools import find, ICRP116_effective_dose_coeff
 
+@pytest.mark.unit
 @pytest.mark.parametrize("test_list,test_target,expected", [
     ([0, 1, 2], 2, 2),
     ([0, 1, 2], 1, 1),
@@ -14,7 +15,7 @@ from PHITS_tools import find, ICRP116_effective_dose_coeff
 def test_find(test_target, test_list, expected):
     assert find(test_target, test_list) == expected
 
-
+@pytest.mark.unit
 def test_ICRP116_effective_dose_coeff():
     assert ICRP116_effective_dose_coeff(E=1.0, particle='photon', geometry='AP') == 4.49
     assert ICRP116_effective_dose_coeff(E=1.0, particle='iron') == None

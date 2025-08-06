@@ -273,17 +273,22 @@ run_with_CLI_inputs = False
 in_debug_mode = False # True # toggles printing of debug messages throughout the code
 #in_debug_mode = True # toggles printing of debug messages throughout the code
 test_explicit_files_dirs = False # used for testing specific files at the bottom of this file
-#test_explicit_files_dirs = True
 
 
-if __name__ == "__main__":
-    #in_debug_mode = True
-
+if __name__ == "__main__":   # pragma: no cover
     if test_explicit_files_dirs:
         in_debug_mode = True
         pass
     elif len(sys.argv) == 1:
         launch_GUI = True
+        print(
+            "\nPHITS Tools command-line usage examples:\n"
+            "  phits-tools <phits-output-file>  Run with CLI inputs\n"
+            "  phits-tools -g                   Launch GUI explicitly\n"
+            "  phits-tools --help               Show CLI options\n\n"
+            "  Running PHITS_tools.py with no arguments defaults to \n"
+            "      launching the GUI (and prints this message).\n"
+        )
     else:
         if '-g' in sys.argv or '--GUI' in sys.argv:
             launch_GUI = True
@@ -293,7 +298,7 @@ if __name__ == "__main__":
             import argparse
 
 
-if in_debug_mode:
+if in_debug_mode:   # pragma: no cover
     import pprint
     import time
     # Timer start
@@ -684,7 +689,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
                     from inspect import signature
                     max_num_values_to_plot = signature(autoplot_tally_results).parameters['max_num_values_to_plot'].default  # 1e7
                     tot_num_values = np.prod(np.shape(tally_output['tally_data'])[:-1])
-                    if tot_num_values > max_num_values_to_plot:
+                    if tot_num_values > max_num_values_to_plot:  # pragma: no cover
                         print('\tWARNING: Tally output for ', tally_output['tally_metadata']['file'], ' is VERY LARGE (', tot_num_values,
                               ' elements), deemed too large for automatic plotting (default max of', max_num_values_to_plot, 'elements).')
                     else:
@@ -712,7 +717,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
     else:
         is_val_file = True
 
-    if is_dmp_file:
+    if is_dmp_file:  # pragma: no cover
         print('\tERROR: The provided file is a "dump" output file. Use the function titled "parse_tally_dump_file" to process it instead.')
         return None
 
@@ -725,7 +730,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
             tally_output_filepath = potential_val_file
             is_val_file = True
             is_err_file = False
-        else:
+        else:  # pragma: no cover
             print('\t\t The corresponding file with tally values could not be found, so only these uncertainties will be parsed.')
 
     # Split content of output file into header and content
@@ -766,7 +771,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
         '''
         try:
             from dchain_tools import parse_dtrk_file, parse_dyld_files, Dname_to_ZAM
-        except:
+        except:  # pragma: no cover
             try:
                 from PHITS_tools.dchain_tools import parse_dtrk_file, parse_dyld_files, Dname_to_ZAM
             except:
@@ -872,7 +877,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
                 from inspect import signature
                 max_num_values_to_plot = signature(autoplot_tally_results).parameters['max_num_values_to_plot'].default  # 1e7
                 tot_num_values = np.prod(np.shape(tally_output['tally_data'])[:-1])
-                if tot_num_values > max_num_values_to_plot:
+                if tot_num_values > max_num_values_to_plot:  # pragma: no cover
                     print('\t\tWARNING: Tally output for ', tally_output['tally_metadata']['file'], ' is VERY LARGE (', tot_num_values,
                           ' elements), deemed too large for automatic plotting (default max of',max_num_values_to_plot,'elements).')
                 else:
@@ -905,12 +910,12 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
                 print('\tFailed to find the main DCHAIN *.act output file:',act_filepath)
                 if dtrk_filepath.is_file() or dyld_filepath.is_file():
                     print("\tJust processing found .dtrk/.dyld files instead...")
-                else:
+                else:  # pragma: no cover
                     print('\tNor were the *.dyld or *.dtrk files found. Aborting this process...')
                     return None
         try:
             from dchain_tools import process_dchain_simulation_output
-        except:
+        except:  # pragma: no cover
             try:
                 from PHITS_tools.dchain_tools import process_dchain_simulation_output
             except:
@@ -984,7 +989,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
             else:
                 tally_data = parse_tally_content(tally_data, tally_metadata, err_tally_content, is_err_in_separate_file, err_mode=True)
             if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
-        else:
+        else:  # pragma: no cover
             print('\tWARNING: A separate file ending in "_err" containing uncertainties should exist but was not found.')
             err_data_found = False
     if calculate_absolute_errors:
@@ -992,9 +997,9 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
             if in_debug_mode: print("\nCalculating absolute errors...   ({:0.2f} seconds elapsed)".format(time.time() - start))
             tally_data = calculate_tally_absolute_errors(tally_data)
             if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
-        elif is_err_file:
+        elif is_err_file:  # pragma: no cover
             print('\tWARNING: Absolute errors not calculated since the main tally values file was not found.')
-        else:
+        else:  # pragma: no cover
             print('\tWARNING: Absolute errors not calculated since the _err file was not found.')
     # Generate Pandas dataframe of tally results
     if construct_Pandas_frame_from_array:
@@ -1038,7 +1043,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
             from inspect import signature
             max_num_values_to_plot = signature(autoplot_tally_results).parameters['max_num_values_to_plot'].default  # 1e7
             tot_num_values = np.prod(np.shape(tally_output['tally_data'])[:-1])
-            if tot_num_values > max_num_values_to_plot:
+            if tot_num_values > max_num_values_to_plot:  # pragma: no cover
                 print('\tWARNING: Tally output for ', tally_output['tally_metadata']['file'], ' is VERY LARGE (', tot_num_values,
                       ' elements), deemed too large for automatic plotting (default max of',max_num_values_to_plot,'elements).')
             else:
@@ -1218,7 +1223,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
     if prefer_reading_existing_pickle:
         df_exists = pandas_df_pickle_filepath.is_file()
         read_df_path = pandas_df_pickle_filepath
-        if not df_exists:
+        if not df_exists:  # pragma: no cover
             if compress_pickles_with_lzma: 
                 tmp_path = Path(pandas_df_pickle_filepath.parent, pandas_df_pickle_filepath.name.replace('.xz',''))
             else:
@@ -1229,7 +1234,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
         ra_exists = recarray_pickle_filepath.is_file()
         read_ra_path = recarray_pickle_filepath
         read_ra_uses_lzma = compress_pickles_with_lzma
-        if not ra_exists:
+        if not ra_exists:   # pragma: no cover
             if compress_pickles_with_lzma:
                 tmp_path = Path(recarray_pickle_filepath.parent, recarray_pickle_filepath.name.replace('.xz', ''))
             else:
@@ -1239,7 +1244,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
                 read_ra_path = tmp_path
                 read_ra_uses_lzma = not compress_pickles_with_lzma
         # Perform any desired compression/decompression of pickles
-        if ra_exists:
+        if ra_exists:  # pragma: no cover
             if compress_pickles_with_lzma and read_ra_path.name[-3:]!='.xz' and save_namedtuple_list: # save a compressed version
                 with open(read_ra_path, 'rb') as file: records_list = pickle.load(file)
                 with lzma.open(recarray_pickle_filepath, 'wb') as handle: pickle.dump(records_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -1247,7 +1252,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
                 with lzma.open(read_ra_path, 'rb') as file: records_list = pickle.load(file)
                 with open(recarray_pickle_filepath, 'wb') as handle: pickle.dump(records_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
             save_namedtuple_list = False
-        if df_exists:
+        if df_exists:  # pragma: no cover
             if (compress_pickles_with_lzma and read_df_path.name[-3:]!='.xz' and save_Pandas_dataframe) or \
                     (not compress_pickles_with_lzma and read_df_path.name[-3:]=='.xz' and save_Pandas_dataframe):  # save a compressed or uncompressed version
                 records_df = pd.read_pickle(read_df_path)
@@ -1257,14 +1262,14 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
         if (ra_exists and return_namedtuple_list and not save_namedtuple_list) and (df_exists and return_Pandas_dataframe and not save_Pandas_dataframe):
             if read_ra_uses_lzma:
                 with lzma.open(read_ra_path, 'rb') as file: records_list = pickle.load(file)
-            else:
+            else:  # pragma: no cover
                 with open(read_ra_path, 'rb') as file: records_list = pickle.load(file)
             records_df = pd.read_pickle(read_df_path)
             return records_list, records_df 
         elif (ra_exists and return_namedtuple_list and not save_namedtuple_list):
             if read_ra_uses_lzma:
                 with lzma.open(read_ra_path, 'rb') as file: records_list = pickle.load(file)
-            else:
+            else:  # pragma: no cover
                 with open(read_ra_path, 'rb') as file: records_list = pickle.load(file)
             return records_list 
         elif (df_exists and return_Pandas_dataframe and not save_Pandas_dataframe):
@@ -1430,7 +1435,11 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
             else:
                 with open(path_to_recarray_pickle_file, 'rb') as file: records_list = pickle.load(file)
         if return_Pandas_dataframe:
-            records_df = pd.read_pickle(Path(path_to_dump_file.parent,path_to_dump_file.stem + MPI_subdump_num_str + '_Pandas_df.pickle'))
+            path_to_pandas_dataframe_file = pandas_df_pickle_filepath
+            if compress_pickles_with_lzma:
+                with lzma.open(path_to_pandas_dataframe_file, 'rb') as file: records_df = pickle.load(file)
+            else:
+                with open(path_to_pandas_dataframe_file, 'rb') as file: records_df = pickle.load(file)
     else: # Normal (non-split) dump saving
         if save_namedtuple_list:
             path_to_dump_file = Path(path_to_dump_file)
@@ -1735,7 +1744,7 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = Non
             head, tail = os.path.split(tally_output_dirpath)
             tally_output_dirpath = head
             print('\tHowever, it is a valid path to a file; thus, its parent directory will be used:',tally_output_dirpath)
-        else:
+        else:  # pragma: no cover
             print('\tThe provided path to "tally_output_dir" is not a directory:', tally_output_dirpath)
             print('\tNor is it a valid path to a file. ERROR! Aborting...')
             return None
@@ -1878,7 +1887,7 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = Non
                 for tdchain_tally_output in tdchain_tally_outputs:
                     tally_output_pickle_path_list.append(tdchain_tally_output['path_to_pickle_file'])
                     tot_num_values = np.prod(np.shape(tdchain_tally_output['tally_data'])[:-1])
-                    if tot_num_values > max_num_values_to_plot:
+                    if tot_num_values > max_num_values_to_plot:  # pragma: no cover
                         tally_include_in_plotting_list.append(False)
                         if autoplot_all_tally_output_in_dir and not autoplot_tally_output:  # only print this message if not already printed
                             print('\tWARNING: Tally output for ', tdchain_tally_output['tally_metadata']['file'], ' is VERY LARGE (', tot_num_values,
@@ -1891,7 +1900,7 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = Non
                 else:
                     tally_output_pickle_path_list.append(path_to_pickle_file)
                 tot_num_values = np.prod(np.shape(tally_output['tally_data'])[:-1])
-                if tot_num_values > max_num_values_to_plot:
+                if tot_num_values > max_num_values_to_plot:  # pragma: no cover
                     tally_include_in_plotting_list.append(False)
                     if autoplot_all_tally_output_in_dir and not autoplot_tally_output:  # only print this message if not already printed
                         print('\tWARNING: Tally output for ', tally_output['tally_metadata']['file'], ' is VERY LARGE (', tot_num_values,
@@ -2207,7 +2216,7 @@ def parse_phitsout_file(phitsout_filepath, include_input_echo=True, save_phitsou
             skip_lines = tesli + eli
             if '=' not in table_text:
                 table_text = column_header_line + '\n' + table_text
-                table_df = pd.read_csv(io.StringIO(table_text.replace(',','.')), comment=':', sep='\s+', on_bad_lines='skip')
+                table_df = pd.read_csv(io.StringIO(table_text.replace(',','.')), comment=':', sep=r'\s+', on_bad_lines='skip')
                 if ':' in table_text:
                     descriptions = [x.split(':', 1)[-1] for x in table_text.split('\n')[1:-1]]
                     table_df['description'] = descriptions
@@ -2616,7 +2625,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
         tally_output_list = [tally_output]
     else:  # list of tally output objects and/or pickles
         for i, to in enumerate(tally_output_list): # open any pickle files provided
-            if not isinstance(to, dict):
+            if not isinstance(to, dict):  # pragma: no cover
                 if to is None:
                     print("WARNING: 'None' tally output encountered in tally_output_list in autoplot_tally_results()!")
                     continue
@@ -2676,7 +2685,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                 tot_plot_axes = sum(1 for i in array_axes_lens if i > 1)
                 tot_num_values = np.prod(array_axes_lens)
                 
-                if tot_num_values > max_num_values_to_plot:
+                if tot_num_values > max_num_values_to_plot:  # pragma: no cover
                     print('\tWARNING: Tally output for ',tally_metadata['file'],' is VERY LARGE (',tot_num_values,' elements), deemed too large for automatic plotting.')
                     if return_fg_list: fg_list.append(None)
                     continue
@@ -3022,7 +3031,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                         hue_var = 'value'
                         row_var = plot_axes_sorted[2]
                     '''
-                elif tot_plot_axes==4:
+                elif tot_plot_axes==4:  # pragma: no cover
                     if plot_axes_sorted[0] in num:
                         x_var = plot_axes_sorted[0]
                     else:
@@ -3048,7 +3057,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                         hue_var = 'value'
                         row_var = plot_axes_sorted[2]
                         col_var = plot_axes_sorted[3]
-                elif tot_plot_axes==5:
+                elif tot_plot_axes==5:  # pragma: no cover
                     plot_kind = 'line'
                     if plot_axes_sorted[0] in num:
                         x_var = plot_axes_sorted[0]
@@ -3060,7 +3069,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                     row_var = plot_axes_sorted[2]
                     col_var = plot_axes_sorted[3]
                     style_var = plot_axes_sorted[4]
-                elif tot_plot_axes==6:
+                elif tot_plot_axes==6:  # pragma: no cover
                     plot_kind = 'line'
                     if plot_axes_sorted[0] in num:
                         x_var = plot_axes_sorted[0]
@@ -3073,7 +3082,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                     col_var = plot_axes_sorted[3]
                     style_var = plot_axes_sorted[4]
                     size_var = plot_axes_sorted[5]
-                else:
+                else:  # pragma: no cover
                     print('\tCannot create plot with 7+ variables...')
                     continue
                 '''
@@ -3199,7 +3208,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                             row_var_renamed = row_var
                     if col_var != None: col_var_renamed = ax_labels[col_var]
                     
-                    if in_debug_mode:
+                    if in_debug_mode:  # pragma: no cover
                         print('plot_kind=', plot_kind, 
                               '\ny_var=', y_var, y_var_renamed, 
                               '\nx_var=', x_var, x_var_renamed, 
@@ -3210,6 +3219,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                               '\ncol_var=', col_var, col_var_renamed, 
                               '\npseudo_2d_plot=', pseudo_2d_plot)
                         print(df_renamed.columns.values)
+                        print('number of data points in df =',len(df_renamed.index))
 
                     if plot_kind == 'line':
                         fg = sns.relplot(data=df_renamed, kind=plot_kind, #num=figi, 
@@ -3430,7 +3440,7 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
         if prefer_user_data_folder and user_data_dir.exists():
             lib_file = Path(user_data_dir, database_filename)
             lib_file_json = Path(user_data_dir, database_filename + '.json')
-            if not lib_file_json.exists():
+            if not lib_file_json.exists():  # pragma: no cover
                 print('ERROR: Could not find the materials library JSON file:', lib_file_json)
                 return None
         else:  # Otherwise, try to locate and open materials library from distribution files
@@ -3444,13 +3454,14 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
                     if mc_materials_dir_path.exists():
                         lib_file = Path(mc_materials_dir_path,database_filename)
                         lib_file_json = lib_file.parent / (lib_file.stem + '.json')
-                        if not lib_file_json.exists():
+                        if not lib_file_json.exists():  # pragma: no cover
                             print('ERROR: Could not find the materials library JSON file:', lib_file_json)
                             return None
-                    else:
+                    else:  # pragma: no cover
                         print('ERROR: Could not find the "PHITS-Tools/MC_materials/" directory containing the materials library JSON file.')
                         return None
-                except: # Failing that, check PYTHONPATH
+                except:  # pragma: no cover
+                    # Failing that, check PYTHONPATH
                     user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
                     for i in user_paths:  # first try looking explicitly for MC_materials dir in PYTHONPATH
                         if 'MC_materials' in i:
@@ -3462,7 +3473,7 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
                     if lib_file is None:
                         print('ERROR: Could not find "PHITS_tools" nor "MC_materials" folders in PYTHONPATH; this folder contains the vital "MC_materials/Compiled_MC_materials.json" file.')
                         return None
-            except KeyError:
+            except KeyError:  # pragma: no cover
                 print('ERROR: If PHITS Tools is not installed with pip, the PYTHONPATH environmental variable must be defined and contain the path to the directory holding "MC_materials/Compiled_MC_materials.json"')
                 return None
     
@@ -3471,13 +3482,14 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
         try: # Updated version uses JSON file
             with open(Path(lib_file.parent, lib_file.name + '.json'), "r") as f:
                 all_mats_list = json.load(f)
-        except: # Old version uses a pickle file
+        except:  # pragma: no cover
+            # Old version uses a pickle file
             def load_obj(name):
                 with open(name + '.pkl', 'rb') as f:
                     return pickle.load(f)
             print('WARNING: Old pickle file of MC materials is being used; up-to-date version uses a JSON database.')
             all_mats_list = load_obj(str(lib_file))
-    else:
+    else:  # pragma: no cover
         all_mats_list = []
         if matid is None:
             matid = 0
@@ -3499,7 +3511,7 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
                 matching_mi.append(i)
         if len(matching_mi)==1:
             mi = matching_mi[0]
-        elif len(matching_mi)>1:
+        elif len(matching_mi)>1:  # pragma: no cover
             print('Found multiple materials with this identical matname value:')
             for mmi in matching_mi:
                 print('\tmatid={}  matname="{}"  source="{}"'.format(str(mmi+1),all_mats_list[mmi]['name'],all_mats_list[mmi]['source']))
@@ -3848,7 +3860,7 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
     merge_success = False
     if compress_pickles_with_lzma:
         compression_file_extension = '.xz'
-    else:
+    else:  # pragma: no cover
         compression_file_extension = ''
     # Scan to see what files are available
     namedtuple_list_paths = [] 
@@ -3864,14 +3876,14 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
             nt_found = True 
         else:
             nt_path = Path(fp.parent, filebasename + '_namedtuple_list.pickle')
-            if nt_path.is_file(): 
+            if nt_path.is_file():   # pragma: no cover
                 nt_found = True
         pd_path = Path(fp.parent, filebasename + '_Pandas_df.pickle.xz')
         if pd_path.is_file():
             pd_found = True
         else:
             pd_path = Path(fp.parent, filebasename + '_Pandas_df.pickle')
-            if pd_path.is_file():
+            if pd_path.is_file():  # pragma: no cover
                 pd_found = True
         if not nt_found and not pd_found and fp.is_file():
             parse_tally_dump_file(fp,return_namedtuple_list=False, return_Pandas_dataframe=False, save_namedtuple_list=True, save_Pandas_dataframe=True)
@@ -3884,13 +3896,13 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
     # Merge namedtuple lists
     if len(namedtuple_list_paths) > 1:
         from numpy.lib.recfunctions import stack_arrays
-        if len(namedtuple_list_paths) != len(dump_filepath_list):
+        if len(namedtuple_list_paths) != len(dump_filepath_list):  # pragma: no cover
             print('WARNING: While multiple "_namedtuple_list.pickle[.xz]" files were found, some were missing from provided dump file list.')
         for i, f in enumerate(namedtuple_list_paths):
             if f.suffixes[-1] == '.xz':
                 with lzma.open(f, 'rb') as file: 
                     dump_data_list = pickle.load(file)
-            else:
+            else:  # pragma: no cover
                 with open(f, 'rb') as file:
                     dump_data_list = pickle.load(file)
             if i==0:
@@ -3906,7 +3918,7 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
         if compress_pickles_with_lzma:
             with lzma.open(pickle_path, 'wb') as handle:
                 pickle.dump(records_np_array, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        else:
+        else:  # pragma: no cover
             with open(pickle_path, 'wb') as handle:
                 pickle.dump(records_np_array, handle, protocol=pickle.HIGHEST_PROTOCOL)
         print('\tPickle file written:', pickle_path)
@@ -3917,21 +3929,21 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
                 try:
                     f.unlink()
                     print('\tPickle file deleted:', f)
-                except:
+                except:  # pragma: no cover
                     pass
             print()
 
     # Merge Pandas DataFrames
     if len(pandads_DF_paths) > 1:
         import pandas as pd
-        if len(pandads_DF_paths) != len(dump_filepath_list):
+        if len(pandads_DF_paths) != len(dump_filepath_list):  # pragma: no cover
             print('WARNING: While multiple "_Pandas_df.pickle[.xz]" files were found, some were missing from provided dump file list.')
         dfs_to_concat = []
         for i, f in enumerate(pandads_DF_paths):
             if f.suffixes[-1] == '.xz':
                 with lzma.open(f, 'rb') as file: 
                     dump_dataframe = pickle.load(file)
-            else:
+            else:  # pragma: no cover
                 with open(f, 'rb') as file:
                     dump_dataframe = pickle.load(file)
             dfs_to_concat.append(dump_dataframe)
@@ -3949,7 +3961,7 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
                 try:
                     f.unlink()
                     print('\tPickle file deleted:', f)
-                except:
+                except:  # pragma: no cover
                     pass
             print()
 
@@ -4029,7 +4041,7 @@ def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter=
     return nuc_str
 
 def nuclide_plain_str_to_ZZZAAAM(nuc_str):
-    '''
+    r'''
     Description:
         Converts a plaintext string of a nuclide to an integer ZZZAAAM = 10000\*Z + 10\*A + M
 
@@ -4338,7 +4350,10 @@ def nuclide_Z_and_A_to_latex_str(Z,A,m=''):
         - LaTeX-formatted raw string of a nuclide, excellent for plot titles, labels, and auto-generated LaTeX documents
     '''
     if isinstance(A,(int,float)): A = str(int(A))
-    if not isinstance(Z,str): symbol = element_Z_to_symbol(int(Z))
+    if not isinstance(Z,str): 
+        symbol = element_Z_to_symbol(int(Z))
+    else:
+        symbol = Z
     if isinstance(m,float): m = int(m)
     if isinstance(m,int): m = 'm' + str(m)
     latex_str = r"$^{{{}{}}}$".format(A,m) + "{}".format(symbol)
@@ -4611,10 +4626,10 @@ def search_for_dump_parameters(output_file):
     else:
         origin_tally_file = Path(output_file.parent, output_file.stem.replace('_dmp','') + output_file.suffix)
     PHITS_file_type = determine_PHITS_output_file_type(origin_tally_file)
-    if PHITS_file_type['file_does_not_exist']:
+    if PHITS_file_type['file_does_not_exist']:  # pragma: no cover
         print("Could not find this dump file's companion original standard tally output file",origin_tally_file)
         return dump_data_number, dump_data_sequence
-    elif not PHITS_file_type['is_standard_tally_output']:
+    elif not PHITS_file_type['is_standard_tally_output']:  # pragma: no cover
         print("Found dump file's suspected companion original standard tally output file, but it does not seem to actually be formatted as a standard tally output file",origin_tally_file)
         return dump_data_number, dump_data_sequence
     tally_header, tally_content = split_into_header_and_content(origin_tally_file)
@@ -4628,7 +4643,7 @@ def search_for_dump_parameters(output_file):
             dump_data_sequence_str_list = tally_header[li+1].strip().split()
             dump_data_sequence = [int(i) for i in dump_data_sequence_str_list]
             break
-    if dump_data_number == None and dump_data_sequence == None:
+    if dump_data_number == None and dump_data_sequence == None:  # pragma: no cover
         print('Was unable to locate dump specification information in tally output file',origin_tally_file)
     return dump_data_number, dump_data_sequence
 
@@ -4732,6 +4747,8 @@ def parse_tally_header(tally_header,tally_content):
     meta['axis'] = None
     meta['samepage'] = 'part'
     found_mesh_kinds = []
+
+    current_data_mesh_kind = None
 
     reading_axis_data = False
     reading_regions = False
@@ -5535,7 +5552,8 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                                 tdata_ivar_str = tdata_ivar_strs[itdata_axis]
                                 value = str(int(part.split('=')[1].strip()) - 1)
                                 exec(tdata_ivar_str + ' = ' + value, globals())
-                            elif meta['mesh'] == 'r-z':
+                            elif meta['mesh'] == 'r-z':   # pragma: no cover
+                                # Not sure if this ever triggers given enclos = 1 is required for [T-Cross] 2d axis args.
                                 if mesh_char=='r surf':
                                     # imesh = mesh_kind_chars.index('y')
                                     itdata_axis = 0 #1  # mesh_kind_iax[imesh]
@@ -5772,7 +5790,7 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
     else:
         raise ValueError(str(meta['axis_dimensions'])+'axis dimensions is unknown, ERROR!')
 
-    if len(banked_uninterpreted_lines) != 0:
+    if len(banked_uninterpreted_lines) != 0:   # pragma: no cover
         print('The following potentially useful output lines were found but not stored anywhere:')
         for line in banked_uninterpreted_lines:
             print('\t'+line)
@@ -5862,8 +5880,8 @@ def split_str_of_equalities(text):
         equality_str = text_pieces[i] + ' ' + equality_str
         if is_i_equal_sign[i]:
             current_equality_contains_equalsign = True
-        elif current_equality_contains_equalsign: # looking to terminate if next item is numeric
-            if i==0 or (is_i_number[i-1] or text_pieces[i-1][-1]==')'): # either final equality completed or next item belongs to next equality
+        elif current_equality_contains_equalsign: # looking to terminate if next item is numeric OR next series of items is a "part = *" pattern
+            if i==0 or (is_i_number[i-1] or text_pieces[i-1][-1]==')') or (i>=3 and text_pieces[i-2]=='=' and 'part' in text_pieces[i-3]): # either final equality completed or next item belongs to next equality
                 equalities_str_list.insert(0,equality_str.strip())
                 equality_str = ''
                 current_equality_contains_equalsign = False
@@ -5988,7 +6006,8 @@ def initialize_tally_array(tally_metadata,include_abs_err=True):
                 ie_max = tally_metadata['ne1']
             if 'ne2' in tally_metadata:
                 ic_max = tally_metadata['ne2']
-        elif 'e1' in tally_metadata['axis'] or 'e2' in tally_metadata['axis']:  # This should now be redundant?
+        elif 'e1' in tally_metadata['axis'] or 'e2' in tally_metadata['axis']:  # pragma: no cover
+            # This should now be redundant?
             if tally_metadata['axis'] == 'e12':
                 ie_max = tally_metadata['ne1']
                 ic_max = tally_metadata['ne2']
@@ -6604,19 +6623,19 @@ def Element_Sym_to_Z(sym):
 
 
 
-def run_PHITS_tools_CLI_or_GUI():
+def run_PHITS_tools_CLI_or_GUI():  # pragma: no cover
     '''
     Determines whether the GUI or CLI will be used and launches it
     '''
-    if len(sys.argv) == 1:
-        run_PHITS_tools_GUI()
-    elif '-g' in sys.argv or '--GUI' in sys.argv:
+    #if len(sys.argv) == 1:
+    #    run_PHITS_tools_GUI()
+    if '-g' in sys.argv or '--GUI' in sys.argv:
         run_PHITS_tools_GUI()
     else:
         run_PHITS_tools_CLI()
     return None
 
-def run_PHITS_tools_CLI():
+def run_PHITS_tools_CLI():  # pragma: no cover
     '''
     Runs PHITS Tools via the CLI, interpreting command-line arguments
     '''
@@ -6789,7 +6808,7 @@ def run_PHITS_tools_CLI():
                                     autoplot_tally_output=autoplot_tally_output)
     return None
 
-def run_PHITS_tools_GUI():
+def run_PHITS_tools_GUI():  # pragma: no cover
     '''
     Runs PHITS Tools via the GUI, allowing user to select/specify inputs and settings via GUI
     '''
@@ -7236,292 +7255,10 @@ if run_with_CLI_inputs:
 elif launch_GUI:
     run_PHITS_tools_GUI()
 
-
-
-
-
-elif test_explicit_files_dirs:
-    base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\\'
-    #output_file_path = Path(base_path + 't-deposit\deposit_reg.out')
-    #output_file_path = Path(base_path + 't-deposit\deposit_eng_sp-reg.out')
-    output_file_path = Path(base_path + 't-track\\track_reg.out')
-    #output_file_path = Path(base_path + 't-track\\track_r-z.out')
-    #output_file_path = Path(base_path + 't-track\\track_xyz-xy.out')
-    #output_file_path = Path(base_path + r't-track\track_r-z_axis-rad.out')
-    #output_file_path = Path(base_path + r't-track\track_r-z_axis-deg.out')
-    #output_file_path = Path(base_path + 't-deposit\deposit_r-z.out')
-    #output_file_path = Path(base_path + 't-deposit\deposit_r-z_2dtype4.out')
-    #output_file_path = Path(base_path + 't-deposit\deposit_r-z_2dtype5.out')
-    #output_file_path = Path(base_path + 't-deposit\deposit_xyz_2dtype5.out')
-    #output_file_path = Path(base_path + 'tet_test\deposit-tet_axis-tet.out')
-    #output_file_path = Path(base_path + 'tet_test\deposit-tet_axis-eng.out')
-    #output_file_path = Path(base_path + 't-cross\cross_reg_axis-eng.out')
-    #output_file_path = Path(base_path + 't-cross\cross_reg_axis-reg.out')
-    #output_file_path = Path(base_path + 't-cross\cross_xyz_axis-eng.out')
-    #output_file_path = Path(base_path + 't-cross\cross_xyz_axis-eng_enclosed.out')
-    ###output_file_path = Path(base_path + 't-cross\cross_xyz_axis-reg.out')
-    #output_file_path = Path(base_path + 't-cross\cross_xyz_axis-xy.out')
-    #output_file_path = Path(base_path + 't-cross\cross-r-z_axis-eng.out')
-    #output_file_path = Path(base_path + 't-cross\cross-r-z_axis-eng_0r.out')
-    #output_file_path = Path(base_path + 't-cross\cross-r-z_axis-eng_enclosed.out')
-    #output_file_path = Path(base_path + 't-cross\complex\proton_in_hist_rz.out')
-    #output_file_path = Path(base_path + 't-cross\complex\\neutron_yield_rz-e-a-mesh.out')
-    #output_file_path = Path(base_path + 't-cross\complex\\neutron_yield.out')
-    #output_file_path = Path(base_path + 't-cross\complex\\xtra_neutron_yield_EvsTheta_whole-target.out')
-    #output_file_path = Path(base_path + 't-dpa\dpa_reg.out')
-    #output_file_path = Path(base_path + 't-dpa\dpa_xyz.out')
-    #output_file_path = Path(base_path + 't-dpa\dpa_r-z.out')
-    #output_file_path = Path(base_path + 'samepage\\proton_in_hist_rz_axis-eng_samepage-z.out')
-    #output_file_path = Path(base_path + 'samepage\\proton_in_hist_rz_reduced.out') # has NULL characters in it
-    #output_file_path = Path(base_path + 'samepage\\proton_in_hist_rz_sp-eng.out')
-    #output_file_path = Path(base_path + 't-deposit2\deposit2_reg.out')
-    #output_file_path = Path(base_path + 't-deposit2\deposit2_reg_axis-e21.out')
-    #output_file_path = Path(base_path + 't-deposit2\deposit2_reg_axis-t-e1.out')
-    #output_file_path = Path(base_path + 't-deposit2\deposit2_reg_axis-t-e2.out')
-    #output_file_path = Path(base_path + 't-deposit2\deposit2_reg_axis-e1-t.out')
-    #output_file_path = Path(base_path + 't-deposit2\deposit2_reg_axis-e2-t.out')
-    #output_file_path = Path(base_path + 't-deposit2\deposit2_reg_axis-eng1.out')
-    #output_file_path = Path(base_path + 't-deposit2\deposit2_reg_axis-eng2.out')
-    #output_file_path = Path(base_path + 't-heat\heat_reg.out')
-    #output_file_path = Path(base_path + 't-heat\heat_xyz.out')
-    #output_file_path = Path(base_path + 't-interact\interact_reg.out')
-    #output_file_path = Path(base_path + 't-interact\interact_reg_axis-act.out')
-    #output_file_path = Path(base_path + 't-interact\interact_xyz.out')
-    #output_file_path = Path(base_path + 't-let\let-distribution_reg.out')
-    #output_file_path = Path(base_path + 't-let\let-distribution_r-z.out')
-    #output_file_path = Path(base_path + r't-point\point.out')
-    #output_file_path = Path(base_path + r't-point\ring.out')
-    #output_file_path = Path(base_path + 't-product\product_reg.out')
-    #output_file_path = Path(base_path + 't-sed\y-distribution_reg.out')
-    #output_file_path = Path(base_path + 't-sed\y-distribution_xyz.out')
-    #output_file_path = Path(base_path + r't-time\time_reg.out')
-    #output_file_path = Path(base_path + r't-time\time_xyz.out')
-    #output_file_path = Path(base_path + r't-yield\yield_reg_axis-charge.out')
-    #output_file_path = Path(base_path + r't-yield\yield_reg_axis-mass.out')
-    #output_file_path = Path(base_path + r't-yield\yield_reg_axis-chart.out')
-    #output_file_path = Path(base_path + r't-yield\yield_reg_axis-dchain.out')
-    #output_file_path = Path(base_path + r't-yield\yield_xyz_axis-chart.out')
-    #output_file_path = Path(base_path + r't-dchain\150pH2O.dyld')
-
-    #base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\\'
-    #output_file_path = Path(base_path + r'tally\t-deposit\deposit_reg_spec-all.out')
-    #output_file_path = Path(base_path + r'sample\icrp\mrcp\External\result\Dose_MRCP-AF_reg.out')
-    #output_file_path = Path(base_path + r'sample\misc\batch_source\track_yz_001.out')
-    #output_file_path = Path(base_path + r'sample\source\Cosmicray\GCR-ground\cross.out')
-    #output_file_path = Path(base_path + r'recommendation\Fusion\track.out')
-    #output_file_path = Path(base_path + r'sample\benchmark\Iwamoto-JNST2022\case5-isis800\output\rr_air_model.out')
-    #output_file_path = Path(base_path + r'recommendation\muon\product.out')
-    #output_file_path = Path(base_path + r'recommendation\BNCT\dose.out')
-    #output_file_path = Path(base_path + r'recommendation\SemiConductor\deposit.out')
-    #output_file_path = Path(base_path + r'recommendation\Shielding\track-rz.out')
-    #output_file_path = Path(base_path + r'recommendation\TrackStructure\interact.out')
-    #output_file_path = Path(base_path + r'recommendation\CosmicRay\dose.out') # single value output
-    #output_file_path = Path(base_path + r'recommendation\CosmicRay\track.out') 
-    #output_file_path = Path(base_path + r'sample\source\Cosmicray\Airshower\depthdose.out') 
-    #output_file_path = Path(base_path + r'sample\misc\history_counter\track_yz_ch1.out')
-    #output_file_path = Path(base_path + r'recommendation\Counter\track.out')
-    #output_file_path = Path(base_path + r'MPI_dumps\\CT_1D_phantom\\neutron_yield.out')
-
-    phitsout_file_path = Path(output_file_path.parent, 'phits.out')
-    input_file_path = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\MPI_dumps\CT_1D_phantom\beam-on-target_phits-input.inp')
-    #input_file_path = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-cross\complex\beam-on-target.inp')
-    phitsout_file_path = Path(input_file_path.parent, 'phits.out')
-
-    test_parsing_of_dir = False #True
-    if test_parsing_of_dir:
-        dir_path = output_file_path = Path(base_path + r't-cross\complex\proton_in_hist_rz.out')
-        dir_output_list = parse_all_tally_output_in_dir(dir_path)
-        print(dir_output_list)
-        sys.exit()
-
-    test_parsing_of_dir_with_merge = False  # True
-    if test_parsing_of_dir_with_merge:
-        #dir_path = output_file_path = Path(base_path + r't-cross\complex\proton_in_hist_rz.out')
-        dir_path = output_file_path = Path(base_path + r't-cross\complex\beam-on-target.inp')
-        dir_output_dict = parse_all_tally_output_in_dir(dir_path, 
-                                                        merge_tally_outputs=True, 
-                                                        return_tally_output=True,
-                                                        compress_pickle_with_lzma=True,
-                                                        #include_phitsout_in_metadata=True,
-                                                        include_subdirectories=False,
-                                                        prefer_reading_existing_pickle=False,
-                                                        save_output_pickle=False,
-                                                        save_pickle_of_merged_tally_outputs=True
-                                                        )
-        print(dir_output_dict.keys())
-        print(dir_output_dict['energy_deposit.out']['tally_metadata'].keys())
-        #pprint.pp(dir_output_dict)
-        sys.exit()
-    
-    test_large_dump_splitting = False
-    if test_large_dump_splitting:
-        base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\\'
-        dump_file_path = Path(base_path + r'big_dumps\\proton_track_dmp.out')
-        print('Elapsed time before reading dump file: {:0.2f}'.format(time.time() - start))
-        x = parse_tally_dump_file(dump_file_path, save_namedtuple_list=True, save_Pandas_dataframe=True, 
-                                  return_namedtuple_list=False, return_Pandas_dataframe=False)
-        print('Elapsed time after saving dump file output containers: {:0.2f}'.format(time.time() - start))
-        sys.exit()
-    
-    test_parsing_of_MPI_dump_dir = False
-    if test_parsing_of_MPI_dump_dir:
-        base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\\'
-        dir_path = output_file_path = Path(base_path + r'MPI_dumps\\CT_1D_phantom\\')
-        #dump_file_path = Path(dir_path, 'gamma_yield_dmp.out.004')
-        #print(dump_file_path.is_file(),dump_file_path)
-        #nt_list, df = parse_tally_dump_file(dump_file_path, save_namedtuple_list=True, save_Pandas_dataframe=True)
-        dir_output_list = parse_all_tally_output_in_dir(dir_path, include_dump_files=True)
-        print(dir_output_list)
-        sys.exit()
-
-    test_dump_file = False
-    if test_dump_file:
-        #dump_file_path = Path(base_path + 't-cross\complex\\neutron_yield_dmp.out')
-        #dump_control_str = '2   3   4   5   6   7   8  10'
-        dump_file_path = Path(base_path + r'tally\\t-product\\dump\\product_dmp.out')
-        dump_control_str = '1  2 3 4 8 10 9  17   18    19    20'
-        #nt_list, df = parse_tally_dump_file(dump_file_path,8,dump_control_str, save_namedtuple_list=True, save_Pandas_dataframe=True)
-        # test automatic finding of dump parameters
-        print('Elapsed time before reading dump file: {:0.2f}'.format(time.time() - start))
-        nt_list, df = parse_tally_dump_file(dump_file_path, save_namedtuple_list=True, save_Pandas_dataframe=True)
-        print('Elapsed time after saving dump file output containers: {:0.2f}'.format(time.time() - start))
-
-        # test dill of namedtuple list
-        #import dill
-        import pickle
-        import lzma
-        #path_to_pickle_file = Path(base_path + 't-cross\complex\\neutron_yield_dmp_namedtuple_list.dill.xz')
-        path_to_pickle_file = Path(base_path + r'tally\\t-product\\dump\\product_dmp_namedtuple_list.pickle.xz')
-        with lzma.open(path_to_pickle_file, 'rb') as handle:
-            nt_list_dill = pickle.load(handle)
-
-        print(nt_list[0])
-        print(nt_list_dill[0])
-        print(nt_list_dill[0].kf, nt_list[0].kf)
-        print(nt_list_dill[0]['kf']) #, nt_list[0]['kf'])
-        print(nt_list_dill.dtype.names)
-
-        if [tuple(t) for t in nt_list]==[tuple(t) for t in nt_list_dill]: print('It works!')
-
-        sys.exit()
-        
-        
-    testing_phitsout_parsing = False
-    if testing_phitsout_parsing:
-        phitsout_meta = parse_phitsout_file(phitsout_file_path)
-        pprint.pp(dict(phitsout_meta))
-        sys.exit()
-    
-    testing_phits_input_parsing = False
-    if testing_phits_input_parsing:
-        x = extract_tally_outputs_from_phits_input(input_file_path)
-        pprint.pp(x)
-        phitsout_file_path = Path(input_file_path.parent, 'phits.out')
-        y = extract_tally_outputs_from_phits_input(phitsout_file_path)
-        pprint.pp(y)
-        print(x==y)
-        sys.exit()
-        
-    testing_dir_mode_with_phits_input = False 
-    if testing_dir_mode_with_phits_input:
-        x = parse_all_tally_output_in_dir(phitsout_file_path, 
-                                          include_dump_files=False,
-                                          include_phitsout_in_metadata=None,
-                                          autoplot_all_tally_output_in_dir=False)
-        print(x)
-        sys.exit()
-    
-    test_dchain_dtrk_dyld_parsing = False
-    if test_dchain_dtrk_dyld_parsing:
-        tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\tdchain.out')
-        #tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\tdchain.act')
-        #tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\tdchain.dtrk')
-        #tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\tdchain.dyld')
-        #tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\W_reg_target.out')
-        #tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\xyz\W_xyz_target.dyld')
-        #tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\xyz\W_xyz_target.out')
-        #tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\150pH2O.act')
-        #tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\150pH2O.out')
-        '''
-        #tally_output_dirpath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\\')
-        #tally_output_dirpath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\phits.out')
-        tally_output_dirpath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\dchain.inp')
-        dir_output_dict = parse_all_tally_output_in_dir(tally_output_dirpath,
-                                                        merge_tally_outputs=True,
-                                                        return_tally_output=True,
-                                                        compress_pickle_with_lzma=True,
-                                                        # include_phitsout_in_metadata=True,
-                                                        include_subdirectories=False,
-                                                        prefer_reading_existing_pickle=False,
-                                                        save_output_pickle=False,
-                                                        save_pickle_of_merged_tally_outputs=True,
-                                                        autoplot_all_tally_output_in_dir=True,
-                                                        )
-        print(dir_output_dict.keys())
-        '''
-        
-        results_dict = parse_tally_output_file(tally_output_filepath, make_PandasDF=True, calculate_absolute_errors=True,
-                                               save_output_pickle=True, compress_pickle_with_lzma=True,
-                                               autoplot_tally_output=False, include_phitsout_in_metadata=True)
-        print(results_dict.keys())
-        print(results_dict['dtrk_tally_output']['tally_metadata'].keys())
-        #pprint.pp(dict(results_dict['[T-Dchain]_metadata']))
-        #pprint.pp(dict(results_dict['dyld_tally_output']['tally_metadata']))
-        tally_df = results_dict['tally_dataframe']
-        tally_metadata = results_dict['tally_metadata']
-        pprint.pp(dict(tally_metadata))
-        print(tally_df.to_string())
-        
-        sys.exit()
-    
-    
-    test_user_support_sims = False  # True 
-    if test_user_support_sims:
-        tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\user_support_simulations\2025-05-21 Hamed PHITS Tools\flux_1_1_2_Spect.out')
-        results_dict = parse_tally_output_file(tally_output_filepath)
-        tally_df = results_dict['tally_dataframe']
-        print(tally_df.to_string())
-        sys.exit()
-    
-
-    tally_output_filepath = output_file_path
-    tally_output = parse_tally_output_file(tally_output_filepath, make_PandasDF=True, calculate_absolute_errors=True,
-                                           save_output_pickle=True)
-    tally_data = tally_output['tally_data']
-    tally_metadata = tally_output['tally_metadata']
-    tally_df = tally_output['tally_dataframe']
-    
-    pprint.pp(dict(tally_metadata))
-    
-    testing_autoplot = False
-    if testing_autoplot:
-        import matplotlib.pyplot as plt
-        fg_list = autoplot_tally_results(tally_output, return_fg_list=True) #, additional_save_extensions=['.png','jpeg'])
-        #fg = fg_list[0]
-        #for ax in fg.axes.flat:
-        #    ax.set_facecolor((0, 1, 0, 1))
-        #    ax.set_xlabel('TEST', visible=True)
-        #plt.show()
-    
-    
-    sys.exit()
-    
-    #                ir, iy, iz, ie, it, ia, il, ip, ic, ierr
-    print(tally_data[ :,  0,  0,  :,  0,  0,  0,  0,  0, 0])
-    print(tally_data[ :,  0,  0,  :,  0,  0,  0,  0,  0, 1])
-    print(tally_data[0, :, :, 0, 0, 0, 0, 0, 0, 0])
-    print(np.shape(tally_data))
-
-    #print(tally_data[ 1,  0,  0,  0,  0,  0,  0,  0,  :, 0])
-    #print(tally_metadata['nuclide_ZZZAAAM_list'])
-    #print(tally_metadata['nuclide_isomer_list'])
-
-    #ic = tally_metadata['nuclide_ZZZAAAM_list'].index(10020)
-    #print(tally_data[1, 0, 0, 0, 0, 0, 0, 0, ic, 0])
-
-
-
-
-
-
-
+elif test_explicit_files_dirs:  # pragma: no cover
+    '''
+    By setting `test_explicit_files_dirs = True`, PHITS Tools will have `in_debug_mode = True` set automatically, 
+    generating extra diagnostic print statements as the code is ran.  Quick and lazy testing can be performed here 
+    by just running `PHITS_tools.py`.
+    '''
+    pass
