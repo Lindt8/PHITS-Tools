@@ -6,6 +6,4 @@
 /.coverage
 /test/test_input_mode_parsing.log
 /test/test_overall_functionality.log
-/coverage.xml
-/coverage-unit.xml
-/coverage-full.xml
+coverage*.xml
