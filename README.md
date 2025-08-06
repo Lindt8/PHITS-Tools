@@ -7,7 +7,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14262720.svg)](https://doi.org/10.5281/zenodo.14262720)
 [![PHITS forumn discussion on PHITS Tools](https://img.shields.io/badge/PHITS%20forum%20discussion%20-%20%2333a2d9)](https://meteor.nucl.kyushu-u.ac.jp/phitsforum/t/topic/3651/)
 
-[Purpose](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#purpose) | [Installation](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#installation) | [Usage](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#primary-usageinterfaces) | [CLI options](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#cli-options) | [Automatic processing](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#automatic-processing-at-phits-runtime) | [Submodules](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#submodules) | [Testing/Issues/Contribution](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#testing-reporting-issues-and-contributing) 
+[Purpose](#purpose) | [Installation](#installation) | [Usage](#primary-usageinterfaces) | [CLI options](#cli-options) | [Automatic processing](#automatic-processing-at-phits-runtime) | [Submodules](#submodules) | [Testing/Issues/Contribution](#testing-reporting-issues-and-contributing) 
 
 ## Purpose
 
@@ -33,7 +33,7 @@ One may use the functions by first placing the `PHITS_tools.py` Python script in
 
 The short list of required package/library dependencies for PHITS Tools (and DCHAIN Tools) can be found in `requirements.txt` and installed by executing `pip install -r requirements.txt`.
 
-To also be able to use the included [submodules](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#submodules), download the latest source distribution (`.zip`/`.tar.gz`) from [PyPI](https://pypi.org/project/PHITS-Tools/#files) (_includes only the minimum required source files_) or [the latest release](https://github.com/Lindt8/PHITS-Tools/releases/latest) (_includes source plus example, tests, and docs_), extract the contents, relocate the extracted directory of the package contents if desired, and make sure that directory is placed in your `PYTHONPATH` system variable (or active directory).
+To also be able to use the included [submodules](#submodules), download the latest source distribution (`.zip`/`.tar.gz`) from [PyPI](https://pypi.org/project/PHITS-Tools/#files) (_includes only the minimum required source files_) or [the latest release](https://github.com/Lindt8/PHITS-Tools/releases/latest) (_includes source plus example, tests, and docs_), extract the contents, relocate the extracted directory of the package contents if desired, and make sure that directory is placed in your `PYTHONPATH` system variable (or active directory).
 
 ## Primary usage/interfaces
 There are three main ways one can use this Python module:
