@@ -281,6 +281,14 @@ if __name__ == "__main__":   # pragma: no cover
         pass
     elif len(sys.argv) == 1:
         launch_GUI = True
+        print(
+            "\nPHITS Tools command-line usage examples:\n"
+            "  phits-tools <phits-output-file>  Run with CLI inputs\n"
+            "  phits-tools -g                   Launch GUI explicitly\n"
+            "  phits-tools --help               Show CLI options\n\n"
+            "  Running PHITS_tools.py with no arguments defaults to \n"
+            "      launching the GUI (and prints this message).\n"
+        )
     else:
         if '-g' in sys.argv or '--GUI' in sys.argv:
             launch_GUI = True
@@ -6619,9 +6627,9 @@ def run_PHITS_tools_CLI_or_GUI():  # pragma: no cover
     '''
     Determines whether the GUI or CLI will be used and launches it
     '''
-    if len(sys.argv) == 1:
-        run_PHITS_tools_GUI()
-    elif '-g' in sys.argv or '--GUI' in sys.argv:
+    #if len(sys.argv) == 1:
+    #    run_PHITS_tools_GUI()
+    if '-g' in sys.argv or '--GUI' in sys.argv:
         run_PHITS_tools_GUI()
     else:
         run_PHITS_tools_CLI()

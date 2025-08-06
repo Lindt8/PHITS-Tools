@@ -48,9 +48,9 @@ develop = [
 ]
 
 [project.scripts]
-PHITS-Tools = "PHITS_tools:run_PHITS_tools_CLI"
-PHITS_tools = "PHITS_tools:run_PHITS_tools_CLI"
-phits-tools = "PHITS_tools:run_PHITS_tools_CLI"
+PHITS-Tools = "PHITS_tools:run_PHITS_tools_CLI_or_GUI"
+PHITS_tools = "PHITS_tools:run_PHITS_tools_CLI_or_GUI"
+phits-tools = "PHITS_tools:run_PHITS_tools_CLI_or_GUI"
 
 [project.gui-scripts]
 PHITS-Tools-GUI = "PHITS_tools:run_PHITS_tools_GUI"
