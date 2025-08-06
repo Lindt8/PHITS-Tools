@@ -273,12 +273,9 @@ run_with_CLI_inputs = False
 in_debug_mode = False # True # toggles printing of debug messages throughout the code
 #in_debug_mode = True # toggles printing of debug messages throughout the code
 test_explicit_files_dirs = False # used for testing specific files at the bottom of this file
-#test_explicit_files_dirs = True
 
 
 if __name__ == "__main__":   # pragma: no cover
-    #in_debug_mode = True
-
     if test_explicit_files_dirs:
         in_debug_mode = True
         pass

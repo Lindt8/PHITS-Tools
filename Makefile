@@ -27,7 +27,7 @@ install:
 
 install-dev:
 	git submodule update --init --recursive
-	pip install -e ".[dev]"
+	pip install -e ".[develop]"
 
 clean:
 	rm -rf htmlcov/ htmlcov-unit/ htmlcov-full/ .coverage .pytest_cache/ __pycache__/
@@ -35,13 +35,13 @@ clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 
 docs:
-	py build_docs.py
+	python build_docs.py
 
 build:
 	hatch build
 
 publish:
-	py -m twine upload dist/*
+	python -m twine upload dist/*
 	
 # Code quality checks (critical errors only)
 lint:
