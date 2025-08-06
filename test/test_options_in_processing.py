@@ -2,11 +2,10 @@ import pytest, PHITS_tools, os, pickle, glob
 import numpy as np
 import pandas as pd
 from pathlib import Path
+from conftest import path_to_base_phits_test_dir
 
-path_to_phits_base_folder = Path(r'C:\phits')
-
-phits_sample_dir = Path(path_to_phits_base_folder,'sample')
-phits_recommendation_dir = Path(path_to_phits_base_folder,'recommendation')
+phits_sample_dir = Path(path_to_base_phits_test_dir,'sample')
+phits_recommendation_dir = Path(path_to_base_phits_test_dir,'recommendation')
 
 def test_extract_tally_outputs_from_phits_input_options():
     phits_input = phits_recommendation_dir / 'NeutronSource' / 'NeutronSource.inp'
@@ -135,7 +134,7 @@ def test_dchain_sample_3_step_dose():
     Minimally, you need to run `phits_3-step.inp` through PHITS and 
     the `W_reg_target.out` and `W_xyz_target.out` outputs through DCHAIN
     '''
-    tally_output_directory = path_to_phits_base_folder / 'dchain-sp' / 'sample' / '3-step_dose_xyz' 
+    tally_output_directory = path_to_base_phits_test_dir / 'dchain-sp' / 'sample' / '3-step_dose_xyz' 
     if not (tally_output_directory / 'W_reg_target.act').exists() or not (tally_output_directory / 'W_xyz_target.act').exists():
         print('Please follow the instructions in the `test_dchain_sample_3_step_dose()` docstring to run this test.')
         pytest.skip("Missing required files. Please follow the instructions in the `test_dchain_sample_3_step_dose()` docstring to run this test.")

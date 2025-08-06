@@ -1,12 +1,11 @@
 import pytest, PHITS_tools
 from pathlib import Path
 from traceback import format_exc
-import re
+import re, io
+from conftest import path_to_base_phits_test_dir
 
-path_to_phits_base_folder = Path(r'C:\phits')
-
-phits_sample_dir = Path(path_to_phits_base_folder,'sample')
-phits_recommendation_dir = Path(path_to_phits_base_folder,'recommendation')
+phits_sample_dir = Path(path_to_base_phits_test_dir,'sample')
+phits_recommendation_dir = Path(path_to_base_phits_test_dir,'recommendation')
 test_autoplotting = True  # Determines if autoplot_tally_results() is tested too for each tally output (notably slows testing)
 plot_paths = []
 
@@ -30,11 +29,6 @@ for f in recommendation_files:
         files_to_parse.append(Path(f))
 
 log_file_path = Path(__file__).parent / 'test_overall_functionality.log'
-log_file_str = ''
-log_str = ''
-num_tests = len(files_to_parse)
-i = 0
-num_passed, num_failed, num_warn = 0, 0, 0
 known_issue_files = [r'phits\sample\source\Cosmicray\GCR-ground\cross.out', r'phits\sample\source\Cosmicray\GCR-ground\GCR-ground.inp',
                      r'phits\sample\source\Cosmicray\GCR-LEO\cross.out', r'phits\sample\source\Cosmicray\GCR-LEO\GCR-LEO.inp',
                      r'phits\sample\source\Cosmicray\GCR-space\cross.out', r'phits\sample\source\Cosmicray\GCR-space\GCR-space.inp',
@@ -42,14 +36,24 @@ known_issue_files = [r'phits\sample\source\Cosmicray\GCR-ground\cross.out', r'ph
                      r'phits\sample\source\Cosmicray\TP-LEO\cross.out', r'phits\sample\source\Cosmicray\TP-LEO\TP-LEO.inp',
                      r'phits\sample\misc\snowman\rotate3dshow.inp']
 
-# save log file, deleting any old contents
-with open(log_file_path, "w") as f:
-    f.write(log_file_str)
+class TestState:
+    def __init__(self, num_tests):
+        self.log_buffer = io.StringIO()
+        self.num_tests = num_tests
+        self.i = 0
+        self.num_passed = 0
+        self.num_failed = 0
+        self.num_warn = 0
+        self.plot_paths = []
 
-def process_and_log_output_file(f):
-    global log_str, log_file_str, i, num_passed, num_failed, num_warn
-    i += 1
-    test_num_str = '{:3d}/{:3d}'.format(i, num_tests)
+@pytest.fixture(scope="session")
+def test_state():
+    state = TestState(len(files_to_parse))
+    return state
+
+def process_and_log_output_file(f, test_state):
+    test_state.i += 1
+    test_num_str = '{:3d}/{:3d}'.format(test_state.i, test_state.num_tests)
     try:
         if '_dmp.out' in str(f):
             x = PHITS_tools.parse_tally_dump_file(f, save_namedtuple_list=False, save_Pandas_dataframe=False)
@@ -59,12 +63,12 @@ def process_and_log_output_file(f):
             if test_autoplotting and Path(f.parent, f.stem + '.pdf').is_file(): plot_paths.append(
                 Path(f.parent, f.stem + '.pdf'))
         log_str = test_num_str + '     pass  ' + str(f) + '\n'
-        num_passed += 1
+        test_state.num_passed += 1
         status = 'pass'
     except Exception as e:
         if re.sub(r'^.*?phits', 'phits', str(f)) in known_issue_files:
             log_str = test_num_str + '  !  WARN  ' + str(f) + '\n'
-            num_warn += 1
+            test_state.num_warn += 1
             status = 'WARN'
         else:
             log_str = test_num_str + '  x  FAIL  ' + str(f) + '\n'
@@ -72,33 +76,30 @@ def process_and_log_output_file(f):
         log_str += '\t\t' + repr(e) + '\n'
         log_str += '\t\t' + format_exc().replace('\n', '\n\t\t')
         log_str = log_str[:-2]
-        num_failed += 1
+        test_state.num_failed += 1
     print(log_str)
-    log_file_str += log_str
-    # update the log file
-    with open(log_file_path, "a") as f:
-        f.write(log_str)
+    test_state.log_buffer.write(log_str)
     return status
 
 
 @pytest.fixture(scope="session", autouse=True)
-def final_log_summary():
-    global num_passed, num_tests, num_failed, num_warn
+def final_log_summary(test_state):
     yield  # test session runs here
     # after all tests...
-    log_str = '\n{:3d} of {:3d} tests passed\n'.format(num_passed, num_tests)
-    log_str += '{:3d} of {:3d} tests failed (including "WARN")\n'.format(num_failed, num_tests)
-    log_str += '{:3d} of {:3d} the failed tests are from old distributed files and should succeed if the corresponding PHITS input is reran (labeled with "WARN").\n'.format(num_warn, num_failed)
+    log_str = '\n{:3d} of {:3d} tests passed\n'.format(test_state.num_passed, test_state.num_tests)
+    log_str += '{:3d} of {:3d} tests failed (including "WARN")\n'.format(test_state.num_failed, test_state.num_tests)
+    log_str += '{:3d} of {:3d} the failed tests are from old distributed files and should succeed if the corresponding PHITS input is reran (labeled with "WARN").\n'.format(test_state.num_warn, test_state.num_failed)
     print(log_str)
-    with open(log_file_path, "a") as f:
-        f.write(log_str)
+    test_state.log_buffer.write(log_str)
+    with open(log_file_path, "w") as f:
+        f.write(test_state.log_buffer.getvalue())
 
 
 @pytest.mark.slow
 @pytest.mark.integration
 @pytest.mark.parametrize("file_path", files_to_parse)
-def test_individual_output_parsing(file_path):
-    status = process_and_log_output_file(file_path)
+def test_individual_output_parsing(file_path, test_state):
+    status = process_and_log_output_file(file_path, test_state)
     if status == "FAIL":
         pytest.fail(f"Processing failed for file: {file_path}", pytrace=False)
     assert status in ["pass", "WARN", "FAIL"]

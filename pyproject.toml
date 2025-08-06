@@ -121,9 +121,6 @@ addopts = [
     "--strict-config",   # Treat config issues as errors
     "--verbose",         # Verbose output
     "-ra",              # Show extra test summary for all except passed
-#    "--cov=PHITS_tools", # Enable coverage by default
-#    "--cov-report=html", # Generate HTML report by default
-#    "--cov-report=term-missing", # Also show terminal report
 ]
 # Filter warnings 
 filterwarnings = [
