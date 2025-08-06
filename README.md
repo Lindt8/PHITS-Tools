@@ -46,7 +46,7 @@ There are three main ways one can use this Python module:
     - When the module is executed without any additional arguments, `python PHITS_tools.py`, (or with the `-g` or `--GUI` flag in the CLI) a GUI will be launched to step you through selecting what "mode" you would like to run PHITS Tools in (`STANDARD`, `DUMP`, `DIRECTORY`, or `INPUT_FILE`), selecting a file to be parsed (or a directory containing multiple files to be parsed), and the various options for each mode.
 
 Furthermore, if you have installed PHITS Tools via `pip install PHITS-Tools`, you will have access to the following 
-commands that can be used in place of `python PHITS_tools.py` in the terminal: 
+commands that can be used in place of `python PHITS_tools.py` for CLI usage in the terminal: 
 
 - `PHITS-Tools`, `PHITS_tools`, and `phits-tools`
 
