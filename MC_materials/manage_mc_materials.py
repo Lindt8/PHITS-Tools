@@ -177,7 +177,7 @@ def update_materials_database_files(json_filepath,name,mat_str,matid=None,densit
                                     new_database_base_name=None,update_descriptive_file=True,
                                     update_MC_formated_files=True,update_general_MC_file=True,
                                     save_backup_list=True,prefer_user_data_folder=True):
-    '''
+    r'''
     Description:
     
         Add or modify a material in a MC materials database JSON file (optionally updating text files too).
@@ -324,7 +324,7 @@ def update_materials_database_files(json_filepath,name,mat_str,matid=None,densit
     
     
     def Element_ZorSym_to_mass(Z):
-        '''
+        r'''
         Description:
             Returns an element's average atomic mass provided its atomic number Z or elemental symbol
     
@@ -697,7 +697,7 @@ def setup_local_mc_materials_directory(phits_tools_module_path=None):
 
 
 def pnnl_lib_csv_to_dict_list(path_to_materials_compendium_csv=(Path.cwd()/'materials_compendium.csv')):
-    '''
+    r'''
     Description:
         This function converts a CSV file of the PNNL
         Compendium of Material Composition Data for Radiation Transport Modeling (Rev. 1), PNNL-15870 Rev. 1, 
@@ -805,7 +805,7 @@ def pnnl_lib_csv_to_dict_list(path_to_materials_compendium_csv=(Path.cwd()/'mate
     return mat_dict_list
 
 def materials_dict_list_to_json(mat_list,json_filepath=(Path.cwd()/'materials_compendium.json')):
-    '''
+    r'''
     Description:
         This function converts the materials list of dictionaries into a JSON file.
     
@@ -822,7 +822,7 @@ def materials_dict_list_to_json(mat_list,json_filepath=(Path.cwd()/'materials_co
     return None
 
 def materials_json_to_dict_list(json_filepath=(Path.cwd()/'materials_compendium.json')):
-    '''
+    r'''
     Description:
         This function converts the materials list of dictionaries into a JSON file.
     
@@ -838,7 +838,7 @@ def materials_json_to_dict_list(json_filepath=(Path.cwd()/'materials_compendium.
 
 
 def write_descripive_material_entry(mat,mati):
-    '''
+    r'''
     Description:
         Generate a descriptive text block for a material dictionary object.
 
@@ -896,7 +896,7 @@ def write_descripive_material_entry(mat,mati):
     return entry_text
 
 def write_mc_material_entry(mat,mati,particle_format='neutrons',concentration_format='weight fraction',comment_char='$'):
-    '''
+    r'''
     Description:
         Generate a MCNP/PHITS-formatted text block for a material dictionary object.
 
@@ -973,7 +973,7 @@ def write_mc_material_entry(mat,mati,particle_format='neutrons',concentration_fo
 
 
 def write_descriptive_file(mat_list,lib_filepath=Path(Path.cwd(),'MC_materials.txt'),header_text='',write_index_file=True):
-    '''
+    r'''
     Description:
         Generates a text file of descriptive text blocks for a list of material dictionary objects.
 
@@ -1026,7 +1026,7 @@ def write_descriptive_file(mat_list,lib_filepath=Path(Path.cwd(),'MC_materials.t
     return None
 
 def write_mc_formated_files(mat_list, lib_filepath=(Path.cwd()/'MC_materials.txt'), comment_char='$', header_text=''):
-    '''
+    r'''
     Description:
         Generates four text files of MCNP/PHITS-formatted materials section text blocks for a list of material dictionary objects.
         The four files cover every combination of concentration formats `['atom fraction', 'weight fraction']` and 
@@ -1076,7 +1076,7 @@ def write_mc_formated_files(mat_list, lib_filepath=(Path.cwd()/'MC_materials.txt
 
 
 def write_general_mc_file(mat_list,lib_filepath=Path(Path.cwd(),'MC_materials_general.txt'),comment_char='$',header_text=''):
-    '''
+    r'''
     Description:
         Generates a text file of MCNP/PHITS-formatted materials section text blocks for a list of material dictionary objects.
         This single file is a mix of concentration and particle formats as automatically selected for most general situations.
