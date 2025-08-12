@@ -2415,7 +2415,8 @@ def rebinner(output_xbins,input_xbins,input_ybins):
         The purpose of this function is to rebin a set of y values corresponding to a set of x bins to a new set of x bins.
         The function seeks to be as generalized as possible, meaning bin sizes do not need to be consistent nor do the
         new bin edges necessarily need to line up exactly with the old bin edges.  It does assume that the value within 
-        each input bin is evenly (flatly) distributed across its bin width.
+        each input bin is evenly (flatly) distributed across its bin width.  See the Method section below for more information 
+        on how this function works.
 
     Dependencies:
         `import numpy as np`
@@ -2427,6 +2428,26 @@ def rebinner(output_xbins,input_xbins,input_ybins):
 
     Outputs:
       - `output_ybins` = output array containing y values of length N-1
+      
+    Method:
+        
+        There are a number of different approaches one can take with rebinning; two are incorporated into this function and are detailed here.
+        
+        The first involves creation of entirely new bin boundaries that do not necessarily line up with the old bin boundaries, and the second involves the scenario where new bin edges do align with old bin edges.  These are pictured below (along with some math to be explained shortly).
+        
+        
+        
+        <img src="https://github.com/Lindt8/Lindt8.github.io/blob/master/files/figures/rebinning_math.svg?raw=true" alt="Rebinning math" width="90%"/>
+        
+        The input bin widths do not need to be uniform like in this example; they could have arbitrary spacing using the same methodology.  For an original set of M bins with bin values of y<sub>i</sub> and bin boundaries of x<sub>i</sub> and x<sub>i+1</sub> being rebinned into N bins with new bin values of y&prime;<sub>j</sub> and new bin boundaries of x&prime;<sub>j</sub> and x&prime;<sub>j+1</sub>, the new bin values can be calculated with Equation 1.  In the event bin edges are not all aligned, f<sub>i</sub> is described with Equation 2 (whose logical conditions are restated in plain language in Table 1), and if all new bin edges line up with old bin edges, the much simpler Equation 3 can be used to describe f<sub>i</sub>.
+        
+        Do be aware that this assumes that the content of a bin is evenly distributed between the minimum and maximum boundaries of a bin.  These equations could be made more complicated if one wanted to use information from the surrounding bins to form a distribution of how content is spread within a single bin.  But, this complication is typically not warranted since the process of rebinning usually entails combining smaller bins into larger ones, not creating smaller bins from larger ones.
+        
+        This method and explanation is adopted from [1], Section 4.11, pages 88--90.  While this function does not automatically support error propagation through the rebinning process, an approach for this applicable in some scenarios (namely those only involving statistical uncertainties derived from counting statistics) that also utilizes this function and its method is outlined in the same source [1] in Sections 5.1 and 5.2, pages 98--101.
+        
+        
+        Source [1]: "[__Thick-target neutron yields for intermediate-energy heavy ion experiments at NSRL__](https://trace.tennessee.edu/utk_graddiss/5323/)," <u>H.N. Ratliff</u>, PhD dissertation, University of Tennessee, December 2018.
+        
     """
 
     N = len(output_xbins)
