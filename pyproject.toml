@@ -19,21 +19,22 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 dependencies = [
-  "numpy>=2.2.1", 
-  "pandas>=2.2.3", 
-  "scipy>=1.14.1", 
-  "matplotlib>=3.10.0", 
-  "seaborn>=0.13.2"
+  "numpy>=2.2", 
+  "pandas>=2.2", 
+  "scipy>=1.14", 
+  "matplotlib>=3.10", 
+  "seaborn>=0.13"
 ]
 
 [project.optional-dependencies]
 extras = [
-  'munch>=2.5.0',
-  'pyvista>=0.44.2'
+  'munch>=2.5',
+  'pyvista>=0.44'
 ]
 test = [
-	"pytest", 
+	"pytest>=6.0", 
 	"pytest-cov",
+    "flake8",
 ]
 build = [
 	"hatchling",
@@ -43,6 +44,7 @@ doc = [
 ]
 develop = [
 	"PHITS-Tools[test,doc]",
+    "codecov-cli",
 ]
 
 [project.scripts]
@@ -93,3 +95,77 @@ exclude = [
   "MC_materials/PNNL_materials_compendium.json" = "MC_materials/PNNL_materials_compendium.json"
   "MC_materials/Compiled_MC_materials.json" = "MC_materials/Compiled_MC_materials.json" 
   "MC_materials/materials_compendium.csv" = "MC_materials/materials_compendium"
+
+
+
+
+# Testing
+[tool.pytest.ini_options]
+# Test discovery and execution
+testpaths = ["tests"]  # Only run unit tests by default
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+# Add useful markers
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "deprecated: marks tests for deprecated functions that issue warnings",
+]
+# Minimum version requirement
+minversion = "6.0"
+# Add useful command line options by default
+addopts = [
+    "--strict-markers",  # Treat unregistered markers as errors
+    "--strict-config",   # Treat config issues as errors
+    "--verbose",         # Verbose output
+    "-ra",              # Show extra test summary for all except passed
+]
+# Filter warnings 
+filterwarnings = [
+    "error",  # Treat warnings as errors (remove if too strict)
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+    "ignore::FutureWarning:PHITS_tools.*", # Only ignore from PHITS_tools module
+]
+
+[tool.coverage.run]
+source = ["PHITS_tools"]
+branch = true
+# Omit test files from coverage
+omit = [
+    "tests/*",
+    "test/*",
+    "*/tests/*",
+    "*/test/*",
+    "build_docs.py",
+]
+
+[tool.coverage.report]
+# Terminal report settings
+show_missing = true
+skip_covered = false
+skip_empty = true
+precision = 2
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == '__main__':",
+    "if False:",
+    "if in_debug_mode:",
+    "raise ValueError",
+]
+# Set coverage thresholds
+# Note: This is overridden in CI with --cov-fail-under=0
+# Local development can use full integration tests (89% coverage)
+fail_under = 80
+
+[tool.coverage.html]
+directory = "htmlcov"
+title = "PHITS-Tools Test Coverage"
+skip_covered = false
+skip_empty = false
+#show_contexts = true
+
+[tool.coverage.xml]
+output = "coverage.xml"

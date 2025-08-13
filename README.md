@@ -7,7 +7,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14262720.svg)](https://doi.org/10.5281/zenodo.14262720)
 [![PHITS forumn discussion on PHITS Tools](https://img.shields.io/badge/PHITS%20forum%20discussion%20-%20%2333a2d9)](https://meteor.nucl.kyushu-u.ac.jp/phitsforum/t/topic/3651/)
 
-[Purpose](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#purpose) | [Installation](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#installation) | [Usage](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#primary-usageinterfaces) | [CLI options](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#cli-options) | [Automatic processing](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#automatic-processing-at-phits-runtime) | [Submodules](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#submodules) | [Testing/Issues/Contribution](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#testing-reporting-issues-and-contributing) 
+[Purpose](#purpose) | [Installation](#installation) | [Usage](#primary-usageinterfaces) | [CLI options](#cli-options) | [Automatic processing](#automatic-processing-at-phits-runtime) | [Submodules](#submodules) | [Testing/Issues/Contribution](#testing-reporting-issues-and-contributing) 
 
 ## Purpose
 
@@ -33,7 +33,7 @@ One may use the functions by first placing the `PHITS_tools.py` Python script in
 
 The short list of required package/library dependencies for PHITS Tools (and DCHAIN Tools) can be found in `requirements.txt` and installed by executing `pip install -r requirements.txt`.
 
-To also be able to use the included [submodules](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#submodules), download the latest source distribution (`.zip`/`.tar.gz`) from [PyPI](https://pypi.org/project/PHITS-Tools/#files) (_includes only the minimum required source files_) or [the latest release](https://github.com/Lindt8/PHITS-Tools/releases/latest) (_includes source plus example, tests, and docs_), extract the contents, relocate the extracted directory of the package contents if desired, and make sure that directory is placed in your `PYTHONPATH` system variable (or active directory).
+To also be able to use the included [submodules](#submodules), download the latest source distribution (`.zip`/`.tar.gz`) from [PyPI](https://pypi.org/project/PHITS-Tools/#files) (_includes only the minimum required source files_) or [the latest release](https://github.com/Lindt8/PHITS-Tools/releases/latest) (_includes source plus example, tests, and docs_), extract the contents, relocate the extracted directory of the package contents if desired, and make sure that directory is placed in your `PYTHONPATH` system variable (or active directory).
 
 ## Primary usage/interfaces
 There are three main ways one can use this Python module:
@@ -46,7 +46,7 @@ There are three main ways one can use this Python module:
     - When the module is executed without any additional arguments, `python PHITS_tools.py`, (or with the `-g` or `--GUI` flag in the CLI) a GUI will be launched to step you through selecting what "mode" you would like to run PHITS Tools in (`STANDARD`, `DUMP`, `DIRECTORY`, or `INPUT_FILE`), selecting a file to be parsed (or a directory containing multiple files to be parsed), and the various options for each mode.
 
 Furthermore, if you have installed PHITS Tools via `pip install PHITS-Tools`, you will have access to the following 
-commands that can be used in place of `python PHITS_tools.py` in the terminal: 
+commands that can be used in place of `python PHITS_tools.py` for CLI usage in the terminal: 
 
 - `PHITS-Tools`, `PHITS_tools`, and `phits-tools`
 
@@ -203,9 +203,19 @@ these should work and be accessed as shown without any additional configuration 
 
 ## Testing, reporting issues, and contributing
 
+[![CI Tests](https://github.com/Lindt8/PHITS-Tools/actions/workflows/ci-tests.yml/badge.svg)](https://github.com/Lindt8/PHITS-Tools/actions/workflows/ci-tests.yml "CI Tests")
+ ° [![](https://img.shields.io/badge/Unit%20tests%20only-gray) ![Unit Tests](https://codecov.io/gh/Lindt8/PHITS-Tools/branch/feature/improve-testing/graph/badge.svg?flag=ci-unittests&label=Unit%20Tests)](https://app.codecov.io/github/lindt8/phits-tools?flags%5B0%5D=ci-unittests "Codecov unit tests only") 
+ ° [![](https://img.shields.io/badge/Full%20test%20suite-gray) ![Full Suite](https://codecov.io/gh/Lindt8/PHITS-Tools/branch/feature/improve-testing/graph/badge.svg?flag=full-suite&label=Full%20Suite)](https://app.codecov.io/github/lindt8/phits-tools?flags%5B0%5D=full-suite "Codecov full test suite")
+<!--
+ ° [![](https://img.shields.io/badge/Unit%20tests%20only-gray) ![Unit Tests](https://codecov.io/gh/Lindt8/PHITS-Tools/graph/badge.svg?flag=ci-unittests&label=Unit%20Tests)](https://app.codecov.io/github/lindt8/phits-tools?flags%5B0%5D=ci-unittests "Codecov unit tests only")
+ ° [![](https://img.shields.io/badge/Full%20test%20suite-gray) ![Full Suite](https://codecov.io/gh/Lindt8/PHITS-Tools/graph/badge.svg?flag=full-suite&label=Full%20Suite)](https://app.codecov.io/github/lindt8/phits-tools?flags%5B0%5D=full-suite "Codecov full test suite")
+/-->
+
 I have extensively tested this module with a rather large number of PHITS output files with all sorts of different geometry settings, combinations of meshes, output options, and other settings to try to capture as a wide array of output files as I could (including the ~300 output files within the `phits/sample/` and `phits/recommendation/` directories included in the distributed PHITS release, which can be tested in an automated way with `test/test_PHITS_tools.py` in this repository, along with a large number of supplemental variations to really test every option I could think of), but there still may be some usage/combinations of different settings I had not considered that may cause PHITS Tools to crash when attempting to parse a particular output file.  If you come across such an edge case&mdash;a standard PHITS tally output file that causes PHITS Tools to crash when attempting to parse it&mdash;please submit it as an issue and include the output file in question and I'll do my best to update the code to work with it!  Over time, hopefully all the possible edge cases can get stamped out this way. :)
 
 Likewise, if you have any questions or ideas for improvements / feature suggestions, feel free to submit them as an issue.  If you would like to contribute a new function or changes to any existing functions, feel free to fork this repository, make a new branch with your additions/changes, and make a pull request.  (GitHub has a [nice short guide](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project) on this process.)
+
+For more information on contributing and running tests yourself, please check out [CONTRIBUTING.md](CONTRIBUTING.md), [`tests/`](tests/) for unit tests, and [`test/`](test/) for integration/functional tests.
 
 
 -----
