@@ -133,12 +133,12 @@ def test_element_Z_or_symbol_to_name():
 @pytest.mark.unit
 def test_element_Z_or_symbol_to_mass():
     assert element_Z_or_symbol_to_mass(0) == 1.008664
-    assert element_Z_or_symbol_to_mass(1) == 1.007
-    assert element_Z_or_symbol_to_mass('H') == 1.007
-    assert element_Z_or_symbol_to_mass(8) == 15.9994
-    assert element_Z_or_symbol_to_mass('O') == 15.9994
-    assert element_Z_or_symbol_to_mass(117) == 294
-    assert element_Z_or_symbol_to_mass('Ts') == 294
+    assert element_Z_or_symbol_to_mass(1) == 1.008
+    assert element_Z_or_symbol_to_mass('H') == 1.008
+    assert element_Z_or_symbol_to_mass(8) == 15.999
+    assert element_Z_or_symbol_to_mass('O') == 15.999
+    assert element_Z_or_symbol_to_mass(117) == 293
+    assert element_Z_or_symbol_to_mass('Ts') == 293
     assert element_Z_or_symbol_to_mass(118) == 294
     assert element_Z_or_symbol_to_mass('Og') == 294
 
