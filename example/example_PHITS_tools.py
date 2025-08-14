@@ -108,4 +108,44 @@ for i in found_kf_codes:
 print('The following particles and nuclides were produced:')
 print(found_products)
 
+# We can also make our own custom tally over the dump output.
+# Let's make a tally of the charge spectra for produced nuclides 
+# (so, excluding neutrons and photons) spanwed in the 0.3 to 0.5 ns time window 
+# and with kinetic energy between 0 and 10 MeV/u.
+# Make a list of nucleus charges for events satisfying our filter criteria
+Z_list = []
+for i in events_list:
+    if i.time < 0.3 or i.time > 0.5:
+        continue
+    if i.e > 10:
+        continue
+    nucleus_str = PHITS_tools.kfcode_to_common_name(int(i.kf))
+    if nucleus_str in ['neutron', 'photon']:
+        continue
+    elif nucleus_str == 'proton':
+        Z = 1
+    else:
+        element = nucleus_str.split('-')[0]
+        Z = PHITS_tools.element_symbol_to_Z(element)
+    Z_list.append(Z)
+
+# Now tally our list of Z values
+tallied_hist, bin_edges, tallied_hist_err = PHITS_tools.tally(Z_list,
+                                                              min_bin_left_edge=1,
+                                                              max_bin_right_edge=9,
+                                                              bin_width=1,
+                                                              return_uncertainties=True)
+print('bin edges:', bin_edges)
+print('tallied histogram:', tallied_hist)
+print('absolute errors:', tallied_hist_err)
+
+# And let's make a plot of it too.
+plt.figure()
+plt.errorbar(bin_edges[:-1], tallied_hist, yerr=tallied_hist_err, ls='', marker='o')
+plt.yscale('log')
+plt.xlabel('Z')
+plt.ylabel('Number produced')
+plt.title('Z distribution of produced nuclides\n(in t=[0.3 ns, 0.5 ns], with E < 10 MeV/u)')
+plt.grid(which='both', linewidth=1, color='#EEEEEE')
+
 plt.show()
