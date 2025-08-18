@@ -111,7 +111,7 @@ preferring working with Pandas.
 
 -->
 
-: Structure of parsed tally output from PHITS []{label="tally_output_struct"}
+: Structure of parsed tally output from PHITS \label{tally_output_struct}
 
 +-------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | axis              | description (using PHITS nomenclature, input syntax in `monospace` font)                                                                                     |
