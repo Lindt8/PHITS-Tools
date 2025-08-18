@@ -102,7 +102,7 @@ involve ongoing integration efforts with PHITS.
 
 The substantial number of combinations within PHITS of geometry specification, 
 scoring axes (spatial, energy, time, angle, LET, etc.), tally types (scoring volumetric and surface crossing 
-particle fluxes, energy deposition, nuclide production, interactions,  DPA, and more), potential 
+particle fluxes, energy deposition, nuclide production, interactions, radiation damage in DPA, and more), potential 
 particle species, and fair amount of exceptions/edge cases related to specific tallies and/or their settings 
 highlight the utility of such a universal processing code for PHITS. 
 When parsing standard PHITS tally output, PHITS Tools returns a metadata dictionary, 
