@@ -106,6 +106,7 @@ a Pandas \cite{pandas_ref} DataFrame containing the same numerical information f
 preferring working with Pandas.
 
 : Structure of parsed tally output from PHITS \label{tally_output_struct}
+
 +------------+---------------------------------------------------------------------------------------+
 | axis       | description (using PHITS nomenclature, input syntax in `monospace` font)              |
 +:===========+:======================================================================================+
