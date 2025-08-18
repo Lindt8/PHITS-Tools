@@ -54,8 +54,8 @@ the number of particles passing through a region in space or crossing a surface,
 the frequency and products of nuclear interactions of various types, deposition of energy/dose, 
 timing of interactions, radiation damage (in displacements per atom, DPA), and more. 
 Users provide the desired 
-binning for the tally histograms to be created (such as specifying a range of energies of interest and 
-how many bins the tally should have in that energy range), and the code will simulate the 
+binning for the tally histograms to be created (e.g., specifying a range of energies of interest and 
+how many bins the tally will have in that energy range), and the code will simulate the 
 histories, or "lives", of many particles, outputting the aggregate distributions for the 
 quantities being tallied, which should be converged to the "true/real" distributions 
 provided a statistically sufficient number of histories were simulated (often on the order of millions or more).
@@ -93,7 +93,7 @@ possibly preceded by manual data extraction/isolation too.
 PHITS Tools provides universal output parsers for the PHITS and DCHAIN codes, 
 capable of processing all of the relevant output files produced by each code and
 outputting the numerical results and metadata in a consistent, standardized output format, 
-also able to automatically make and save plots (PNG/PDF) of tally results too.
+also able to automatically make and save plots (PNG/PDF) of tally results.
 No similar comprehensive PHITS/DCHAIN output parsing utilities presently exist. 
 The MCPL: Monte Carlo Particle Lists [@MCPL_ref] package can parse 
 PHITS binary dump files if using one of two specific combinations of tally dump parameter settings, and 
