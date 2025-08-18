@@ -11,14 +11,11 @@ tags:
 authors:
   - name: Hunter N. Ratliff
     orcid: 0000-0003-3761-5415
-    affiliation: "1, 2" # (Multiple affiliations must be quoted)
+    affiliation: '1'
 affiliations:
   - name: Western Norway University of Applied Sciences, Inndalsveien 28, 5063 Bergen, Norway
     index: 1
     ror: 05phns765
-  - name: Japan Atomic Energy Agency, 2-4 Shirakata, Tokai, Naka, Ibaraki 319-1195, Japan
-    index: 2
-    ror: 05nf86y53
 date: 2 January 2025
 bibliography: paper.bib
 
@@ -49,17 +46,17 @@ distributed with and coupled to PHITS is the DCHAIN [@DCHAIN_ref] code[^2].
 [^1]: For current PHITS userbase statistics, see: [https://phits.jaea.go.jp/usermap/PHITS_map_userbase.html](https://phits.jaea.go.jp/usermap/PHITS_map_userbase.html)
 [^2]: PHITS and DCHAIN are distributed by the Japan Atomic Energy Agency and the OECD/NEA Data Bank. For more information, see: [https://phits.jaea.go.jp/howtoget.html](https://phits.jaea.go.jp/howtoget.html).  
 
-Within PHITS are "tallies" which score various physical quantities
+Within PHITS are "tallies" which filter and score various physical quantities
 such as the number of particles passing through a region in space or crossing a surface, 
 the frequency and products of nuclear interactions of various types, deposition of energy/dose, 
-timing of interactions, displacements per atom (DPA), and more.  Users provide the desired
+timing of interactions, radiation damage (in DPA), and more.  Users provide the desired
 binning for the tally histograms to be created (such as specifying a range of energies of interest and 
 how many bins the tally should have within that energy range), and the code will simulate the 
 histories, or "lives", of many particles, outputting the aggregate distributions for the 
 quantities being tallied, which should be converged to the "true" or "real" distributions 
 provided a statistically sufficient number of histories were simulated (often on the order of millions or more).
 For a few tallies, PHITS provides the option to output "dump" files where, in addition to the histograms, 
-detailed raw history-by-history event data are recorded to an ASCII or binary file for every history 
+detailed raw history-by-history event data are recorded to a text or binary file for every history 
 satisfying the tally's criteria and being scored by it, allowing users to, in post, create 
 even more complex tallies and analyses than possible with the stock tallies in PHITS.
 
@@ -77,33 +74,40 @@ may wish to perform on simulation outputs.
 
 # Statement of need
 
-`PHITS Tools` and its `DCHAIN Tools` submodule serve as an interface between the plaintext (and binary) outputs
+PHITS Tools and its DCHAIN Tools submodule serve as an interface between the plaintext (and binary) outputs
 of the PHITS and DCHAIN codes and Python&mdash;greatly expediting further programmatic analyses, 
 comparisons, and visualization&mdash;and provide some extra analysis tools. 
 The outputs of the PHITS code are, aside from the special binary "dump" files, plaintext files formatted 
 for processing by a custom visualization code (generating Encapsulated PostScript files) 
 shipped with and automatically ran by PHITS, and those of the DCHAIN 
-code are formatted in a variety of tabular, human-readable structures.  Historically, programmatic
-extraction and organization of numerical results and metadata from both codes often required 
+code are formatted in a variety of tabular, human-readable structures.  
+
+Historically, programmatic extraction and organization of numerical results and 
+metadata from both codes often required 
 writing a bespoke processing script for most individual simulations, 
 possibly preceded by manual data extraction/isolation too. 
-`PHITS Tools` provides universal output parsers for the PHITS and DCHAIN codes, 
+PHITS Tools provides universal output parsers for the PHITS and DCHAIN codes, 
 capable of processing all of the relevant output files produced by each code and
 outputting the numerical results and metadata in a consistent, standardized output format, 
 also able to automatically make and save plots (PNG/PDF) of tally results too.
+At present, there are no other such PHITS/DCHAIN standard output parsing utilities; though 
+the MCPL \cite{MCPL_ref} package does support parsing of PHITS binary dump files if 
+using one of two specific combinations of tally dump settings.
 
 The substantial number of combinations within PHITS of geometry specification, 
 scoring axes (spatial, energy, time, angle, LET, etc.), tally types (scoring volumetric and surface crossing 
 particle fluxes, energy deposition, nuclide production, interactions,  DPA, and more), potential 
 particle species, and fair amount of exceptions/edge cases related to specific tallies and/or their settings 
 highlight the utility of such a universal processing code for PHITS. 
-When parsing standard PHITS tally output, `PHITS Tools` returns a metadata dictionary, 
-a 10-dimensional NumPy array universally accommodating of all possible PHITS tally output
-containing all numerical results (structured as shown in the table below), and 
-a Pandas DataFrame containing the same numerical information for users preferring working with Pandas.
+When parsing standard PHITS tally output, PHITS Tools returns a metadata dictionary, 
+a 10-dimensional NumPy \cite{numpy_ref} array universally accommodating of all possible PHITS tally output
+containing all numerical results (structure illustrated in Table \ref{tally_output_struct}), and 
+a Pandas \cite{pandas_ref} DataFrame containing the same numerical information for users 
+preferring working with Pandas.
 
+: Structure of parsed tally output from PHITS \label{tally_output_struct}
 +------------+---------------------------------------------------------------------------------------+
-| axis       | description                                                                           |
+| axis       | description (using PHITS nomenclature, input syntax in `monospace` font)              |
 +:===========+:======================================================================================+
 | 0 / `ir`   | Geometry mesh: `reg` / `x` / `r` / `tet` *                                            |
 +------------+---------------------------------------------------------------------------------------+
@@ -125,22 +129,22 @@ a Pandas DataFrame containing the same numerical information for users preferrin
 +------------+---------------------------------------------------------------------------------------+
 | 9 / `ierr` | `= 0/1/2`, Value / relative uncertainty / absolute uncertainty *                      |
 +============+=======================================================================================+
-| *exceptional behavior with [T-Cross] tally when `enclos = 0` is set; see full documentation        |
+| *exceptional behavior with [T-Cross] tally when `enclos = 0` is set; see [full documentation](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file)        |
 +============+=======================================================================================+
 
-`PHITS Tools` is also capable of parsing the "dump" output files (both binary and ASCII formats) 
+PHITS Tools is also capable of parsing the "dump" output files (both binary and plaintext formats) 
 that are available for some tallies, and it can also automatically detect, parse, and process all PHITS 
-output files listed in a provided directory or PHITS input file, very convenient 
+output files listed in a provided directory or PHITS input file&mdash;very convenient 
 for simulations employing multiple tallies, each with its own output file, 
 whose output are to be further studied, e.g., compared to experimental data or other simulations. 
-`PHITS Tools` can be used by 
-(1) importing it as a Python package in a script and calling its functions, 
-(2) running it in the command line via its CLI with a provided PHITS output
+PHITS Tools can be used by 
+1. importing it as a Python package in a script and calling its functions, 
+2. running it in the command line via its CLI with a provided PHITS output
  file (or directory/input file) path and settings flags/options, or 
-(3) running it without any arguments to launch a GUI stepping the user through 
-the various output processing options and settings in `PHITS Tools`.
+3. running it without any arguments to launch a GUI stepping the user through 
+the various output processing options and settings in PHITS Tools.
 
-When used as an imported package, `PHITS Tools` provides a number of supplemental
+When used as an imported package, PHITS Tools provides a number of supplemental
 functions aiding with further analyses, such as tools for 
 constructing one's own tally over the history-by-history output of the "dump" files, 
 rebinning histogrammed results to a different desired binning structure, 
@@ -152,20 +156,20 @@ consisting of the selection of materials within the PNNL Compendium of Material
 Composition Data for Radiation Transport Modeling [@PNNL_materials_compendium]),
 among other useful functions.
 
-The `DCHAIN Tools` submodule handles the outputs of the DCHAIN code.  Its primary function 
+The DCHAIN Tools submodule handles the outputs of the DCHAIN code.  Its primary function 
 parses all of the various output files of the DCHAIN code and compiles the metadata
 and numeric results&mdash;the confluence of the specified regions, output time steps, 
 all nuclides and their inventories (and derived quantities), and complex decay chain 
 schemes illustrating the production/destruction mechanisms for all nuclides&mdash;into 
-a single unified dictionary object.  The `DCHAIN Tools` submodule includes some additional
+a single unified dictionary object.  The DCHAIN Tools submodule includes some additional
 useful functions such as retrieving neutron activation cross sections from DCHAIN's built-in 
 nuclear data libraries, calculating flux-weighted single-group activation cross sections, 
 and visualizing and summarizing the most significant nuclides (in terms of activity, 
-decay heat, or gamma-ray dose) as a function of time. If `PHITS Tools` is provided DCHAIN-related 
-files, `DCHAIN Tools` will be automatically imported and its primary function executed
+decay heat, or gamma-ray dose) as a function of time. If PHITS Tools is provided DCHAIN-related 
+files, DCHAIN Tools will be automatically imported and its primary function executed
 on the DCHAIN output.
 
-In all, the `PHITS Tools` package makes the results produced by the PHITS and DCHAIN codes 
+In all, the PHITS Tools package makes the results produced by the PHITS and DCHAIN codes 
 far more accessible for further use, analyses, comparisons, and visualizations in 
 Python, removing the initial hurdle of parsing and organizing the raw output from these codes, 
 and provides some additional tools for easing further analyses and drawing conclusions from 
