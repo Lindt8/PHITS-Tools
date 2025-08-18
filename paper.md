@@ -52,8 +52,8 @@ filter and score the various physical quantities of interest to be outputted.
 The tallies available in PHITS include scoring of 
 the number of particles passing through a region in space or crossing a surface, 
 the frequency and products of nuclear interactions of various types, deposition of energy/dose, 
-timing of interactions, radiation damage (in displacements per atom, DPA), and more.  
-Users provide the desired
+timing of interactions, radiation damage (in displacements per atom, DPA), and more. 
+Users provide the desired 
 binning for the tally histograms to be created (such as specifying a range of energies of interest and 
 how many bins the tally should have within that energy range), and the code will simulate the 
 histories, or "lives", of many particles, outputting the aggregate distributions for the 
