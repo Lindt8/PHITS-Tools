@@ -91,7 +91,7 @@ capable of processing all of the relevant output files produced by each code and
 outputting the numerical results and metadata in a consistent, standardized output format, 
 also able to automatically make and save plots (PNG/PDF) of tally results too.
 At present, there are no other such PHITS/DCHAIN standard output parsing utilities; though 
-the MCPL \cite{MCPL_ref} package does support parsing of PHITS binary dump files if 
+the MCPL [@MCPL_ref] package does support parsing of PHITS binary dump files if 
 using one of two specific combinations of tally dump settings.
 
 The substantial number of combinations within PHITS of geometry specification, 
@@ -100,12 +100,12 @@ particle fluxes, energy deposition, nuclide production, interactions,  DPA, and 
 particle species, and fair amount of exceptions/edge cases related to specific tallies and/or their settings 
 highlight the utility of such a universal processing code for PHITS. 
 When parsing standard PHITS tally output, PHITS Tools returns a metadata dictionary, 
-a 10-dimensional NumPy \cite{numpy_ref} array universally accommodating of all possible PHITS tally output
-containing all numerical results (structure illustrated in Table 1), and 
-a Pandas \cite{pandas_ref} DataFrame containing the same numerical information for users 
+a 10-dimensional NumPy [@numpy_ref] array universally accommodating of all possible PHITS tally output
+containing all numerical results (structure illustrated in Table \ref{tally_output_struct}), and 
+a Pandas [@pandas_ref] DataFrame containing the same numerical information for users 
 preferring working with Pandas.
 
-: Table 1: Structure of parsed tally output from PHITS
+: Structure of parsed tally output from PHITS \label{tally_output_struct}
 
 +------------+---------------------------------------------------------------------------------------+
 | axis       | description (using PHITS nomenclature, input syntax in `monospace` font)              |
