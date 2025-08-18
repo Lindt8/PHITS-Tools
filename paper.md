@@ -49,7 +49,7 @@ distributed with and coupled to PHITS is the DCHAIN [@DCHAIN_ref] code[^2].
 Within PHITS are "tallies" which filter and score various physical quantities
 such as the number of particles passing through a region in space or crossing a surface, 
 the frequency and products of nuclear interactions of various types, deposition of energy/dose, 
-timing of interactions, radiation damage (in DPA), and more.  Users provide the desired
+timing of interactions, radiation damage (in displacement per atom, DPA), and more.  Users provide the desired
 binning for the tally histograms to be created (such as specifying a range of energies of interest and 
 how many bins the tally should have within that energy range), and the code will simulate the 
 histories, or "lives", of many particles, outputting the aggregate distributions for the 
@@ -90,9 +90,9 @@ PHITS Tools provides universal output parsers for the PHITS and DCHAIN codes,
 capable of processing all of the relevant output files produced by each code and
 outputting the numerical results and metadata in a consistent, standardized output format, 
 also able to automatically make and save plots (PNG/PDF) of tally results too.
-At present, there are no other such PHITS/DCHAIN standard output parsing utilities; though 
-the MCPL [@MCPL_ref] package does support parsing of PHITS binary dump files if 
-using one of two specific combinations of tally dump settings.
+At present, there are no other such PHITS/DCHAIN universal standard output parsing utilities; 
+though the MCPL (Monte Carlo Particle Lists) [@MCPL_ref] package does support parsing of 
+PHITS binary dump files if using one of two specific combinations of tally dump parameter settings.
 
 The substantial number of combinations within PHITS of geometry specification, 
 scoring axes (spatial, energy, time, angle, LET, etc.), tally types (scoring volumetric and surface crossing 
@@ -105,7 +105,7 @@ containing all numerical results (structure illustrated in \autoref{tally_output
 a Pandas [@pandas_ref] DataFrame containing the same numerical information for users 
 preferring working with Pandas.
 
-: Structure of parsed tally output from PHITS \label{tally_output_struct}
+: Structure of returned parsed PHITS tally output (NumPy array axes / Pandas DataFrame columns) \label{tally_output_struct}
 
 +-------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | axis              | description (using PHITS nomenclature, input syntax in `monospace` font)                                                                                     |
