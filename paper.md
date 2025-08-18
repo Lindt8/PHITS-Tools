@@ -106,13 +106,13 @@ a Pandas [@pandas_ref] DataFrame containing the same numerical information for u
 preferring working with Pandas.
 
 <!--: Structure of parsed tally output from PHITS []{label="tally_output_struct"}
-(using PHITS nomenclature, input syntax in `monospace` font) 
+
 [full documentation](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file)
 -->
 Table 1: Structure of parsed tally output from PHITS
 
 +------------+---------------------------------------------------------------------------------------+
-| axis       | description              |
+| axis       | description (using PHITS nomenclature, input syntax in `monospace` font)              |
 +:===========+:======================================================================================+
 | 0 / `ir`   | Geometry mesh: `reg` / `x` / `r` / `tet` *                                            |
 +------------+---------------------------------------------------------------------------------------+
