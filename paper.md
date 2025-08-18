@@ -49,7 +49,7 @@ distributed with and coupled to PHITS is the DCHAIN [@DCHAIN_ref] code[^2].
 Within PHITS are "tallies" which filter and score various physical quantities
 such as the number of particles passing through a region in space or crossing a surface, 
 the frequency and products of nuclear interactions of various types, deposition of energy/dose, 
-timing of interactions, radiation damage (in displacement per atom, DPA), and more.  Users provide the desired
+timing of interactions, radiation damage (in displacements per atom, DPA), and more.  Users provide the desired
 binning for the tally histograms to be created (such as specifying a range of energies of interest and 
 how many bins the tally should have within that energy range), and the code will simulate the 
 histories, or "lives", of many particles, outputting the aggregate distributions for the 
@@ -90,7 +90,7 @@ PHITS Tools provides universal output parsers for the PHITS and DCHAIN codes,
 capable of processing all of the relevant output files produced by each code and
 outputting the numerical results and metadata in a consistent, standardized output format, 
 also able to automatically make and save plots (PNG/PDF) of tally results too.
-At present, there are no other such PHITS/DCHAIN universal standard output parsing utilities; 
+At present, there are no other similar PHITS or DCHAIN universal standard output parsing utilities; 
 though the MCPL (Monte Carlo Particle Lists) [@MCPL_ref] package does support parsing of 
 PHITS binary dump files if using one of two specific combinations of tally dump parameter settings.
 
@@ -105,7 +105,7 @@ containing all numerical results (structure illustrated in \autoref{tally_output
 a Pandas [@pandas_ref] DataFrame containing the same numerical information for users 
 preferring working with Pandas.
 
-: Structure of returned parsed PHITS tally output (NumPy array axes / Pandas DataFrame columns) \label{tally_output_struct}
+: Structure of returned parsed tally output (NumPy array axes/Pandas DataFrame columns) \label{tally_output_struct}
 
 +-------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | axis              | description (using PHITS nomenclature, input syntax in `monospace` font)                                                                                     |
@@ -138,7 +138,8 @@ that are available for some tallies, and it can also automatically detect, parse
 output files listed in a provided directory or PHITS input file&mdash;very convenient 
 for simulations employing multiple tallies, each with its own output file, 
 whose output are to be further studied, e.g., compared to experimental data or other simulations. 
-PHITS Tools can be used by 
+PHITS Tools can be used by:
+
 1. importing it as a Python package in a script and calling its functions, 
 2. running it in the command line via its CLI with a provided PHITS output
  file (or directory/input file) path and settings flags/options, or 
