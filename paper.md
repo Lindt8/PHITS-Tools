@@ -46,8 +46,11 @@ distributed with and coupled to PHITS is the DCHAIN [@DCHAIN_ref] code[^2].
 [^1]: For current PHITS userbase statistics, see: [https://phits.jaea.go.jp/usermap/PHITS_map_userbase.html](https://phits.jaea.go.jp/usermap/PHITS_map_userbase.html)
 [^2]: PHITS and DCHAIN are distributed by the Japan Atomic Energy Agency and the OECD/NEA Data Bank. For more information, see: [https://phits.jaea.go.jp/howtoget.html](https://phits.jaea.go.jp/howtoget.html).  
 
-Within PHITS are "tallies" which filter and score various physical quantities
-such as the number of particles passing through a region in space or crossing a surface, 
+Radiation transport simulations minimally require specification of the involved 
+geometry (defined shapes, regions, and materials), radiation source terms, and "tallies" that 
+filter and score the various physical quantities of interest to be outputted. 
+The tallies available in PHITS include scoring of 
+the number of particles passing through a region in space or crossing a surface, 
 the frequency and products of nuclear interactions of various types, deposition of energy/dose, 
 timing of interactions, radiation damage (in displacements per atom, DPA), and more.  Users provide the desired
 binning for the tally histograms to be created (such as specifying a range of energies of interest and 
