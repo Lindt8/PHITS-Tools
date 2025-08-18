@@ -57,7 +57,7 @@ Users provide the desired
 binning for the tally histograms to be created (such as specifying a range of energies of interest and 
 how many bins the tally should have within that energy range), and the code will simulate the 
 histories, or "lives", of many particles, outputting the aggregate distributions for the 
-quantities being tallied, which should be converged to the "true" or "real" distributions 
+quantities being tallied, which should be converged to the "true/real" distributions 
 provided a statistically sufficient number of histories were simulated (often on the order of millions or more).
 For a few tallies, PHITS provides the option to output "dump" files where, in addition to the histograms, 
 detailed raw history-by-history event data are recorded to a text or binary file for every history 
@@ -98,7 +98,7 @@ At present, there are no other similar comprehensive PHITS/DCHAIN output parsing
 The MCPL (Monte Carlo Particle Lists) [@MCPL_ref] package does support parsing of 
 PHITS binary dump files if using one of two specific combinations of tally dump parameter settings, and 
 recent developments to FLUKA's [@Fluka2024_ref] FLAIR utility [@Flair3_ref] 
-involve ongoing integration efforts with PHITS (output handling currently lags behind input file capabilities)
+involve ongoing integration efforts with PHITS.
 
 The substantial number of combinations within PHITS of geometry specification, 
 scoring axes (spatial, energy, time, angle, LET, etc.), tally types (scoring volumetric and surface crossing 
