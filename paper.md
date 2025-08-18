@@ -49,7 +49,7 @@ distributed with and coupled to PHITS is the DCHAIN [@DCHAIN_ref] code[^2].
 Radiation transport simulations minimally require specification of the involved 
 geometry (defined shapes, regions, and materials), radiation source terms, and "tallies" that 
 filter and score the various physical quantities of interest to be outputted. 
-The tallies available in PHITS include scoring of 
+PHITS's tallies include scoring of 
 the number of particles passing through a region in space or crossing a surface, 
 the frequency and products of nuclear interactions of various types, deposition of energy/dose, 
 timing of interactions, radiation damage (in displacements per atom, DPA), and more. 
@@ -94,11 +94,11 @@ PHITS Tools provides universal output parsers for the PHITS and DCHAIN codes,
 capable of processing all of the relevant output files produced by each code and
 outputting the numerical results and metadata in a consistent, standardized output format, 
 also able to automatically make and save plots (PNG/PDF) of tally results too.
-At the time of writing, there are no other similar PHITS or DCHAIN universal standard output parsing utilities. 
+At present, there are no other similar comprehensive PHITS/DCHAIN output parsing utilities. 
 The MCPL (Monte Carlo Particle Lists) [@MCPL_ref] package does support parsing of 
 PHITS binary dump files if using one of two specific combinations of tally dump parameter settings, and 
-recent developments to FLUKA's [@Fluka2024_ref] FLAIR utility [@Flair3_ref] (primarily for input editing but also 
-capable of output visualization) involve ongoing integration efforts with PHITS.
+recent developments to FLUKA's [@Fluka2024_ref] FLAIR utility [@Flair3_ref] 
+involve ongoing integration efforts with PHITS (output handling currently lags behind input file capabilities)
 
 The substantial number of combinations within PHITS of geometry specification, 
 scoring axes (spatial, energy, time, angle, LET, etc.), tally types (scoring volumetric and surface crossing 
