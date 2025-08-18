@@ -101,11 +101,12 @@ particle species, and fair amount of exceptions/edge cases related to specific t
 highlight the utility of such a universal processing code for PHITS. 
 When parsing standard PHITS tally output, PHITS Tools returns a metadata dictionary, 
 a 10-dimensional NumPy [@numpy_ref] array universally accommodating of all possible PHITS tally output
-containing all numerical results (structure illustrated in Table \ref{tally_output_struct}), and 
+containing all numerical results (structure illustrated in Table 1), and 
 a Pandas [@pandas_ref] DataFrame containing the same numerical information for users 
 preferring working with Pandas.
 
-: Structure of parsed tally output from PHITS []{label="tally_output_struct"}
+<!--: Structure of parsed tally output from PHITS []{label="tally_output_struct"}-->
+Table 1: Structure of parsed tally output from PHITS
 
 +------------+---------------------------------------------------------------------------------------+
 | axis       | description (using PHITS nomenclature, input syntax in `monospace` font)              |
