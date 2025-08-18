@@ -133,9 +133,9 @@ Table 1: Structure of parsed tally output from PHITS
 +------------+---------------------------------------------------------------------------------------+
 | 8 / `ic`   | Special: [T-Deposit2] `eng2`, [T-Yield] `mass`/`charge`/`chart`, [T-Interact] `act`   |
 +------------+---------------------------------------------------------------------------------------+
-| 9 / `ierr` | `= 0/1/2`, Value / relative uncertainty / absolute uncertainty *                      /
+| 9 / `ierr` | `= 0/1/2`, Value / relative uncertainty / absolute uncertainty \*                     |
 +============+=======================================================================================+
-/ *exceptional behavior with [T-Cross] tally when `enclos = 0` is set; see [full documentation](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file)        |
+| \*exceptional behavior with [T-Cross] tally when `enclos = 0` is set; see [full documentation](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file)        |
 +============+=======================================================================================+
 
 PHITS Tools is also capable of parsing the "dump" output files (both binary and plaintext formats) 
