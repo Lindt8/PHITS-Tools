@@ -105,11 +105,14 @@ containing all numerical results (structure illustrated in Table 1), and
 a Pandas [@pandas_ref] DataFrame containing the same numerical information for users 
 preferring working with Pandas.
 
-<!--: Structure of parsed tally output from PHITS []{label="tally_output_struct"}-->
+<!--: Structure of parsed tally output from PHITS []{label="tally_output_struct"}
+(using PHITS nomenclature, input syntax in `monospace` font) 
+[full documentation](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file)
+-->
 Table 1: Structure of parsed tally output from PHITS
 
 +------------+---------------------------------------------------------------------------------------+
-| axis       | description (using PHITS nomenclature, input syntax in `monospace` font)              |
+| axis       | description              |
 +:===========+:======================================================================================+
 | 0 / `ir`   | Geometry mesh: `reg` / `x` / `r` / `tet` *                                            |
 +------------+---------------------------------------------------------------------------------------+
@@ -131,7 +134,7 @@ Table 1: Structure of parsed tally output from PHITS
 +------------+---------------------------------------------------------------------------------------+
 | 9 / `ierr` | `= 0/1/2`, Value / relative uncertainty / absolute uncertainty *                      |
 +============+=======================================================================================+
-| *exceptional behavior with [T-Cross] tally when `enclos = 0` is set; see [full documentation](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file)        |
+| *exceptional behavior with [T-Cross] tally when `enclos = 0` is set; see full documentation        |
 +============+=======================================================================================+
 
 PHITS Tools is also capable of parsing the "dump" output files (both binary and plaintext formats) 
