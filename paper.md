@@ -149,8 +149,8 @@ PHITS Tools can be used by:
 1. importing it as a Python package in a script and calling its functions, 
 2. running it in the command line via its CLI with a provided PHITS output
  file (or directory/input file) path and settings flags/options, or 
-3. running it without any arguments or via the `PHITS-Tools-GUI` executable to launch a GUI be 
-stepped through the various available output processing options and settings.
+3. running it without any arguments or via the `PHITS-Tools-GUI` executable to launch a GUI and be 
+stepped through the available output processing options and settings.
 
 When used as an imported package, PHITS Tools provides a number of supplemental
 functions aiding with further analyses, such as tools for 
