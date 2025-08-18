@@ -105,13 +105,8 @@ containing all numerical results (structure illustrated in \autoref{tally_output
 a Pandas [@pandas_ref] DataFrame containing the same numerical information for users 
 preferring working with Pandas.
 
-<!--: Structure of parsed tally output from PHITS []{label="tally_output_struct"}
-
-[full documentation](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file)
-
--->
-
 : Structure of parsed tally output from PHITS \label{tally_output_struct}
+
 +-------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | axis              | description (using PHITS nomenclature, input syntax in `monospace` font)                                                                                     |
 +:==================+:=============================================================================================================================================================+
