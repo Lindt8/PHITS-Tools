@@ -94,9 +94,11 @@ PHITS Tools provides universal output parsers for the PHITS and DCHAIN codes,
 capable of processing all of the relevant output files produced by each code and
 outputting the numerical results and metadata in a consistent, standardized output format, 
 also able to automatically make and save plots (PNG/PDF) of tally results too.
-At the time of writing, there are no other similar PHITS or DCHAIN universal standard output parsing utilities; 
-though the MCPL (Monte Carlo Particle Lists) [@MCPL_ref] package does support parsing of 
-PHITS binary dump files if using one of two specific combinations of tally dump parameter settings.
+At the time of writing, there are no other similar PHITS or DCHAIN universal standard output parsing utilities. 
+The MCPL (Monte Carlo Particle Lists) [@MCPL_ref] package does support parsing of 
+PHITS binary dump files if using one of two specific combinations of tally dump parameter settings, and 
+recent developments to FLUKA's [@Fluka2024_ref] FLAIR utility [@Flair3_ref] (primarily for input editing but also 
+capable of output visualization) involve ongoing integration efforts with PHITS.
 
 The substantial number of combinations within PHITS of geometry specification, 
 scoring axes (spatial, energy, time, angle, LET, etc.), tally types (scoring volumetric and surface crossing 
