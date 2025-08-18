@@ -55,7 +55,7 @@ the frequency and products of nuclear interactions of various types, deposition 
 timing of interactions, radiation damage (in displacements per atom, DPA), and more. 
 Users provide the desired 
 binning for the tally histograms to be created (such as specifying a range of energies of interest and 
-how many bins the tally should have within that energy range), and the code will simulate the 
+how many bins the tally should have in that energy range), and the code will simulate the 
 histories, or "lives", of many particles, outputting the aggregate distributions for the 
 quantities being tallied, which should be converged to the "true/real" distributions 
 provided a statistically sufficient number of histories were simulated (often on the order of millions or more).
@@ -95,7 +95,7 @@ capable of processing all of the relevant output files produced by each code and
 outputting the numerical results and metadata in a consistent, standardized output format, 
 also able to automatically make and save plots (PNG/PDF) of tally results too.
 No similar comprehensive PHITS/DCHAIN output parsing utilities presently exist. 
-The MCPL: Monte Carlo Particle Lists [@MCPL_ref] package supports parsing of 
+The MCPL: Monte Carlo Particle Lists [@MCPL_ref] package can parse 
 PHITS binary dump files if using one of two specific combinations of tally dump parameter settings, and 
 recent developments to FLUKA's [@Fluka2024_ref] FLAIR utility [@Flair3_ref] 
 involve ongoing integration efforts with PHITS.
