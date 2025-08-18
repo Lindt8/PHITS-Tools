@@ -46,7 +46,7 @@ distributed with and coupled to PHITS is the DCHAIN [@DCHAIN_ref] code[^2].
 [^1]: For current PHITS userbase statistics, see: [https://phits.jaea.go.jp/usermap/PHITS_map_userbase.html](https://phits.jaea.go.jp/usermap/PHITS_map_userbase.html)
 [^2]: PHITS and DCHAIN are distributed by the Japan Atomic Energy Agency and the OECD/NEA Data Bank. For more information, see: [https://phits.jaea.go.jp/howtoget.html](https://phits.jaea.go.jp/howtoget.html).  
 
-Radiation transport simulations minimally require specification of the involved 
+Radiation transport simulations minimally require specifying the involved 
 geometry (defined shapes, regions, and materials), radiation source terms, and "tallies" that 
 filter and score the various physical quantities of interest to be outputted. 
 PHITS's tallies can score 
@@ -93,7 +93,7 @@ possibly preceded by manual data extraction/isolation too.
 PHITS Tools provides universal output parsers for the PHITS and DCHAIN codes, 
 capable of processing all of the relevant output files produced by each code and
 outputting the numerical results and metadata in a consistent, standardized output format, 
-also able to automatically make and save plots (PNG/PDF) of tally results.
+also able to automatically make and save plots of tally results.
 No similar comprehensive PHITS/DCHAIN output parsing utilities presently exist. 
 The MCPL: Monte Carlo Particle Lists [@MCPL_ref] package can parse 
 PHITS binary dump files if using one of two specific combinations of tally dump parameter settings, and 
