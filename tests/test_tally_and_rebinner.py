@@ -1,6 +1,13 @@
 import pytest 
-from PHITS_tools import tally, rebinner
+from PHITS_tools import tally_data_indices, tally, rebinner
 import numpy as np
+
+@pytest.mark.unit
+def test_tally_data_indices():
+    tally_metadata = {'reg_groups': ['1', '2', '16', '50', '51', '99'], 
+                      'part_groups': ['all', 'neutron', 'proton', '-(neutron proton)']
+                      }
+    assert tally_data_indices(default_to_all=False, ir=2, ie=":", ip=":", ierr=":") == (2,0,0,slice(None),0,0,0,slice(None),0,slice(None))
 
 @pytest.mark.unit
 def test_tally():
