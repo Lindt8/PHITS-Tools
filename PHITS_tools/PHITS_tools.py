@@ -2316,7 +2316,7 @@ def tally_data_indices(*, default_to_all=True, tally_metadata=None, **axes):
         - `7` | `ip`, Particle type (`part = `)
         - `8` | `ic`, Special: [T-Deposit2] `eng2`; [T-Yield] `mass`, `charge`, `chart`; [T-Interact] `act`
         - `9` | `ierr = 0/1/2`, Value / relative uncertainty / absolute uncertainty (expanded to `3/4/5`, or `2/3` if
-        `calculate_absolute_errors = False`, for [T-Cross] `mesh=r-z` with `enclos=0` case; see notes further below)
+        `calculate_absolute_errors = False`, for [T-Cross] `mesh=r-z` with `enclos=0` case)
 
     Inputs:
         - `**axes` = This function takes as input a variety of keyword and argument pairs that will map to the 10 axes
@@ -2342,7 +2342,7 @@ def tally_data_indices(*, default_to_all=True, tally_metadata=None, **axes):
                 - 1D boolean mask, a list/array of `bool` with length matching the specified axis
         - &dagger;Exceptionally, there are a few special `**axes` keywords that can be provided with an argument that actually
           maps to the **value** of that axis as opposed to its index. To use these, `tally_metadata` MUST be provided. These are:
-            - `reg`, `region` : for specifying cell/region numbers
+            - `reg`, `region` : for specifying tally region numbers
                 - The argument must be an individual or list of string(s) designating region numbers/groups. 
                   (Integers will be converted to strings.)
                   Any string must identically match a corresponding string in `tally_metadata['reg_groups']` to be correctly identified.
@@ -2350,7 +2350,7 @@ def tally_data_indices(*, default_to_all=True, tally_metadata=None, **axes):
                 - The argument must be an individual or list of string(s) designating particle names/groups.
                   Any string must identically match a corresponding string in `tally_metadata['part_groups']` to be correctly identified.
             - `mass`, `charge` : for these axes in [T-Yield] when specified
-                - The argument must be an individual or list of integers denoting mass/charge values.
+                - The argument must be an individual or list of integer(s) denoting mass/charge values.
                 - Note that the charge/mass axes values are actually integers starting from 0 anyways, meaning values and 
                   indices are identical, so these are treated identically as `imass` and `icharge` and no lookup in 
                   `tally_metadata` is performed (so, slices, 1D sequences, `np.s_`, and 1D boolean mask also work).
@@ -2496,10 +2496,12 @@ def tally_data_indices(*, default_to_all=True, tally_metadata=None, **axes):
             for val in val_list:
                 ival = find(val, tally_metadata[meta_key])
                 if ival is None:
-                    print(f"Contents of tally_metadata['{meta_key}'] =", tally_metadata[meta_key])
                     raise ValueError(f"Specified value {val!r} not found in tally_metadata['{meta_key}'] = {tally_metadata[meta_key]!r}.")
                 v_index_list.append(ival)
-            v = v_index_list 
+            if len(v_index_list)==1:
+                v = v_index_list[0]
+            else:
+                v = v_index_list
             
         else:
             raise KeyError(f"Unknown axis '{k}'. Valid: {AXES} and aliases: {tuple(ALIASES.keys())} and {tuple(ALIASES_SPECIAL.keys())}")
@@ -2509,11 +2511,15 @@ def tally_data_indices(*, default_to_all=True, tally_metadata=None, **axes):
         seen[c] = k
         if v is Ellipsis:
             raise TypeError("Ellipsis (...) not supported; specify axes explicitly or use default_to_all.")
-        elif v is None or v == ":" or v == "all":
+        elif v is None:
             indices_items[AXIS_TO_POS[c]] = slice(None)
+        elif isinstance(v, str):
+            if v == ":" or v.lower() == "all":
+                indices_items[AXIS_TO_POS[c]] = slice(None)
+            else:
+                raise TypeError(f"Unsupported string selector {v!r} for axis '{c}'. Use ':', 'all', None, or a proper indexer.")
         else:
             indices_items[AXIS_TO_POS[c]] = v
-
     return tuple(indices_items)
 
 
