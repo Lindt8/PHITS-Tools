@@ -83,7 +83,7 @@ of the PHITS and DCHAIN codes and Python&mdash;greatly expediting further progra
 comparisons, and visualization&mdash;and provide some extra analysis tools. 
 The outputs of the PHITS code are, aside from the special binary "dump" files, plaintext files formatted 
 for processing by a custom visualization code (generating Encapsulated PostScript files) 
-shipped with and automatically ran by PHITS, and those of the DCHAIN 
+shipped with and automatically run by PHITS, and those of the DCHAIN
 code are formatted in a variety of tabular, human-readable structures.  
 
 Historically, programmatic extraction and organization of numerical results and 
@@ -91,9 +91,9 @@ metadata from both codes often required
 writing a bespoke processing script for most individual simulations, 
 possibly preceded by manual data extraction/isolation too. 
 PHITS Tools provides universal output parsers for the PHITS and DCHAIN codes, 
-capable of processing all of the relevant output files produced by each code and
-outputting the numerical results and metadata in a consistent, standardized output format, 
-also able to automatically make and save plots of tally results.
+capable of processing all of the relevant output files produced by each code,
+outputting the numerical results and metadata in a consistent, standardized output format, and
+also automatically making and saving plots of tally results.
 No similar comprehensive PHITS/DCHAIN output parsing utilities presently exist. 
 The MCPL: Monte Carlo Particle Lists [@MCPL_ref] package can parse 
 PHITS binary dump files if using one of two specific combinations of tally dump parameter settings, and 
@@ -136,14 +136,14 @@ preferring working with Pandas.
 +-------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | 9 / `ierr`        | `= 0/1/2`, Value / relative uncertainty / absolute uncertainty *                                                                                             |
 +===================+==============================================================================================================================================================+
-| *exceptional behavior with [T-Cross] tally when `enclos = 0` is set; see [full documentation](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file)         |
+| *exceptional behavior with [T-Cross] tally when `enclos = 0` is set; see [full documentation](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file)*        |
 +===================+==============================================================================================================================================================+
 
 PHITS Tools is also capable of parsing the "dump" output files (both binary and plaintext formats) 
 that are available for some tallies, and it can also automatically detect, parse, and process all PHITS 
 output files listed in a provided directory or PHITS input file&mdash;very convenient 
 for simulations employing multiple tallies, each with its own output file, 
-whose output are to be further studied, e.g., compared to experimental data or other simulations. 
+whose outputs are to be further studied, e.g., compared to experimental data or other simulations.
 PHITS Tools can be used by:
 
 1. importing it as a Python package in a script and calling its functions, 
