@@ -18,7 +18,7 @@ these should work and be accessed as shown without any additional configuration 
     - [**`PHITS_tools.dchain_tools` submodule documentation**](https://lindt8.github.io/DCHAIN-Tools/)
     - Can be accessed with: `from PHITS_tools import dchain_tools` 
 - [Monte Carlo materials management submodule: `manage_mc_materials.py`](https://github.com/Lindt8/PHITS-Tools/blob/main/MC_materials)
-    - [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html)
+    - [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/manage_mc_materials.html)
     - Can be accessed with: `from PHITS_tools import manage_mc_materials` 
 
 The functions contained in this main `PHITS_tools` module and brief descriptions of their functions are included below.
@@ -74,7 +74,7 @@ functions return the data objects they produce for your own further analyses.
 - `tally`                           : tally/histogram values (and their indices) falling within a desired binning structure (useful with "dump" files)
 - `rebinner`                        : rebin a set of y-data to a new x-binning structure (edges need not necessarily be preserved)
 - `autoplot_tally_results`          : make plot(s), saved as PDFs, of tally results from tally output Pandas DataFrame(s)
-- `fetch_MC_material`               : returns a string of a formatted material for PHITS or MCNP (mostly those in [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125)); see [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html) for details on managing the materials database
+- `fetch_MC_material`               : returns a string of a formatted material for PHITS or MCNP (mostly those in [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125)); see [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/manage_mc_materials.html) for details on managing the materials database
 - `ICRP116_effective_dose_coeff`    : returns effective dose conversion coefficient of a mono-energetic particle of some species and some geometry; does coefficients are those in [ICRP 116](https://doi.org/10.1016/j.icrp.2011.10.001)
 - `merge_dump_file_pickles`         : merge multiple dump file outputs into a single file (useful for dumps in MPI runs)
 - `is_number`                       : returns Boolean denoting whether provided string is that of a number
@@ -3654,7 +3654,7 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
         Returns a materials definition string formatted for use in PHITS or MCNP (including a density estimate);
         most available materials are those found in [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125).
         Note that you can modify this materials database and create additional databases that can interface 
-        with this function via the `PHITS_tools.manage_mc_materials` submodule; see the [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html) 
+        with this function via the `PHITS_tools.manage_mc_materials` submodule; see the [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/manage_mc_materials.html)
         for more detailed information and instructions on managing the materials database.
 
     Dependencies:
@@ -3679,7 +3679,7 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
        - `prefer_user_data_folder` = (D=`True`) Boolean denoting whether this function should prioritize the local 
                 MC materials databases in your local [`"$HOME`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home)`/.PHITS-Tools/"` 
                 directory over those in the PHITS Tools distribution, if the local user directory exists. For information 
-                on creation and modification of this local MC materials directory, see the [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html).
+                on creation and modification of this local MC materials directory, see the [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/manage_mc_materials.html).
                 If `False` (or if `True` but no local user MC_materials directory exists), the MC_materials directory 
                 distributed with PHITS Tools will be used instead, searching for the location first using 
                 [`pkgutil.get_loader`](https://docs.python.org/3/library/pkgutil.html#pkgutil.get_loader)`("PHITS_tools").get_filename()`

@@ -196,7 +196,7 @@ these should work and be accessed as shown without any additional configuration 
     - Can be accessed with: `from PHITS_tools import dchain_tools` 
     - This submodule provides more customized processing of DCHAIN outputs.
 - [Monte Carlo materials management submodule: `manage_mc_materials.py`](https://github.com/Lindt8/PHITS-Tools/blob/main/MC_materials)
-    - [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html)
+    - [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/manage_mc_materials.html)
     - Can be accessed with: `from PHITS_tools import manage_mc_materials`
     - This submodule provides tools for building/customizing your own databases of materials used in Monte Carlo simulations.
 
