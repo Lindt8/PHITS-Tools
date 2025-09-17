@@ -55,15 +55,16 @@ to create a shortcut to this executable and place the shortcut somewhere easily 
 The executable will be located in your Python installation's "Scripts" folder; you can find it easily with `where PHITS-Tools-GUI` (Windows), 
 `which PHITS-Tools-GUI` (macOS/Linux), or `python -c "import sysconfig; print(sysconfig.get_paths()['scripts'])"` (all platforms).
 
-The CLI and GUI options result in the parsed file's contents being saved to a pickle file, which can be reopened
-and used later in a Python script.  When using the main functions below within a Python script which has imported the PHITS_tools
+The CLI and GUI options result in the parsed file's contents being saved to a [pickle](https://docs.python.org/3/library/pickle.html) 
+file, which can be reopened and used later in a Python script. 
+When using the main functions below within a Python script which has imported the PHITS_tools
 module, you can optionally choose not to save the pickle files (if desired) and only have the tally output/dump parsing
 functions return the data objects they produce for your own further analyses.
 
 ### **Main PHITS Output Parsing Functions**
 
 - `parse_tally_output_file`         : general parser for standard output files for all PHITS tallies
-- `parse_tally_dump_file`           : parser for dump files from "dump" flag in PHITS [T-Cross], [T-Time], and [T-Track] tallies
+- `parse_tally_dump_file`           : parser for dump files from "dump" flag in PHITS [T-Cross], [T-Time], [T-Track], etc. tallies
 - `parse_all_tally_output_in_dir`   : run `parse_tally_output_file()` over all standard output files in a directory (and, optionally, `parse_tally_dump_file()` over all dump files too)
 - `parse_phitsout_file`             : creates a metadata dictionary of a PHITS run from its "phits.out" file
 
@@ -168,7 +169,7 @@ On Windows, using "phits/bin/phits.bat":
 - After the if statement (right before the `rem - Your file processing ends here` line), insert a new line with the following command:
 - `python "C:\path\locating\PHITS_Tools\PHITS_tools.py" "%%~nxF" -po -m -d -ddir -ddeg -lzma -p -pa`
 - Or, if PHITS Tools was installed with `pip`, `python "C:\path\locating\PHITS_Tools\PHITS_tools.py"` can be replaced with `phits-tools` as:
-    - `phits-tools "%%~nxF" -po -m -d -ddir -ddeg -lzma -p -pa`
+    - **`phits-tools "%%~nxF" -po -m -d -ddir -ddeg -lzma -p -pa`**
 
 On Linux/Mac, using "phits/bin/phits.sh":
 
@@ -176,7 +177,7 @@ On Linux/Mac, using "phits/bin/phits.sh":
 - On the line after the end of the if statement `fi`, add the following command:
 - `python "/path/locating/PHITS_Tools/PHITS_tools.py" $1 -po -m -d -ddir -ddeg -lzma -p -pa`
 - Or, if PHITS Tools was installed with `pip`, `python "/path/locating/PHITS_Tools/PHITS_tools.py"` can be replaced with `phits-tools` as:
-    - `phits-tools $1 -po -m -d -ddir -ddeg -lzma -p -pa`
+    - **`phits-tools $1 -po -m -d -ddir -ddeg -lzma -p -pa`**
 
 
 (Of course, if necessary, replace "`python`" with however you typically call python in your environment, e.g. `py`, `python3`, etc.)
@@ -228,12 +229,14 @@ On Windows, using "phits/dchain-sp/bin/dchain.bat":
 - Scroll down toward the bottom of the script, to the section with the line `rem - Your file processing ends here.`
 - Right above that line (before the `goto :continue`), insert a new line with the following command:
 - `python "C:\path\locating\PHITS_Tools\PHITS_tools.py" "%%~nxF" -po -lzma`
+- (or, if installed with `pip`) `phits-tools "%%~nxF" -po -lzma`
 
 On Linux/Mac, using "phits/dchain-sp/bin/dchain.sh":
 
 - Scroll down toward the bottom of the script, right before the line with `echo ' end of dchain '`
 - On the line after the end of the if statement `fi`, add the following command:
 - `python "/path/locating/PHITS_Tools/PHITS_tools.py" ${jnam} -po -lzma`
+- (or, if installed with `pip`) `phits-tools ${jnam} -po -lzma`
 
 This will create a ".pickle.xz" file of the processed DCHAIN outputs, as a dictionary object, with contents as 
 described in the documentation for `parse_tally_output_file()` under the "[T-Dchain] special case" section, 
@@ -266,7 +269,7 @@ import functools
 import inspect
 import warnings
 
-__version__ = '1.6.0b5'
+__version__ = '1.6.0'
 
 # default program settings
 launch_GUI = False
@@ -451,14 +454,15 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        in the third region for all scored particles / particle groups with the values and uncertainties.
        
        The `tally_data_indices()` function is also available to help with array access since it can be a bit cumbersome.
-       With this function, you could instead simply use `tally_data[tally_data_indices(ir=2)]`, presuming a 
-       `reg` geometry mesh and no time or angle meshes and not a tally with special axes. 
+       With this function, you could simply use `tally_data[tally_data_indices(ir=2)]` for the earlier example, 
+       instead of `tally_data[2,0,0,:,0,0,0,:,0,:]`,
+       presuming the tally had a `reg` geometry mesh and no time or angle meshes and wasn't a tally with special axes. 
        To be completely explicit in matching the nominal syntax, one could instead use to the same end: 
         
        `tally_data[tally_data_indices(default_to_all=False, ir=2, ie="all", ip="all", ierr="all")]` 
        
-       Also note that `tally_data_indices()` allows specification of regions and particles by value/name rather than
-       indices alone, which can be quite handy.
+       Also note that `tally_data_indices()` allows specification of regions and particles by value/name 
+       (e.g., `reg=1001` or `part=["neutron", "proton"]`) rather than indices alone, which can be quite handy.
        
        -----
        
@@ -2364,6 +2368,9 @@ def tally_data_indices(*, default_to_all=True, tally_metadata=None, **axes):
             `parse_tally_output_file()` together with the `tally_data` NumPy array you wish to retrieve data from.
             Providing this is required if using one of the exceptional&dagger; `**axes` keywords.
 
+    Outputs:
+        - `tally_indexing_tuple` = length-10 tuple to be used for indexing `tally_data`
+        
     Examples:
         Presume you have a PHITS tally output file you have processed as follows:
         ```
@@ -2398,10 +2405,6 @@ def tally_data_indices(*, default_to_all=True, tally_metadata=None, **axes):
         keywords, this is even more straightforward with just:
          
         `tally_data[tally_data_indices(reg=16, part='neutron')]`
-        
-
-    Outputs:
-        - `tally_indexing_tuple` = length-10 tuple to be used for indexing `tally_data`
         
     '''
     
