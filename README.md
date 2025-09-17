@@ -121,7 +121,7 @@ On Windows, using "phits/bin/phits.bat":
 - After the if statement (right before the `rem - Your file processing ends here` line), insert a new line with the following command:
 - `python "C:\path\locating\PHITS_Tools\PHITS_tools.py" "%%~nxF" -po -m -d -ddir -ddeg -lzma -p -pa`
 - Or, if PHITS Tools was installed with `pip`, `python "C:\path\locating\PHITS_Tools\PHITS_tools.py"` can be replaced with `phits-tools` as:
-    - `phits-tools "%%~nxF" -po -m -d -ddir -ddeg -lzma -p -pa`
+    - **`phits-tools "%%~nxF" -po -m -d -ddir -ddeg -lzma -p -pa`**
 
 On Linux/Mac, using "phits/bin/phits.sh":
 
@@ -129,7 +129,7 @@ On Linux/Mac, using "phits/bin/phits.sh":
 - On the line after the end of the if statement `fi`, add the following command:
 - `python "/path/locating/PHITS_Tools/PHITS_tools.py" $1 -po -m -d -ddir -ddeg -lzma -p -pa`
 - Or, if PHITS Tools was installed with `pip`, `python "/path/locating/PHITS_Tools/PHITS_tools.py"` can be replaced with `phits-tools` as:
-    - `phits-tools $1 -po -m -d -ddir -ddeg -lzma -p -pa`
+    - **`phits-tools $1 -po -m -d -ddir -ddeg -lzma -p -pa`**
 
 
 (Of course, if necessary, replace "`python`" with however you typically call python in your environment, e.g. `py`, `python3`, etc.)
@@ -174,12 +174,14 @@ On Windows, using "phits/dchain-sp/bin/dchain.bat":
 - Scroll down toward the bottom of the script, to the section with the line `rem - Your file processing ends here.`
 - Right above that line (before the `goto :continue`), insert a new line with the following command:
 - `python "C:\path\locating\PHITS_Tools\PHITS_tools.py" "%%~nxF" -po -lzma`
+  - (or, if installed with `pip`) `phits-tools "%%~nxF" -po -lzma`
 
 On Linux/Mac, using "phits/dchain-sp/bin/dchain.sh":
 
 - Scroll down toward the bottom of the script, right before the line with `echo ' end of dchain '`
 - On the line after the end of the if statement `fi`, add the following command:
 - `python "/path/locating/PHITS_Tools/PHITS_tools.py" ${jnam} -po -lzma`
+  - (or, if installed with `pip`) `phits-tools ${jnam} -po -lzma`
 
 This will create a ".pickle.xz" file (with the same basename as the DCHAIN input file) of the processed DCHAIN outputs, as a dictionary object, with contents as described in the documentation for [**`parse_tally_output_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file) under the "[T-Dchain] special case" section, also including an entry with a dictionary of information on the corresponding PHITS run via its "phits.out" file (if found).
 
