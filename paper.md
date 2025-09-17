@@ -61,7 +61,7 @@ quantities being tallied, which should be converged to the "true/real" distribut
 provided a statistically sufficient number of histories were simulated (often on the order of millions or more).
 For a few tallies, PHITS provides the option to output "dump" files where, in addition to the histograms, 
 detailed raw history-by-history event data are recorded to a text or binary file for every history 
-satisfying the tally's criteria and being scored by it, allowing users to, in post, create 
+satisfying the tally's criteria and being scored by it, allowing users to, in post-processing, create
 even more complex tallies and analyses than possible with the stock tallies in PHITS.
 
 The DCHAIN code coupled to PHITS specializes in calculating nuclide inventories and derived quantities 
@@ -70,7 +70,7 @@ any arbitrary irradiation schedule from any radiation source.
 
 The package presented here automates the time-consuming task of extracting the 
 numerical results and metadata from PHITS/DCHAIN simulations and organizes them into 
-a standardized format, easing and expediting further practical real-world analyses. 
+a standard format, easing and expediting further practical real-world analyses.
 It also provides functions for some of the most common analyses one 
 may wish to perform on simulation outputs.
 
@@ -92,7 +92,7 @@ writing a bespoke processing script for most individual simulations,
 possibly preceded by manual data extraction/isolation too. 
 PHITS Tools provides universal output parsers for the PHITS and DCHAIN codes, 
 capable of processing all of the relevant output files produced by each code,
-outputting the numerical results and metadata in a consistent, standardized output format, and
+outputting the numerical results and metadata in a consistent, standard output format, and
 also automatically making and saving plots of tally results.
 No similar comprehensive PHITS/DCHAIN output parsing utilities presently exist. 
 The MCPL: Monte Carlo Particle Lists [@MCPL_ref] package can parse 
