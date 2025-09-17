@@ -7,7 +7,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14262720.svg)](https://doi.org/10.5281/zenodo.14262720)
 [![PHITS forumn discussion on PHITS Tools](https://img.shields.io/badge/PHITS%20forum%20discussion%20-%20%2333a2d9)](https://meteor.nucl.kyushu-u.ac.jp/phitsforum/t/topic/3651/)
 
-[Purpose](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#purpose) | [Installation](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#installation) | [Usage](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#primary-usageinterfaces) | [CLI options](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#cli-options) | [Automatic processing](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#automatic-processing-at-phits-runtime) | [Testing/Issues/Contribution](https://github.com/Lindt8/PHITS-Tools?tab=readme-ov-file#testing-reporting-issues-and-contributing) 
+[Purpose](#purpose) | [Installation](#installation) | [Usage](#primary-usageinterfaces) | [CLI options](#cli-options) | [Automatic processing](#automatic-processing-at-phits-runtime) | [Submodules](#submodules) | [Testing/Issues/Contribution](#testing-reporting-issues-and-contributing) 
 
 ## Purpose
 
@@ -25,13 +25,15 @@ Install PHITS Tools:
 Import PHITS Tools like any other Python module:
 `import PHITS_tools` / `from PHITS_tools import *`
 
-*Note:* To use the CLI/GUI, you must execute the `PHITS_tools.py` module file with `python`.  To find the installed location of the module file, execute: `pip show PHITS-Tools -f`
+*Note:* To use the CLI/GUI, you must either use one of the commands `PHITS-Tools`/`PHITS_tools`/`phits-tools`/`PHITS-Tools-GUI` (more details further below) or execute the `PHITS_tools.py` module file with `python`.  To find the installed location of the module file, execute: `pip show PHITS-Tools -f`
 
 ### Manually 
 
-One may use the functions by first placing the PHITS_tools.py Python script into a folder in their PYTHONPATH system variable or in the active directory and then just importing them normally (`import PHITS_tools` / `from PHITS_tools import *`) or by executing the script `python PHITS_tools.py` with the PHITS output file to be parsed as the required argument (see `python PHITS_tools.py --help` for all CLI options) / without a file argument to be guided through with a GUI.
+One may use the functions by first placing the `PHITS_tools.py` Python script into a folder in their `PYTHONPATH` system variable or in the active directory and then just importing them normally (`import PHITS_tools` / `from PHITS_tools import *`) or by executing the script `python PHITS_tools.py` with the PHITS output file to be parsed as the required argument (see `python PHITS_tools.py --help` for all CLI options) / without a file argument to be guided through with a GUI.
 
 The short list of required package/library dependencies for PHITS Tools (and DCHAIN Tools) can be found in `requirements.txt` and installed by executing `pip install -r requirements.txt`.
+
+To also be able to use the included [submodules](#submodules), download the latest source distribution (`.zip`/`.tar.gz`) from [PyPI](https://pypi.org/project/PHITS-Tools/#files) (_includes only the minimum required source files_) or [the latest release](https://github.com/Lindt8/PHITS-Tools/releases/latest) (_includes source plus example, tests, and docs_), extract the contents, relocate the extracted directory of the package contents if desired, and make sure that directory is placed in your `PYTHONPATH` system variable (or active directory).
 
 ## Primary usage/interfaces
 There are three main ways one can use this Python module:
@@ -43,7 +45,18 @@ There are three main ways one can use this Python module:
 3. As a **graphical user interface (GUI)** 
     - When the module is executed without any additional arguments, `python PHITS_tools.py`, (or with the `-g` or `--GUI` flag in the CLI) a GUI will be launched to step you through selecting what "mode" you would like to run PHITS Tools in (`STANDARD`, `DUMP`, `DIRECTORY`, or `INPUT_FILE`), selecting a file to be parsed (or a directory containing multiple files to be parsed), and the various options for each mode.
 
-Aside from the main PHITS output parsing function [**`parse_tally_output_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file) for general tally output, the [**`parse_tally_dump_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_dump_file) function for parsing tally dump file outputs, and the [**`parse_all_tally_output_in_dir()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_all_tally_output_in_dir) function for parsing all standard (and, optionally, dump) tally outputs in a directory or listed in a PHITS input/phits.out file, PHITS_tools.py also contains a number of other functions that may be of use for further analyses, such as tallying contents of dump files, rebinning historgrammed results, applying [ICRP 116 effective dose conversion coefficients](https://doi.org/10.1016/j.icrp.2011.10.001) to scored particle fluences, and retrieving PHITS-formatted [Material] section entries from a large database of materials (primarily from [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125)), among others.  It also is capable of automatically creating plots of tally results, as showcased in [test/test_tally_plots.pdf](https://github.com/Lindt8/PHITS-Tools/blob/main/test/test_tally_plots.pdf) ([view whole PDF here](https://github.com/Lindt8/PHITS-Tools/blob/main/test/test_tally_plots.pdf?raw=true)) and in the couple of example plots below.
+Furthermore, if you have installed PHITS Tools via `pip install PHITS-Tools`, you will have access to the following 
+commands that can be used in place of `python PHITS_tools.py` for CLI usage in the terminal: 
+
+- `PHITS-Tools`, `PHITS_tools`, and `phits-tools`
+
+Additionally, an executable called `PHITS-Tools-GUI` is also created which can be ran (either in terminal or via 
+double-clicking it like any other executable file) to launch the GUI.  If you prefer using the GUI, it may be convenient 
+to create a shortcut to this executable and place the shortcut somewhere easily accessible like your Desktop. 
+The executable will be located in your Python installation's "Scripts" folder; you can find it easily with `where PHITS-Tools-GUI` (Windows), 
+`which PHITS-Tools-GUI` (macOS/Linux), or `python -c "import sysconfig; print(sysconfig.get_paths()['scripts'])"` (all platforms).
+
+Aside from the main PHITS output parsing function [**`parse_tally_output_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file) for general tally output, the [**`parse_tally_dump_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_dump_file) function for parsing tally dump file outputs, and the [**`parse_all_tally_output_in_dir()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_all_tally_output_in_dir) function for parsing all standard (and, optionally, dump) tally outputs in a directory or listed in a PHITS input/phits.out file, `PHITS_tools.py` also contains a number of other functions that may be of use for further analyses, such as tallying contents of dump files, rebinning historgrammed results, applying [ICRP 116 effective dose conversion coefficients](https://doi.org/10.1016/j.icrp.2011.10.001) to scored particle fluences, and retrieving/modifying/adding PHITS-formatted [Material] section entries from a large [database of materials](https://github.com/Lindt8/PHITS-Tools/blob/main/MC_materials) (primarily from [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125)), among others.  It also is capable of automatically creating plots of tally results, as showcased in [test/test_tally_plots.pdf](https://github.com/Lindt8/PHITS-Tools/blob/main/test/test_tally_plots.pdf) ([view whole PDF here](https://github.com/Lindt8/PHITS-Tools/blob/main/test/test_tally_plots.pdf?raw=true)) and in the couple of example plots below.
 
 | ![](https://raw.githubusercontent.com/Lindt8/PHITS-Tools/refs/heads/main/example/product.png)  |  ![](https://raw.githubusercontent.com/Lindt8/PHITS-Tools/refs/heads/main/docs/yield_p-on-ThO2_axis-chart.png) |
 |---|---|
@@ -107,12 +120,17 @@ On Windows, using "phits/bin/phits.bat":
 - Scroll down toward the bottom of the script, to the section with the line `rem - Your file processing starts here.`
 - After the if statement (right before the `rem - Your file processing ends here` line), insert a new line with the following command:
 - `python "C:\path\locating\PHITS_Tools\PHITS_tools.py" "%%~nxF" -po -m -d -ddir -ddeg -lzma -p -pa`
+- Or, if PHITS Tools was installed with `pip`, `python "C:\path\locating\PHITS_Tools\PHITS_tools.py"` can be replaced with `phits-tools` as:
+    - **`phits-tools "%%~nxF" -po -m -d -ddir -ddeg -lzma -p -pa`**
 
 On Linux/Mac, using "phits/bin/phits.sh":
 
 - Scroll down toward the bottom of the script, to the section titled `# Run PHITS`
 - On the line after the end of the if statement `fi`, add the following command:
 - `python "/path/locating/PHITS_Tools/PHITS_tools.py" $1 -po -m -d -ddir -ddeg -lzma -p -pa`
+- Or, if PHITS Tools was installed with `pip`, `python "/path/locating/PHITS_Tools/PHITS_tools.py"` can be replaced with `phits-tools` as:
+    - **`phits-tools $1 -po -m -d -ddir -ddeg -lzma -p -pa`**
+
 
 (Of course, if necessary, replace "`python`" with however you typically call python in your environment, e.g. `py`, `python3`, etc.)
 
@@ -156,28 +174,57 @@ On Windows, using "phits/dchain-sp/bin/dchain.bat":
 - Scroll down toward the bottom of the script, to the section with the line `rem - Your file processing ends here.`
 - Right above that line (before the `goto :continue`), insert a new line with the following command:
 - `python "C:\path\locating\PHITS_Tools\PHITS_tools.py" "%%~nxF" -po -lzma`
+  - (or, if installed with `pip`) `phits-tools "%%~nxF" -po -lzma`
 
 On Linux/Mac, using "phits/dchain-sp/bin/dchain.sh":
 
 - Scroll down toward the bottom of the script, right before the line with `echo ' end of dchain '`
 - On the line after the end of the if statement `fi`, add the following command:
 - `python "/path/locating/PHITS_Tools/PHITS_tools.py" ${jnam} -po -lzma`
+  - (or, if installed with `pip`) `phits-tools ${jnam} -po -lzma`
 
 This will create a ".pickle.xz" file (with the same basename as the DCHAIN input file) of the processed DCHAIN outputs, as a dictionary object, with contents as described in the documentation for [**`parse_tally_output_file()`**](https://lindt8.github.io/PHITS-Tools/#PHITS_tools.parse_tally_output_file) under the "[T-Dchain] special case" section, also including an entry with a dictionary of information on the corresponding PHITS run via its "phits.out" file (if found).
+
+## Submodules 
+
+The PHITS Tools package consists of one main module (`PHITS_tools.py`) and two submodules, 
+listed below with their separate documentation linked. If you have installed the package via `pip install PHITS-Tools`, 
+these should work and be accessed as shown without any additional configuration required.
+
+- [DCHAIN Tools submodule: `dchain_tools.py`](https://github.com/Lindt8/DCHAIN-Tools)
+    - [**`PHITS_tools.dchain_tools` submodule documentation**](https://lindt8.github.io/DCHAIN-Tools/)
+    - Can be accessed with: `from PHITS_tools import dchain_tools` 
+    - This submodule provides more customized processing of DCHAIN outputs.
+- [Monte Carlo materials management submodule: `manage_mc_materials.py`](https://github.com/Lindt8/PHITS-Tools/blob/main/MC_materials)
+    - [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html)
+    - Can be accessed with: `from PHITS_tools import manage_mc_materials`
+    - This submodule provides tools for building/customizing your own databases of materials used in Monte Carlo simulations.
+
+
 
 
 ## Testing, reporting issues, and contributing
 
+[![CI Tests](https://github.com/Lindt8/PHITS-Tools/actions/workflows/ci-tests.yml/badge.svg)](https://github.com/Lindt8/PHITS-Tools/actions/workflows/ci-tests.yml "CI Tests")
+ ° [![](https://img.shields.io/badge/Unit%20tests%20only-gray) ![Unit Tests](https://codecov.io/gh/Lindt8/PHITS-Tools/branch/feature/improve-testing/graph/badge.svg?flag=ci-unittests&label=Unit%20Tests)](https://app.codecov.io/github/lindt8/phits-tools?flags%5B0%5D=ci-unittests "Codecov unit tests only") 
+ ° [![](https://img.shields.io/badge/Full%20test%20suite-gray) ![Full Suite](https://codecov.io/gh/Lindt8/PHITS-Tools/branch/feature/improve-testing/graph/badge.svg?flag=full-suite&label=Full%20Suite)](https://app.codecov.io/github/lindt8/phits-tools?flags%5B0%5D=full-suite "Codecov full test suite")
+<!--
+ ° [![](https://img.shields.io/badge/Unit%20tests%20only-gray) ![Unit Tests](https://codecov.io/gh/Lindt8/PHITS-Tools/graph/badge.svg?flag=ci-unittests&label=Unit%20Tests)](https://app.codecov.io/github/lindt8/phits-tools?flags%5B0%5D=ci-unittests "Codecov unit tests only")
+ ° [![](https://img.shields.io/badge/Full%20test%20suite-gray) ![Full Suite](https://codecov.io/gh/Lindt8/PHITS-Tools/graph/badge.svg?flag=full-suite&label=Full%20Suite)](https://app.codecov.io/github/lindt8/phits-tools?flags%5B0%5D=full-suite "Codecov full test suite")
+/-->
+
 I have extensively tested this module with a rather large number of PHITS output files with all sorts of different geometry settings, combinations of meshes, output options, and other settings to try to capture as a wide array of output files as I could (including the ~300 output files within the `phits/sample/` and `phits/recommendation/` directories included in the distributed PHITS release, which can be tested in an automated way with `test/test_PHITS_tools.py` in this repository, along with a large number of supplemental variations to really test every option I could think of), but there still may be some usage/combinations of different settings I had not considered that may cause PHITS Tools to crash when attempting to parse a particular output file.  If you come across such an edge case&mdash;a standard PHITS tally output file that causes PHITS Tools to crash when attempting to parse it&mdash;please submit it as an issue and include the output file in question and I'll do my best to update the code to work with it!  Over time, hopefully all the possible edge cases can get stamped out this way. :)
 
 Likewise, if you have any questions or ideas for improvements / feature suggestions, feel free to submit them as an issue.  If you would like to contribute a new function or changes to any existing functions, feel free to fork this repository, make a new branch with your additions/changes, and make a pull request.  (GitHub has a [nice short guide](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project) on this process.)
+
+For more information on contributing and running tests yourself, please check out [CONTRIBUTING.md](CONTRIBUTING.md), [`tests/`](tests/) for unit tests, and [`test/`](test/) for integration/functional tests.
 
 
 -----
 
 If using [T-Dchain] in PHITS and/or the DCHAIN-PHITS code, the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools/) repository contains a separate Python module for parsing and processing that related code output.  While PHITS Tools will import and use DCHAIN Tools if provided with DCHAIN-related files, direct usage of DCHAIN Tools may be desired if you want greater control of the various output parsing options within it or want to make use of some of its useful standalone functions. All of these functions are documented online at [lindt8.github.io/DCHAIN-Tools/](https://lindt8.github.io/DCHAIN-Tools/). 
 
-DCHAIN Tools is distributed as a submodule of PHITS Tools.  If installing PHITS Tools via `pip install PHITS-Tools`, you can access DCHAIN Tools with `import PHITS_tools.dchain_tools as dchain_tools` / `from PHITS_tools.dchain_tools import *`.  If installing PHITS Tools manually, see `dchain_tools.py` in the `DCHAIN-Tools` directory/submodule link.
+DCHAIN Tools is distributed as a submodule of PHITS Tools.  If installing PHITS Tools via `pip install PHITS-Tools`, you can access DCHAIN Tools with `from PHITS_tools import dchain_tools` / `from PHITS_tools.dchain_tools import *`.  If installing PHITS Tools manually, see `dchain_tools.py` in the `DCHAIN-Tools` directory/submodule link.
 
 -----
 

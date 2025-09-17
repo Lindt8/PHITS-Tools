@@ -1,6 +1,6 @@
-'''
+r'''
 
-This module contains a variety of tools used for parsing PHITS output files.
+This module contains a variety of tools used for parsing PHITS output files and processing their contents.
 
 Specifically, it seeks to be a (nearly) universal PHITS output parser, supporting output from
 all tallies, both normal "standard" output as well as dump file outputs (in ASCII and binary formats).
@@ -10,7 +10,18 @@ If a DCHAIN input file (output from the [T-Dchain] tally) or DCHAIN output `*.ac
 to the main tally output processing function, an attempt will be made to import the [DCHAIN Tools module](https://github.com/Lindt8/DCHAIN-Tools)
 and process the found DCHAIN output files too.
 
-The functions contained in this module and brief descriptions of their functions are included below.
+On this note, the PHITS Tools package consists of one main module (this one, `PHITS_tools.py`) and two submodules, 
+listed below with their separate documentation linked. If you have installed the package via `pip install PHITS-Tools`, 
+these should work and be accessed as shown without any additional configuration required.
+
+- [DCHAIN Tools submodule: `dchain_tools.py`](https://github.com/Lindt8/DCHAIN-Tools)
+    - [**`PHITS_tools.dchain_tools` submodule documentation**](https://lindt8.github.io/DCHAIN-Tools/)
+    - Can be accessed with: `from PHITS_tools import dchain_tools` 
+- [Monte Carlo materials management submodule: `manage_mc_materials.py`](https://github.com/Lindt8/PHITS-Tools/blob/main/MC_materials)
+    - [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html)
+    - Can be accessed with: `from PHITS_tools import manage_mc_materials` 
+
+The functions contained in this main `PHITS_tools` module and brief descriptions of their functions are included below.
 However, provided first is a description of the three different ways one can use and interface with this module.
 
 ### **How to use the PHITS_tools.py module**
@@ -33,33 +44,53 @@ There are three main ways one can use this Python module:
           a GUI will be launched to step you through selecting what "mode" you would like to run PHITS Tools in (`STANDARD`, `DUMP`, `DIRECTORY`, or `INPUT_FILE`),
           selecting a file to be parsed (or a directory containing multiple files to be parsed), and the various options for each mode.
 
-The CLI and GUI options result in the parsed file's contents being saved to a pickle file, which can be reopened
-and used later in a Python script.  When using the main functions below within a Python script which has imported the PHITS_tools
+Furthermore, if you have installed PHITS Tools via `pip install PHITS-Tools`, you will have access to the following 
+commands that can be used in place of `python PHITS_tools.py` in the terminal: 
+
+- `PHITS-Tools`, `PHITS_tools`, and `phits-tools`
+
+Additionally, an executable called `PHITS-Tools-GUI` is also created which can be ran (either in terminal or via 
+double-clicking it like any other executable file) to launch the GUI.  If you prefer using the GUI, it may be convenient 
+to create a shortcut to this executable and place the shortcut somewhere easily accessible like your Desktop. 
+The executable will be located in your Python installation's "Scripts" folder; you can find it easily with `where PHITS-Tools-GUI` (Windows), 
+`which PHITS-Tools-GUI` (macOS/Linux), or `python -c "import sysconfig; print(sysconfig.get_paths()['scripts'])"` (all platforms).
+
+The CLI and GUI options result in the parsed file's contents being saved to a [pickle](https://docs.python.org/3/library/pickle.html) 
+file, which can be reopened and used later in a Python script. 
+When using the main functions below within a Python script which has imported the PHITS_tools
 module, you can optionally choose not to save the pickle files (if desired) and only have the tally output/dump parsing
 functions return the data objects they produce for your own further analyses.
 
 ### **Main PHITS Output Parsing Functions**
 
 - `parse_tally_output_file`         : general parser for standard output files for all PHITS tallies
-- `parse_tally_dump_file`           : parser for dump files from "dump" flag in PHITS [T-Cross], [T-Time], and [T-Track] tallies
+- `parse_tally_dump_file`           : parser for dump files from "dump" flag in PHITS [T-Cross], [T-Time], [T-Track], etc. tallies
 - `parse_all_tally_output_in_dir`   : run `parse_tally_output_file()` over all standard output files in a directory (and, optionally, `parse_tally_dump_file()` over all dump files too)
 - `parse_phitsout_file`             : creates a metadata dictionary of a PHITS run from its "phits.out" file
 
 ### General Purpose Functions
 
+- `tally_data_indices`              : helper function for generating indexing tuple for use with the `tally_data` 10-D NumPy array
 - `tally`                           : tally/histogram values (and their indices) falling within a desired binning structure (useful with "dump" files)
 - `rebinner`                        : rebin a set of y-data to a new x-binning structure (edges need not necessarily be preserved)
 - `autoplot_tally_results`          : make plot(s), saved as PDFs, of tally results from tally output Pandas DataFrame(s)
-- `fetch_MC_material`               : returns a string of a formatted material for PHITS or MCNP (mostly those in [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125))
+- `fetch_MC_material`               : returns a string of a formatted material for PHITS or MCNP (mostly those in [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125)); see [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html) for details on managing the materials database
 - `ICRP116_effective_dose_coeff`    : returns effective dose conversion coefficient of a mono-energetic particle of some species and some geometry; does coefficients are those in [ICRP 116](https://doi.org/10.1016/j.icrp.2011.10.001)
 - `merge_dump_file_pickles`         : merge multiple dump file outputs into a single file (useful for dumps in MPI runs)
-- `ZZZAAAM_to_nuclide_plain_str`    : returns a nuclide plaintext string for a given "ZZZAAAM" number (1000Z+10A+M)
-- `nuclide_plain_str_to_latex_str`  : convert a plaintext string for a nuclide to a LaTeX formatted raw string
-- `Element_Z_to_Sym`                : return an elemental symbol string given its proton number Z
-- `Element_Sym_to_Z`                : returns an atomic number Z provided the elemental symbol
-- `kfcode_to_common_name`           : converts a particle kf-code to a plaintext string
 - `is_number`                       : returns Boolean denoting whether provided string is that of a number
 - `find`                            : return index of the first instance of a value in a list
+
+### Nuclide/Particle Information Functions
+
+- `ZZZAAAM_to_nuclide_plain_str`    : returns a nuclide plaintext string for a given "ZZZAAAM" number (1000Z+10A+M)
+- `nuclide_plain_str_to_ZZZAAAM`    : returns a "ZZZAAAM" number (1000Z+10A+M) for a given nuclide plaintext string 
+- `nuclide_plain_str_to_latex_str`  : convert a plaintext string for a nuclide to a LaTeX formatted raw string
+- `nuclide_Z_and_A_to_latex_str`    : form a LaTeX-formatted string of a nuclide provided its Z/A/m information
+- `element_Z_to_symbol`             : return an elemental symbol string given its proton number Z
+- `element_symbol_to_Z`             : returns an atomic number Z provided the elemental symbol
+- `element_Z_or_symbol_to_name`     : returns a string of the name of an element provided its atomic number Z or symbol
+- `element_Z_or_symbol_to_mass`     : returns an element's average atomic mass provided its atomic number Z or symbol
+- `kfcode_to_common_name`           : converts a particle kf-code to a plaintext string
 
 ### Subfunctions for PHITS output parsing
 (These are meant as dependencies more so than for standalone usage.)
@@ -137,12 +168,17 @@ On Windows, using "phits/bin/phits.bat":
 - Scroll down toward the bottom of the script, to the section with the line `rem - Your file processing starts here.`
 - After the if statement (right before the `rem - Your file processing ends here` line), insert a new line with the following command:
 - `python "C:\path\locating\PHITS_Tools\PHITS_tools.py" "%%~nxF" -po -m -d -ddir -ddeg -lzma -p -pa`
+- Or, if PHITS Tools was installed with `pip`, `python "C:\path\locating\PHITS_Tools\PHITS_tools.py"` can be replaced with `phits-tools` as:
+    - **`phits-tools "%%~nxF" -po -m -d -ddir -ddeg -lzma -p -pa`**
 
 On Linux/Mac, using "phits/bin/phits.sh":
 
 - Scroll down toward the bottom of the script, to the section titled `# Run PHITS`
 - On the line after the end of the if statement `fi`, add the following command:
 - `python "/path/locating/PHITS_Tools/PHITS_tools.py" $1 -po -m -d -ddir -ddeg -lzma -p -pa`
+- Or, if PHITS Tools was installed with `pip`, `python "/path/locating/PHITS_Tools/PHITS_tools.py"` can be replaced with `phits-tools` as:
+    - **`phits-tools $1 -po -m -d -ddir -ddeg -lzma -p -pa`**
+
 
 (Of course, if necessary, replace "`python`" with however you typically call python in your environment, e.g. `py`, `python3`, etc.)
 
@@ -193,12 +229,14 @@ On Windows, using "phits/dchain-sp/bin/dchain.bat":
 - Scroll down toward the bottom of the script, to the section with the line `rem - Your file processing ends here.`
 - Right above that line (before the `goto :continue`), insert a new line with the following command:
 - `python "C:\path\locating\PHITS_Tools\PHITS_tools.py" "%%~nxF" -po -lzma`
+- (or, if installed with `pip`) `phits-tools "%%~nxF" -po -lzma`
 
 On Linux/Mac, using "phits/dchain-sp/bin/dchain.sh":
 
 - Scroll down toward the bottom of the script, right before the line with `echo ' end of dchain '`
 - On the line after the end of the if statement `fi`, add the following command:
 - `python "/path/locating/PHITS_Tools/PHITS_tools.py" ${jnam} -po -lzma`
+- (or, if installed with `pip`) `phits-tools ${jnam} -po -lzma`
 
 This will create a ".pickle.xz" file of the processed DCHAIN outputs, as a dictionary object, with contents as 
 described in the documentation for `parse_tally_output_file()` under the "[T-Dchain] special case" section, 
@@ -227,6 +265,11 @@ import sys
 import os
 import numpy as np
 from pathlib import Path
+import functools
+import inspect
+import warnings
+
+__version__ = '1.6.0'
 
 # default program settings
 launch_GUI = False
@@ -234,17 +277,22 @@ run_with_CLI_inputs = False
 in_debug_mode = False # True # toggles printing of debug messages throughout the code
 #in_debug_mode = True # toggles printing of debug messages throughout the code
 test_explicit_files_dirs = False # used for testing specific files at the bottom of this file
-#test_explicit_files_dirs = True
 
 
-if __name__ == "__main__":
-    #in_debug_mode = True
-
+if __name__ == "__main__":   # pragma: no cover
     if test_explicit_files_dirs:
         in_debug_mode = True
         pass
     elif len(sys.argv) == 1:
         launch_GUI = True
+        print(
+            "\nPHITS Tools command-line usage examples:\n"
+            "  phits-tools <phits-output-file>  Run with CLI inputs\n"
+            "  phits-tools -g                   Launch GUI explicitly\n"
+            "  phits-tools --help               Show CLI options\n\n"
+            "  Running PHITS_tools.py with no arguments defaults to \n"
+            "      launching the GUI (and prints this message).\n"
+        )
     else:
         if '-g' in sys.argv or '--GUI' in sys.argv:
             launch_GUI = True
@@ -254,7 +302,7 @@ if __name__ == "__main__":
             import argparse
 
 
-if in_debug_mode:
+if in_debug_mode:   # pragma: no cover
     import pprint
     import time
     # Timer start
@@ -262,14 +310,34 @@ if in_debug_mode:
 
 
 
-# use Path, get extension, check for existence of filename_err.extension
+def _deprecated_alias(new_func_name):
+    r'''@private
+    Decorator for backward-compatible aliasing of renamed functions.
+    '''
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            stack = inspect.stack()
+            try:
+                caller_module = inspect.getmodule(stack[1][0])
+                this_module = inspect.getmodule(stack[0][0])
+                if caller_module is not this_module:
+                    warnings.warn(
+                        f"'{func.__name__}' is deprecated. It retains its original functionality, but is now just a wrapper for '{new_func_name}'.",
+                        FutureWarning, stacklevel=2
+                    )
+            finally:
+                del stack
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
 def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calculate_absolute_errors = True,
                             save_output_pickle=True, include_phitsout_in_metadata=False, 
                             prefer_reading_existing_pickle=False, compress_pickle_with_lzma=False, 
                             autoplot_tally_output=False):
-    '''
+    r'''
     Description:
         Parse any PHITS tally output file, returning tally metadata and an array of its values (and optionally
         this data inside of a Pandas dataframe too).  Note the separate `parse_tally_dump_file` function for
@@ -384,6 +452,17 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        automatically when parsing the tally output file.  Thus, for very simple tallies, most of these indices will be
        set to 0 when accessing tally results, e.g. `tally_data[2,0,0,:,0,0,0,:,0,:]` to access the full energy spectrum
        in the third region for all scored particles / particle groups with the values and uncertainties.
+       
+       The `tally_data_indices()` function is also available to help with array access since it can be a bit cumbersome.
+       With this function, you could simply use `tally_data[tally_data_indices(ir=2)]` for the earlier example, 
+       instead of `tally_data[2,0,0,:,0,0,0,:,0,:]`,
+       presuming the tally had a `reg` geometry mesh and no time or angle meshes and wasn't a tally with special axes. 
+       To be completely explicit in matching the nominal syntax, one could instead use to the same end: 
+        
+       `tally_data[tally_data_indices(default_to_all=False, ir=2, ie="all", ip="all", ierr="all")]` 
+       
+       Also note that `tally_data_indices()` allows specification of regions and particles by value/name 
+       (e.g., `reg=1001` or `part=["neutron", "proton"]`) rather than indices alone, which can be quite handy.
        
        -----
        
@@ -591,7 +670,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        
        For more control over settings for processing DCHAIN output, you can manually use the separate suite of parsing
        functions included in the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools) module (and also available within 
-       PHITS Tools as `import PHITS_tools.dchain_tools as dchain_tools`).
+       PHITS Tools as `from PHITS_tools import dchain_tools` / `from PHITS_tools.dchain_tools import *`).
        
 
     '''
@@ -625,7 +704,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
                     from inspect import signature
                     max_num_values_to_plot = signature(autoplot_tally_results).parameters['max_num_values_to_plot'].default  # 1e7
                     tot_num_values = np.prod(np.shape(tally_output['tally_data'])[:-1])
-                    if tot_num_values > max_num_values_to_plot:
+                    if tot_num_values > max_num_values_to_plot:  # pragma: no cover
                         print('\tWARNING: Tally output for ', tally_output['tally_metadata']['file'], ' is VERY LARGE (', tot_num_values,
                               ' elements), deemed too large for automatic plotting (default max of', max_num_values_to_plot, 'elements).')
                     else:
@@ -653,7 +732,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
     else:
         is_val_file = True
 
-    if is_dmp_file:
+    if is_dmp_file:  # pragma: no cover
         print('\tERROR: The provided file is a "dump" output file. Use the function titled "parse_tally_dump_file" to process it instead.')
         return None
 
@@ -666,7 +745,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
             tally_output_filepath = potential_val_file
             is_val_file = True
             is_err_file = False
-        else:
+        else:  # pragma: no cover
             print('\t\t The corresponding file with tally values could not be found, so only these uncertainties will be parsed.')
 
     # Split content of output file into header and content
@@ -701,13 +780,13 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
         phitsout_dict = parse_phitsout_file(include_phitsout_in_metadata, save_phitsout_pickle=save_output_pickle, compress_pickle_with_lzma=compress_pickle_with_lzma)
     
     def handle_dtrk_dyld_file(dtrk_dyld_filepath, tdchain_metadata={}):
-        '''
+        r'''
         Parse an axis=dchain [T-Yield] or [T-Track] file generated by [T-Dchain]
         This will also save its pickle file and generate its plot, if set to do so.
         '''
         try:
             from dchain_tools import parse_dtrk_file, parse_dyld_files, Dname_to_ZAM
-        except:
+        except:  # pragma: no cover
             try:
                 from PHITS_tools.dchain_tools import parse_dtrk_file, parse_dyld_files, Dname_to_ZAM
             except:
@@ -813,7 +892,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
                 from inspect import signature
                 max_num_values_to_plot = signature(autoplot_tally_results).parameters['max_num_values_to_plot'].default  # 1e7
                 tot_num_values = np.prod(np.shape(tally_output['tally_data'])[:-1])
-                if tot_num_values > max_num_values_to_plot:
+                if tot_num_values > max_num_values_to_plot:  # pragma: no cover
                     print('\t\tWARNING: Tally output for ', tally_output['tally_metadata']['file'], ' is VERY LARGE (', tot_num_values,
                           ' elements), deemed too large for automatic plotting (default max of',max_num_values_to_plot,'elements).')
                 else:
@@ -846,12 +925,12 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
                 print('\tFailed to find the main DCHAIN *.act output file:',act_filepath)
                 if dtrk_filepath.is_file() or dyld_filepath.is_file():
                     print("\tJust processing found .dtrk/.dyld files instead...")
-                else:
+                else:  # pragma: no cover
                     print('\tNor were the *.dyld or *.dtrk files found. Aborting this process...')
                     return None
         try:
             from dchain_tools import process_dchain_simulation_output
-        except:
+        except:  # pragma: no cover
             try:
                 from PHITS_tools.dchain_tools import process_dchain_simulation_output
             except:
@@ -925,7 +1004,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
             else:
                 tally_data = parse_tally_content(tally_data, tally_metadata, err_tally_content, is_err_in_separate_file, err_mode=True)
             if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
-        else:
+        else:  # pragma: no cover
             print('\tWARNING: A separate file ending in "_err" containing uncertainties should exist but was not found.')
             err_data_found = False
     if calculate_absolute_errors:
@@ -933,9 +1012,9 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
             if in_debug_mode: print("\nCalculating absolute errors...   ({:0.2f} seconds elapsed)".format(time.time() - start))
             tally_data = calculate_tally_absolute_errors(tally_data)
             if in_debug_mode: print("\tComplete!   ({:0.2f} seconds elapsed)".format(time.time() - start))
-        elif is_err_file:
+        elif is_err_file:  # pragma: no cover
             print('\tWARNING: Absolute errors not calculated since the main tally values file was not found.')
-        else:
+        else:  # pragma: no cover
             print('\tWARNING: Absolute errors not calculated since the _err file was not found.')
     # Generate Pandas dataframe of tally results
     if construct_Pandas_frame_from_array:
@@ -979,7 +1058,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
             from inspect import signature
             max_num_values_to_plot = signature(autoplot_tally_results).parameters['max_num_values_to_plot'].default  # 1e7
             tot_num_values = np.prod(np.shape(tally_output['tally_data'])[:-1])
-            if tot_num_values > max_num_values_to_plot:
+            if tot_num_values > max_num_values_to_plot:  # pragma: no cover
                 print('\tWARNING: Tally output for ', tally_output['tally_metadata']['file'], ' is VERY LARGE (', tot_num_values,
                       ' elements), deemed too large for automatic plotting (default max of',max_num_values_to_plot,'elements).')
             else:
@@ -997,7 +1076,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
                           return_Pandas_dataframe=True, save_namedtuple_list=False, save_Pandas_dataframe=False,
                           compress_pickles_with_lzma=True, prefer_reading_existing_pickle=False,
                           split_binary_dumps_over_X_GB=20, merge_split_dump_handling=0):
-    '''
+    r'''
     Description:
         Parses the dump file of a [T-Cross], [T-Product], or [T-Time] tally generated by PHITS, in ASCII or binary format.
 
@@ -1159,7 +1238,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
     if prefer_reading_existing_pickle:
         df_exists = pandas_df_pickle_filepath.is_file()
         read_df_path = pandas_df_pickle_filepath
-        if not df_exists:
+        if not df_exists:  # pragma: no cover
             if compress_pickles_with_lzma: 
                 tmp_path = Path(pandas_df_pickle_filepath.parent, pandas_df_pickle_filepath.name.replace('.xz',''))
             else:
@@ -1170,7 +1249,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
         ra_exists = recarray_pickle_filepath.is_file()
         read_ra_path = recarray_pickle_filepath
         read_ra_uses_lzma = compress_pickles_with_lzma
-        if not ra_exists:
+        if not ra_exists:   # pragma: no cover
             if compress_pickles_with_lzma:
                 tmp_path = Path(recarray_pickle_filepath.parent, recarray_pickle_filepath.name.replace('.xz', ''))
             else:
@@ -1180,7 +1259,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
                 read_ra_path = tmp_path
                 read_ra_uses_lzma = not compress_pickles_with_lzma
         # Perform any desired compression/decompression of pickles
-        if ra_exists:
+        if ra_exists:  # pragma: no cover
             if compress_pickles_with_lzma and read_ra_path.name[-3:]!='.xz' and save_namedtuple_list: # save a compressed version
                 with open(read_ra_path, 'rb') as file: records_list = pickle.load(file)
                 with lzma.open(recarray_pickle_filepath, 'wb') as handle: pickle.dump(records_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -1188,7 +1267,7 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
                 with lzma.open(read_ra_path, 'rb') as file: records_list = pickle.load(file)
                 with open(recarray_pickle_filepath, 'wb') as handle: pickle.dump(records_list, handle, protocol=pickle.HIGHEST_PROTOCOL)
             save_namedtuple_list = False
-        if df_exists:
+        if df_exists:  # pragma: no cover
             if (compress_pickles_with_lzma and read_df_path.name[-3:]!='.xz' and save_Pandas_dataframe) or \
                     (not compress_pickles_with_lzma and read_df_path.name[-3:]=='.xz' and save_Pandas_dataframe):  # save a compressed or uncompressed version
                 records_df = pd.read_pickle(read_df_path)
@@ -1198,14 +1277,14 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
         if (ra_exists and return_namedtuple_list and not save_namedtuple_list) and (df_exists and return_Pandas_dataframe and not save_Pandas_dataframe):
             if read_ra_uses_lzma:
                 with lzma.open(read_ra_path, 'rb') as file: records_list = pickle.load(file)
-            else:
+            else:  # pragma: no cover
                 with open(read_ra_path, 'rb') as file: records_list = pickle.load(file)
             records_df = pd.read_pickle(read_df_path)
             return records_list, records_df 
         elif (ra_exists and return_namedtuple_list and not save_namedtuple_list):
             if read_ra_uses_lzma:
                 with lzma.open(read_ra_path, 'rb') as file: records_list = pickle.load(file)
-            else:
+            else:  # pragma: no cover
                 with open(read_ra_path, 'rb') as file: records_list = pickle.load(file)
             return records_list 
         elif (df_exists and return_Pandas_dataframe and not save_Pandas_dataframe):
@@ -1371,7 +1450,11 @@ def parse_tally_dump_file(path_to_dump_file, dump_data_number=None , dump_data_s
             else:
                 with open(path_to_recarray_pickle_file, 'rb') as file: records_list = pickle.load(file)
         if return_Pandas_dataframe:
-            records_df = pd.read_pickle(Path(path_to_dump_file.parent,path_to_dump_file.stem + MPI_subdump_num_str + '_Pandas_df.pickle'))
+            path_to_pandas_dataframe_file = pandas_df_pickle_filepath
+            if compress_pickles_with_lzma:
+                with lzma.open(path_to_pandas_dataframe_file, 'rb') as file: records_df = pickle.load(file)
+            else:
+                with open(path_to_pandas_dataframe_file, 'rb') as file: records_df = pickle.load(file)
     else: # Normal (non-split) dump saving
         if save_namedtuple_list:
             path_to_dump_file = Path(path_to_dump_file)
@@ -1427,7 +1510,7 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = Non
                                   split_binary_dumps_over_X_GB=20, merge_split_dump_handling=0,
                                   autoplot_tally_output=False, autoplot_all_tally_output_in_dir=False
                                   ):
-    '''
+    r'''
     Description:
         Parse all standard PHITS tally output files in a directory *[DIRECTORY mode]*, returning either a list of dictionaries containing
         tally metadata and an array of values from each tally output (and optionally this data inside of a Pandas dataframe too)
@@ -1676,7 +1759,7 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = Non
             head, tail = os.path.split(tally_output_dirpath)
             tally_output_dirpath = head
             print('\tHowever, it is a valid path to a file; thus, its parent directory will be used:',tally_output_dirpath)
-        else:
+        else:  # pragma: no cover
             print('\tThe provided path to "tally_output_dir" is not a directory:', tally_output_dirpath)
             print('\tNor is it a valid path to a file. ERROR! Aborting...')
             return None
@@ -1819,7 +1902,7 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = Non
                 for tdchain_tally_output in tdchain_tally_outputs:
                     tally_output_pickle_path_list.append(tdchain_tally_output['path_to_pickle_file'])
                     tot_num_values = np.prod(np.shape(tdchain_tally_output['tally_data'])[:-1])
-                    if tot_num_values > max_num_values_to_plot:
+                    if tot_num_values > max_num_values_to_plot:  # pragma: no cover
                         tally_include_in_plotting_list.append(False)
                         if autoplot_all_tally_output_in_dir and not autoplot_tally_output:  # only print this message if not already printed
                             print('\tWARNING: Tally output for ', tdchain_tally_output['tally_metadata']['file'], ' is VERY LARGE (', tot_num_values,
@@ -1832,7 +1915,7 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = Non
                 else:
                     tally_output_pickle_path_list.append(path_to_pickle_file)
                 tot_num_values = np.prod(np.shape(tally_output['tally_data'])[:-1])
-                if tot_num_values > max_num_values_to_plot:
+                if tot_num_values > max_num_values_to_plot:  # pragma: no cover
                     tally_include_in_plotting_list.append(False)
                     if autoplot_all_tally_output_in_dir and not autoplot_tally_output:  # only print this message if not already printed
                         print('\tWARNING: Tally output for ', tally_output['tally_metadata']['file'], ' is VERY LARGE (', tot_num_values,
@@ -1936,7 +2019,7 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = Non
 
 
 def parse_phitsout_file(phitsout_filepath, include_input_echo=True, save_phitsout_pickle=False, compress_pickle_with_lzma=False):
-    '''
+    r'''
     Description:
         Extracts useful information from the "phits.out" file (`file(6)` in the PHITS [Parameters] section) 
         into a dictionary object, including the PHITS version number, time data (start/stop time, CPU time, MPI info, etc.), 
@@ -2011,6 +2094,7 @@ def parse_phitsout_file(phitsout_filepath, include_input_echo=True, save_phitsou
             meta = starting_dict
     else:
         meta = starting_dict
+    meta['PHITS-Tools_version'] = __version__
     in_header = True 
     in_input_echo = False 
     in_footer = False
@@ -2147,7 +2231,7 @@ def parse_phitsout_file(phitsout_filepath, include_input_echo=True, save_phitsou
             skip_lines = tesli + eli
             if '=' not in table_text:
                 table_text = column_header_line + '\n' + table_text
-                table_df = pd.read_csv(io.StringIO(table_text.replace(',','.')), comment=':', sep='\s+', on_bad_lines='skip')
+                table_df = pd.read_csv(io.StringIO(table_text.replace(',','.')), comment=':', sep=r'\s+', on_bad_lines='skip')
                 if ':' in table_text:
                     descriptions = [x.split(':', 1)[-1] for x in table_text.split('\n')[1:-1]]
                     table_df['description'] = descriptions
@@ -2215,9 +2299,235 @@ def parse_phitsout_file(phitsout_filepath, include_input_echo=True, save_phitsou
         print('\t\tPickle file written:', pickle_path)
     return phitsout_dict
 
+def tally_data_indices(*, default_to_all=True, tally_metadata=None, **axes):
+    r'''
+    Description:
+        This function is used for generating indexing tuples for the `tally_data` 10-D Numpy array outputted from 
+        `parse_tally_output_file()`, allowing selection of axes and slices more easily than keeping track of 10 
+        different indices yourself.  For reference, the `tally_data` array is structured and nominally accessed as 
+            
+       `tally_data[ ir, iy, iz, ie, it, ia, il, ip, ic, ierr ]`, with indices explained below:
+
+       Tally data indices and corresponding mesh/axis:
+
+        - `0` | `ir`, Geometry mesh: `reg` / `x` / `r` / `tet` ([T-Cross] `ir surf` if `mesh=r-z` with `enclos=0`)
+        - `1` | `iy`, Geometry mesh:  `1` / `y` / `1`
+        - `2` | `iz`, Geometry mesh:  `1` / `z` / `z` ([T-Cross] `iz surf` if `mesh=xyz` or `mesh=r-z` with `enclos=0`)
+        - `3` | `ie`, Energy mesh: `eng` ([T-Deposit2] `eng1`)
+        - `4` | `it`, Time mesh
+        - `5` | `ia`, Angle mesh
+        - `6` | `il`, LET mesh
+        - `7` | `ip`, Particle type (`part = `)
+        - `8` | `ic`, Special: [T-Deposit2] `eng2`; [T-Yield] `mass`, `charge`, `chart`; [T-Interact] `act`
+        - `9` | `ierr = 0/1/2`, Value / relative uncertainty / absolute uncertainty (expanded to `3/4/5`, or `2/3` if
+        `calculate_absolute_errors = False`, for [T-Cross] `mesh=r-z` with `enclos=0` case)
+
+    Inputs:
+        - `**axes` = This function takes as input a variety of keyword and argument pairs that will map to the 10 axes
+            of the `tally_data` array. For the keywords, you may input canonical axes names (`ir`, `iy`, `iz`, etc.)
+            or any of their aliases, which are listed below. 
+            - `tally_data` indices, corresponding axis canonical names, and allowed aliases (all case insensitive):  
+                - `0` | `ir` | `ireg`, `iregion`, `ix`, `itet`, `ir_surf`
+                - `1` | `iy` 
+                - `2` | `iz` | `iz_surf`
+                - `3` | `ie` | `ieng`, `ieng1`, `ie1`, `ised`
+                - `4` | `it` 
+                - `5` | `ia` | `icos`, `ithe`, `irad`, `ideg` 
+                - `6` | `il` | `ilet`
+                - `7` | `ip` | `ipart`, `iparticle`
+                - `8` | `ic` | `ieng2`, `ie2`, `imass`, `icharge`, `ichart`, `iact`
+                - `9` | `ierr` | `ival`
+            - The argument for each of these keywords maps to the **index** or **indices** of the specified axis and MUST&dagger; be one of the following:
+                - integer index (e.g., `0`, `1`, `20`, `-1`)
+                - [slice](https://docs.python.org/3/library/functions.html#slice) object 
+                    - entering `None` or `":"` or `"all"` is treated equivalently to `slice(None)`
+                - 1D sequence of integers for indices, a list/tuple/range/NumPy 1D integer array selecting multiple positions along that axis (duplicates & arbitrary order allowed)
+                - a [`np.s_`](https://numpy.org/doc/stable/reference/generated/numpy.s_.html) single-axis form that yields a slice or 1D integer array (e.g., `np.s_[:10:2]`, `np.s_[[0,2,5]]`).
+                - 1D boolean mask, a list/array of `bool` with length matching the specified axis
+        - &dagger;Exceptionally, there are a few special `**axes` keywords that can be provided with an argument that actually
+          maps to the **value** of that axis as opposed to its index. To use these, `tally_metadata` MUST be provided. These are:
+            - `reg`, `region` : for specifying tally region numbers
+                - The argument must be an individual or list of string(s) designating region numbers/groups. 
+                  (Integers will be converted to strings.)
+                  Any string must identically match a corresponding string in `tally_metadata['reg_groups']` to be correctly identified.
+            - `part`, `particle` : for specifying scored particles in your PHITS tally set by `part =` 
+                - The argument must be an individual or list of string(s) designating particle names/groups.
+                  Any string must identically match a corresponding string in `tally_metadata['part_groups']` to be correctly identified.
+            - `mass`, `charge` : for these axes in [T-Yield] when specified
+                - The argument must be an individual or list of integer(s) denoting mass/charge values.
+                - Note that the charge/mass axes values are actually integers starting from 0 anyways, meaning values and 
+                  indices are identical, so these are treated identically as `imass` and `icharge` and no lookup in 
+                  `tally_metadata` is performed (so, slices, 1D sequences, `np.s_`, and 1D boolean mask also work).
+        
+        Additionally, the below arguments are also available:
+        
+        - `default_to_all` = (optional, D=`True`) Boolean denoting if unspecified axes will return all entries as if using `:` in
+            place of the index (if `True`) or if unspecified axes will only return their first entry as if using `0` as
+            the index (`False`)
+        - `tally_metadata` = (optional, D=`None`) Optionally provide the `tally_metadata` dictionary object outputted from 
+            `parse_tally_output_file()` together with the `tally_data` NumPy array you wish to retrieve data from.
+            Providing this is required if using one of the exceptional&dagger; `**axes` keywords.
+
+    Outputs:
+        - `tally_indexing_tuple` = length-10 tuple to be used for indexing `tally_data`
+        
+    Examples:
+        Presume you have a PHITS tally output file you have processed as follows:
+        ```
+        from PHITS_tools import *
+        from pathlib import Path
+        standard_output_file = Path(Path.cwd(), 'example_tally.out')
+        results_dict = parse_tally_output_file(standard_output_file)
+        tally_metadata = results_dict['tally_metadata']
+        tally_data = results_dict['tally_data']
+        tally_df = results_dict['tally_dataframe']
+        ``` 
+        
+        If you wish to access the full energy spectrum in the third region for all scored particles / particle groups 
+        with the values and uncertainties included, you would nominally have to access it as `tally_data[2,0,0,:,0,0,0,:,0,:]`.
+        
+        However, with this function, you could instead simply use `tally_data[tally_data_indices(ir=2)]`, presuming a 
+        `reg` geometry mesh and no time or angle meshes and not a tally with special axes.  
+        
+        To be completely explicit in matching the nominal syntax, one could instead use to the same end: 
+        
+        `tally_data[tally_data_indices(default_to_all=False, ir=2, ie="all", ip="all", ierr="all")]` 
+        
+        Also note that aliases could had been used too (e.g., `ireg` instead of `ir`, `ieng` for `ie`, `ipart` for `ip`, etc.).
+        
+        Furthermore, to demonstrate specifying region and particles by name, let's say that this tally scored data for 
+        protons and neutrons with `part = proton neutron all` set in the tally, along with the tally scoring six 
+        regions/cells numbered 1, 2, 16, 50, 51, and 99 set via `reg = 1 2 16 50 51 99`.
+        
+        With only indices, if we wanted to get just the neutron results in region 16, we'd nominally have to remember that
+        region 16 was the third specified (`ireg=2`) and that neutrons were the second particle specified (`ipart=1`) in the tally, 
+        and we'd access it as `tally_data[tally_data_indices(ireg=2, ipart=1)]`.  However, with the special `**axes` 
+        keywords, this is even more straightforward with just:
+         
+        `tally_data[tally_data_indices(reg=16, part='neutron')]`
+        
+    '''
+    
+    '''
+    The following would be nice to add in the future:
+        - `0` | `ir` | `x`, `r`, `tet`, `r_surf`
+        - `1` | `iy` | `y`
+        - `2` | `iz` | `z`, `z_surf`
+        - `3` | `ie` | `eng`, `eng1`, `e1`, `energy`, `sed`
+        - `4` | `it` | `t`, `time`
+        - `5` | `ia` | `angle`, `cos`, `the`, `theta`, `rad`, `deg` 
+        - `6` | `il` | `let`
+        - `7` | `ip` | `part`, `particle`, `particles`
+        - `8` | `ic` | `eng2`, `e2`, `mass`, `charge`, `chart`, `act`
+        - `9` | `ierr` | `err`, `error`, `unc`, `uncertainty`, `value`, `val`
+    '''
+    
+    # Canonical axis order and maps 
+    AXES = ("ir", "iy", "iz", "ie", "it", "ia", "il", "ip", "ic", "ierr")
+    AXIS_TO_POS = {k: i for i, k in enumerate(AXES)}
+    ALIASES = {
+        # geometry
+        "ireg": "ir", "iregion": "ir", "ix": "ir", "itet": "ir", "ir_surf": "ir", 
+        #"iy": "iy",
+        "iz_surf": "iz", 
+        # meshes
+        "ieng": "ie", "ieng1": "ie", "ie1": "ie", "ised": "ie", 
+        #"it": "it",
+        "icos": "ia", "ithe": "ia", "irad": "ia", "ideg": "ia", 
+        "ilet": "il", 
+        # particle
+        "ipart": "ip", "iparticle": "ip", 
+        # special ic axis
+        "ieng2": "ic", "ie2": "ic", "imass": "ic", "icharge": "ic", "ichart": "ic", "iact": "ic", "mass": "ic", "charge": "ic", 
+        # error/value selector
+        "ival": "ierr",
+    }
+    ALIASES_SPECIAL = {
+        # geometry
+        "region": "ir", "reg": "ir", #"x": "ir", "r": "ir", "tet": "ir", "r_surf": "ir",
+        #"y": "iy",
+        #"z": "iz", "z_surf": "iz",
+        # meshes
+        #"energy": "ie", "eng": "ie", "eng1": "ie", "e1": "ie", "sed": "ie",
+        #"time": "it", "t": "it",
+        #"angle": "ia", "cos": "ia", "the": "ia", "theta": "ia", "rad": "ia", "deg": "ia",
+        #"let": "il",
+        # particle
+        "part": "ip", "particle": "ip",
+        # special ic axis
+        #"eng2": "ic", "e2": "ic", "chart": "ic", "act": "ic",
+        # error/value selector
+        #"err": "ierr", "val": "ierr",
+    }
+    
+    if default_to_all:
+        fill = slice(None)
+    else:
+        fill = 0
+    indices_items = [fill] * len(AXES)
+
+    # Resolve keys, enforce no duplicates (e.g., ir=... and region=...)
+    seen = {}
+    for k, v in axes.items():
+        k = k.lower()
+        if k in AXIS_TO_POS:
+            c = k
+        elif k in ALIASES:
+            c = ALIASES[k]
+        elif k in ALIASES_SPECIAL:
+            c = ALIASES_SPECIAL[k]
+            # check that tally_metadata was provided
+            if tally_metadata is None:
+                raise ValueError(f"Special alias '{k}' for axis '{c}' requires tally_metadata to be provided.")
+            # value needs to be converted to list of indices
+            val_list = []
+            v_index_list = []
+            if not isinstance(v, (list, tuple, np.ndarray)):
+                val_list = [v]
+            else:
+                val_list = list(v)
+            # make sure regions and particles are strings
+            val_list = [str(val) for val in val_list]
+            if k in ['reg', 'region']:
+                meta_key = 'reg_groups'
+            elif k in ['part', 'particle']:
+                meta_key = 'part_groups'
+            else:
+                raise ValueError(f"Special alias '{k}' seems to be in ALIASES_SPECIAL but not yet assigned behavior.")
+            if meta_key not in tally_metadata or tally_metadata[meta_key] is None:
+                raise ValueError(f"tally_metadata does not have '{meta_key}' set but is required for special alias '{k}'.")
+            for val in val_list:
+                ival = find(val, tally_metadata[meta_key])
+                if ival is None:
+                    raise ValueError(f"Specified value {val!r} not found in tally_metadata['{meta_key}'] = {tally_metadata[meta_key]!r}.")
+                v_index_list.append(ival)
+            if len(v_index_list)==1:
+                v = v_index_list[0]
+            else:
+                v = v_index_list
+            
+        else:
+            raise KeyError(f"Unknown axis '{k}'. Valid: {AXES} and aliases: {tuple(ALIASES.keys())} and {tuple(ALIASES_SPECIAL.keys())}")
+        
+        if c in seen:
+            raise ValueError(f"Axis '{c}' specified multiple times (via '{seen[c]}' and '{k}').")
+        seen[c] = k
+        if v is Ellipsis:
+            raise TypeError("Ellipsis (...) not supported; specify axes explicitly or use default_to_all.")
+        elif v is None:
+            indices_items[AXIS_TO_POS[c]] = slice(None)
+        elif isinstance(v, str):
+            if v == ":" or v.lower() == "all":
+                indices_items[AXIS_TO_POS[c]] = slice(None)
+            else:
+                raise TypeError(f"Unsupported string selector {v!r} for axis '{c}'. Use ':', 'all', None, or a proper indexer.")
+        else:
+            indices_items[AXIS_TO_POS[c]] = v
+    return tuple(indices_items)
+
 
 def tally(data, bin_edges=[], min_bin_left_edge=None, max_bin_right_edge=None, nbins=None, bin_width=None, divide_by_bin_width=False, normalization=None, scaling_factor=1, place_overflow_at_ends=True, return_uncertainties=False, return_event_indices_histogram=False):
-    '''
+    r'''
     Description:
         Tally number of incidences of values falling within a desired binning structure
 
@@ -2246,12 +2556,21 @@ def tally(data, bin_edges=[], min_bin_left_edge=None, max_bin_right_edge=None, n
         Regarding the binning structure, this function only needs to be provided `bin_edges` directly (takes priority)
         or the information needed to calculate `bin_edges`, that is: `min_bin_left_edge` and `max_bin_right_edge` and
         either `nbins` or `bin_width`.  (Priority is given to `nbins` if both are provided.)
+        
+        All bins (except the last) are "half-open", meaning the bin's left edge is included in the bin but the right
+        edge is not, `[bin_min, bin_max)`; the last bin includes both its lower and upper edges.
+        
+        If `return_event_indices_histogram=True` is set, this function will use its own (slower) rebinning algorithm. 
+        Otherwise, the faster [`numpy.histogram`](https://numpy.org/doc/stable/reference/generated/numpy.histogram.html)
+        function is used.  Note that `place_overflow_at_ends=True` still works as -/+ infinity are temporarily added to
+        the extremes of the bin edges given to the `np.histogram()` call to collect rather than discard the values 
+        outside the bounds of the specified bin edges.
 
     Outputs:
         - `tallied_hist` = N-length list of tallied data
         - `bin_edges` = list of N+1 bin edge values for a tally of N bins
-        - `tallied_hist_err` = (optional) N-length list of statistical uncertainties of tallied data
-        - `tallied_event_indicies` = (optional) N-length list of, for each bin, a list of the event indices populating it
+        - `tallied_hist_err` = (optional, if `return_uncertainties=True`) N-length list of statistical uncertainties of tallied data
+        - `tallied_event_indicies` = (optional, if `return_event_indices_histogram=True`) N-length list of, for each bin, a list of the event indices populating it
     '''
 
     normalization_valid_entries = [None, 'unity-sum', 'unity-max-val']
@@ -2294,7 +2613,15 @@ def tally(data, bin_edges=[], min_bin_left_edge=None, max_bin_right_edge=None, n
 
 
     else:
-        tallied_hist, bins = np.histogram(data,bins=bin_edges)
+        if place_overflow_at_ends:
+            temp_bin_edges = np.array([-np.inf] + list(bin_edges) + [np.inf])
+            tallied_hist, bins = np.histogram(data, bins=temp_bin_edges)
+            bins = bin_edges  # temp_bin_edges[1:-1]
+            tallied_hist[1] += tallied_hist[0]
+            tallied_hist[-2] += tallied_hist[-1]
+            tallied_hist = tallied_hist[1:-1]
+        else:
+            tallied_hist, bins = np.histogram(data, bins=bin_edges)
 
     if return_uncertainties:
         tallied_hist_err = np.sqrt(tallied_hist)
@@ -2324,22 +2651,44 @@ def tally(data, bin_edges=[], min_bin_left_edge=None, max_bin_right_edge=None, n
 
 
 def rebinner(output_xbins,input_xbins,input_ybins):
-    """
+    r"""
     Description:
         The purpose of this function is to rebin a set of y values corresponding to a set of x bins to a new set of x bins.
         The function seeks to be as generalized as possible, meaning bin sizes do not need to be consistent nor do the
-        new bin edges necessarily need to line up exactly with the old bin edges.
+        new bin edges necessarily need to line up exactly with the old bin edges.  It does assume that the value within 
+        each input bin is evenly (flatly) distributed across its bin width.  See the Method section below for more information 
+        on how this function works.
 
     Dependencies:
         `import numpy as np`
 
     Inputs:
-      - `output_xbins` = output array containing bounds of x bins of length N; first entry is leftmost bin boundary
-      - `input_xbins`  = input array containing bounds of x bins of length M; first entry is leftmost bin boundary
-      - `input_ybins`  = input array containing y values of length M-1
+      - `output_xbins` = output list/array containing bounds of x bins of length N; first entry is leftmost bin boundary
+      - `input_xbins`  = input list/array containing bounds of x bins of length M; first entry is leftmost bin boundary
+      - `input_ybins`  = input list/array containing y values of length M-1
 
     Outputs:
       - `output_ybins` = output array containing y values of length N-1
+      
+    Method:
+        
+        There are a number of different approaches one can take with rebinning; two are incorporated into this function and are detailed here.
+        
+        The first involves creation of entirely new bin boundaries that do not necessarily line up with the old bin boundaries, and the second involves the scenario where new bin edges do align with old bin edges.  These are pictured below (along with some math to be explained shortly).
+        
+        
+        
+        <img src="https://github.com/Lindt8/Lindt8.github.io/blob/master/files/figures/rebinning_math.svg?raw=true" alt="Rebinning math" width="90%"/>
+        
+        The input bin widths do not need to be uniform like in this example; they could have arbitrary spacing using the same methodology.  For an original set of M bins with bin values of y<sub>i</sub> and bin boundaries of x<sub>i</sub> and x<sub>i+1</sub> being rebinned into N bins with new bin values of y&prime;<sub>j</sub> and new bin boundaries of x&prime;<sub>j</sub> and x&prime;<sub>j+1</sub>, the new bin values can be calculated with Equation 1.  In the event bin edges are not all aligned, f<sub>i</sub> is described with Equation 2 (whose logical conditions are restated in plain language in Table 1), and if all new bin edges line up with old bin edges, the much simpler Equation 3 can be used to describe f<sub>i</sub>.
+        
+        Do be aware that this assumes that the content of a bin is evenly distributed between the minimum and maximum boundaries of a bin.  These equations could be made more complicated if one wanted to use information from the surrounding bins to form a distribution of how content is spread within a single bin.  But, this complication is typically not warranted since the process of rebinning usually entails combining smaller bins into larger ones, not creating smaller bins from larger ones.
+        
+        This method and explanation is adopted from [1], Section 4.11, pages 88--90.  While this function does not automatically support error propagation through the rebinning process, an approach for this applicable in some scenarios (namely those only involving statistical uncertainties derived from counting statistics) that also utilizes this function and its method is outlined in the same source [1] in Sections 5.1 and 5.2, pages 98--101.
+        
+        
+        Source [1]: "[__Thick-target neutron yields for intermediate-energy heavy ion experiments at NSRL__](https://trace.tennessee.edu/utk_graddiss/5323/)," <u>H.N. Ratliff</u>, PhD dissertation, University of Tennessee, December 2018.
+        
     """
 
     N = len(output_xbins)
@@ -2386,7 +2735,7 @@ def rebinner(output_xbins,input_xbins,input_ybins):
 def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename='results.pdf',
                            additional_save_extensions=[],show_plots=False,return_fg_list=False,
                            max_num_values_to_plot=1e7,rasterizesize_threshold=5e4,rasterize_dpi=300):
-    '''
+    r'''
     Description:
         Generates visualizations/plots of the data in the output Pandas DataFrames from the `parse_tally_output_file()` 
         function in an automated fashion.  Note that this function only seeks to accomplish exactly this. 
@@ -2538,7 +2887,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
         tally_output_list = [tally_output]
     else:  # list of tally output objects and/or pickles
         for i, to in enumerate(tally_output_list): # open any pickle files provided
-            if not isinstance(to, dict):
+            if not isinstance(to, dict):  # pragma: no cover
                 if to is None:
                     print("WARNING: 'None' tally output encountered in tally_output_list in autoplot_tally_results()!")
                     continue
@@ -2547,7 +2896,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
     plotting_multiple_tallies = len(tally_output_list) > 1
     
     def are_bins_linearly_spaced(bin_mids):
-        '''
+        r'''
         Return True/False designating whether bin centers appear to be linearly spaced or not
         '''
         diff = np.diff(bin_mids).round(decimals=8)
@@ -2598,7 +2947,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                 tot_plot_axes = sum(1 for i in array_axes_lens if i > 1)
                 tot_num_values = np.prod(array_axes_lens)
                 
-                if tot_num_values > max_num_values_to_plot:
+                if tot_num_values > max_num_values_to_plot:  # pragma: no cover
                     print('\tWARNING: Tally output for ',tally_metadata['file'],' is VERY LARGE (',tot_num_values,' elements), deemed too large for automatic plotting.')
                     if return_fg_list: fg_list.append(None)
                     continue
@@ -2616,7 +2965,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                     plt.tight_layout()
                     # add PHITS Tools info
                     fontdict = {'color': '#666666', 'weight': 'normal', 'size': 8, 'style': 'italic'}
-                    fig.text(0.005, 0.005, 'Figure generated by PHITS Tools, github.com/Lindt8/PHITS-Tools',
+                    fig.text(0.005, 0.005, r'Figure generated by PHITS Tools $\cdot$ github.com/Lindt8/PHITS-Tools $\cdot$'+' v{:}'.format(__version__),
                              fontdict=fontdict, ha='left', va='bottom', url='https://github.com/Lindt8/PHITS-Tools')
                     pdf.savefig()
                     if return_fg_list: fg_list.append(copy.deepcopy(fig))
@@ -2747,7 +3096,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                 num = num_axes_sorted
                 
                 # Now determine how each axis will be represented in the plot
-                '''
+                r'''
                 How we represent the data will depend on:
                 - how many axes there are to represent
                 - the specific combination of A cat and B num
@@ -2944,7 +3293,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                         hue_var = 'value'
                         row_var = plot_axes_sorted[2]
                     '''
-                elif tot_plot_axes==4:
+                elif tot_plot_axes==4:  # pragma: no cover
                     if plot_axes_sorted[0] in num:
                         x_var = plot_axes_sorted[0]
                     else:
@@ -2970,7 +3319,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                         hue_var = 'value'
                         row_var = plot_axes_sorted[2]
                         col_var = plot_axes_sorted[3]
-                elif tot_plot_axes==5:
+                elif tot_plot_axes==5:  # pragma: no cover
                     plot_kind = 'line'
                     if plot_axes_sorted[0] in num:
                         x_var = plot_axes_sorted[0]
@@ -2982,7 +3331,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                     row_var = plot_axes_sorted[2]
                     col_var = plot_axes_sorted[3]
                     style_var = plot_axes_sorted[4]
-                elif tot_plot_axes==6:
+                elif tot_plot_axes==6:  # pragma: no cover
                     plot_kind = 'line'
                     if plot_axes_sorted[0] in num:
                         x_var = plot_axes_sorted[0]
@@ -2995,7 +3344,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                     col_var = plot_axes_sorted[3]
                     style_var = plot_axes_sorted[4]
                     size_var = plot_axes_sorted[5]
-                else:
+                else:  # pragma: no cover
                     print('\tCannot create plot with 7+ variables...')
                     continue
                 '''
@@ -3121,7 +3470,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                             row_var_renamed = row_var
                     if col_var != None: col_var_renamed = ax_labels[col_var]
                     
-                    if in_debug_mode:
+                    if in_debug_mode:  # pragma: no cover
                         print('plot_kind=', plot_kind, 
                               '\ny_var=', y_var, y_var_renamed, 
                               '\nx_var=', x_var, x_var_renamed, 
@@ -3132,6 +3481,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                               '\ncol_var=', col_var, col_var_renamed, 
                               '\npseudo_2d_plot=', pseudo_2d_plot)
                         print(df_renamed.columns.values)
+                        print('number of data points in df =',len(df_renamed.index))
 
                     if plot_kind == 'line':
                         fg = sns.relplot(data=df_renamed, kind=plot_kind, #num=figi, 
@@ -3260,7 +3610,8 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                         
                     # add PHITS Tools info
                     fontdict = {'color':'#666666', 'weight':'normal', 'size': 8, 'style':'italic'}
-                    fig.text(0.005,0.0005,'Figure generated by PHITS Tools, github.com/Lindt8/PHITS-Tools',fontdict=fontdict,ha='left', va='bottom', url='https://github.com/Lindt8/PHITS-Tools')
+                    fig.text(0.005,0.0005,r'Figure generated by PHITS Tools $\cdot$ github.com/Lindt8/PHITS-Tools $\cdot$'+' v{:}'.format(__version__),
+                             fontdict=fontdict, ha='left', va='bottom', url='https://github.com/Lindt8/PHITS-Tools')
     
                     if use_rasterization:
                         pdf.savefig(bbox_extra_artists=[st], dpi=rasterize_dpi)
@@ -3296,55 +3647,118 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
 
 
 
-def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=None,particle=None):
-    '''
+def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=None,particle=None,matdict=None,
+                      database_filename='Compiled_MC_materials',prefer_user_data_folder=True):
+    r'''
     Description:
         Returns a materials definition string formatted for use in PHITS or MCNP (including a density estimate);
         most available materials are those found in [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125).
+        Note that you can modify this materials database and create additional databases that can interface 
+        with this function via the `PHITS_tools.manage_mc_materials` submodule; see the [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html) 
+        for more detailed information and instructions on managing the materials database.
 
     Dependencies:
-        - PYTHONPATH environmental variable must be set and one entry must contain the directory
-                which contains the vital "MC_materials/Compiled_MC_materials.pkl" file.
+        - Either PHITS Tools must be installed via `pip` (which automatically handles this) or your
+                PYTHONPATH environmental variable must be set and one entry must contain the directory
+                which contains PHITS Tools and the vital "MC_materials/Compiled_MC_materials.json" file.
 
     Inputs:
        (required to enter `matid` OR `matname`, with `matid` taking priority if conflicting)
 
-       - `matid` = ID number in the "Compiled_MC_materials" file
-       - `matname` = exact name of material in "Compiled_MC_materials" file
-       - `matsource` = exact source of material in "Compiled_MC_materials" file, only used when multiple
+       - `matid` = ID number in the database specified by `database_filename`
+       - `matname` = exact name of material in the database specified by `database_filename`
+       - `matsource` = exact source of material in the database specified by `database_filename`, only used when multiple
                 materials have identical names
        - `concentration_type` = selection between `'weight fraction'` (default if no chemical formula is present in database; e.g., "Incoloy-800") and
                 `'atom fraction'` (default if a chemical formula is present; e.g. "Ethane" (Formula = C2H6)) to be returned
        - `particle` = selection of whether natural (`'photons'`, default) or isotopic (`'neutrons'`) elements are used
                 Note that if "enriched" or "depleted" appears in the material's name, particle=`'neutrons'` is set automatically.
-
+       - `matdict` = dictionary object of same format as entries in materials database; if this is provided, 
+                `matname` and `database_filename` are ignored, using the provided material dictionary entry instead.
+       - `database_filename` = (D=`'Compiled_MC_materials'`) File basename of the database file to be pulled from.
+       - `prefer_user_data_folder` = (D=`True`) Boolean denoting whether this function should prioritize the local 
+                MC materials databases in your local [`"$HOME`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.home)`/.PHITS-Tools/"` 
+                directory over those in the PHITS Tools distribution, if the local user directory exists. For information 
+                on creation and modification of this local MC materials directory, see the [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html).
+                If `False` (or if `True` but no local user MC_materials directory exists), the MC_materials directory 
+                distributed with PHITS Tools will be used instead, searching for the location first using 
+                [`pkgutil.get_loader`](https://docs.python.org/3/library/pkgutil.html#pkgutil.get_loader)`("PHITS_tools").get_filename()`
+                then, failing that, the PYTHONPATH environmental variable.
+                
     Outputs:
        - `mat_str` = string containing the material's information, ready to be inserted directly into a PHITS/MCNP input file
     '''
     import os
+    import json
+    import pkgutil
     import pickle
     if not matid and not matname:
         print('Either "matid" or "matname" MUST be defined')
         return None
-
-    # First, locate and open materials library
-    try:
-        user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
-        lib_file = None
-        for i in user_paths:
-            if 'phits_tools' in i.lower() or 'phits-tools' in i.lower():
-                lib_file = i + r"\MC_materials\Compiled_MC_materials"
-        if not lib_file:
-            print('Could not find "PHITS_tools" folder in PYTHONPATH; this folder contains the vital "MC_materials/Compiled_MC_materials.pkl" file.')
-    except KeyError:
-        print('The PYTHONPATH environmental variable must be defined and contain the path to the directory holding "MC_materials/Compiled_MC_materials.pkl"')
-        return None
-
-    # Load materials library
-    def load_obj(name ):
-        with open(name + '.pkl', 'rb') as f:
-            return pickle.load(f)
-    all_mats_list = load_obj(lib_file)
+    
+    if matdict is None:
+        # First, check if a local directory exists and contains this file
+        user_data_dir = Path.home() / '.PHITS-Tools' / 'MC_materials/'
+        if prefer_user_data_folder and user_data_dir.exists():
+            lib_file = Path(user_data_dir, database_filename)
+            lib_file_json = Path(user_data_dir, database_filename + '.json')
+            if not lib_file_json.exists():  # pragma: no cover
+                print('ERROR: Could not find the materials library JSON file:', lib_file_json)
+                return None
+        else:  # Otherwise, try to locate and open materials library from distribution files
+            try:
+                lib_file = None
+                try: # First, check MC_materials folder distributed with PHITS Tools
+                    phits_tools_module_path = pkgutil.get_loader("PHITS_tools").get_filename()
+                    mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, 'MC_materials/')
+                    if not mc_materials_dir_path.exists():
+                        mc_materials_dir_path = Path(Path(phits_tools_module_path).parent, '..', 'MC_materials/')
+                    if mc_materials_dir_path.exists():
+                        lib_file = Path(mc_materials_dir_path,database_filename)
+                        lib_file_json = lib_file.parent / (lib_file.stem + '.json')
+                        if not lib_file_json.exists():  # pragma: no cover
+                            print('ERROR: Could not find the materials library JSON file:', lib_file_json)
+                            return None
+                    else:  # pragma: no cover
+                        print('ERROR: Could not find the "PHITS-Tools/MC_materials/" directory containing the materials library JSON file.')
+                        return None
+                except:  # pragma: no cover
+                    # Failing that, check PYTHONPATH
+                    user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
+                    for i in user_paths:  # first try looking explicitly for MC_materials dir in PYTHONPATH
+                        if 'MC_materials' in i:
+                            lib_file = Path(i, database_filename)
+                    if lib_file is None:  # check for PHITS Tools in general
+                        for i in user_paths:
+                            if 'phits_tools' in i.lower() or 'phits-tools' in i.lower():
+                                lib_file = Path(i, 'MC_materials', database_filename)
+                    if lib_file is None:
+                        print('ERROR: Could not find "PHITS_tools" nor "MC_materials" folders in PYTHONPATH; this folder contains the vital "MC_materials/Compiled_MC_materials.json" file.')
+                        return None
+            except KeyError:  # pragma: no cover
+                print('ERROR: If PHITS Tools is not installed with pip, the PYTHONPATH environmental variable must be defined and contain the path to the directory holding "MC_materials/Compiled_MC_materials.json"')
+                return None
+    
+        # Load materials library
+        lib_file = Path(lib_file)
+        try: # Updated version uses JSON file
+            with open(Path(lib_file.parent, lib_file.name + '.json'), "r") as f:
+                all_mats_list = json.load(f)
+        except:  # pragma: no cover
+            # Old version uses a pickle file
+            def load_obj(name):
+                with open(name + '.pkl', 'rb') as f:
+                    return pickle.load(f)
+            print('WARNING: Old pickle file of MC materials is being used; up-to-date version uses a JSON database.')
+            all_mats_list = load_obj(str(lib_file))
+    else:  # pragma: no cover
+        all_mats_list = []
+        if matid is None:
+            matid = 0
+            all_mats_list.append(matdict)
+        else:
+            all_mats_list.extend([None]*(matid))
+            all_mats_list[matid-1] = matdict
 
     if matid: # use mat ID number
         mi = int(matid)-1
@@ -3359,7 +3773,7 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
                 matching_mi.append(i)
         if len(matching_mi)==1:
             mi = matching_mi[0]
-        elif len(matching_mi)>1:
+        elif len(matching_mi)>1:  # pragma: no cover
             print('Found multiple materials with this identical matname value:')
             for mmi in matching_mi:
                 print('\tmatid={}  matname="{}"  source="{}"'.format(str(mmi+1),all_mats_list[mmi]['name'],all_mats_list[mmi]['source']))
@@ -3448,7 +3862,7 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
 
         Z = int(str(ZZZAAA)[:-3])
         A = str(ZZZAAA)[-3:]
-        sym = Element_Z_to_Sym(Z)
+        sym = element_Z_to_symbol(Z)
         if A != '000':
             isotope = sym+'-'+A.lstrip('0')
         else:
@@ -3459,8 +3873,9 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
 
     return entry_text
 
+
 def ICRP116_effective_dose_coeff(E=1.0,particle='photon',geometry='AP',interp_scale='log',interp_type='cubic',extrapolation_on=False):
-    '''
+    r'''
     Description:
         For a given particle at a given energy in a given geometry, returns its
         effective dose conversion coefficient from [ICRP 116](https://doi.org/10.1016/j.icrp.2011.10.001)
@@ -3482,12 +3897,13 @@ def ICRP116_effective_dose_coeff(E=1.0,particle='photon',geometry='AP',interp_sc
                                               technically, any options available for scipy.interpolate.interp1d() can be used: `['linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic', 'previous']`
        - `extrapolation_on` = boolean designating whether values outside of the tabulated energies will be extrapolated (D=`False`)
 
-             |                      |                                                                       |
-             | -------------------- | --------------------------------------------------------------------- |
-             | if False & E < E_min | f(E) = 0                                                              |
-             | if False & E > E_max | f(E) = f(E_max)                                                       |
-             | if True  & E < E_min | f(E) is linearly interpolated between (0,0) and (E_min,f(E_min))      |
-             | if True  & E > E_max | f(E) is extrapolated using the specified interpolation scale and type |
+             |                           |                                                                       |
+             | ------------------------- | --------------------------------------------------------------------- |
+             | if `False` & `E` < E_min, | f(`E`) = 0                                                              |
+             | if `False` & `E` > E_max, | f(`E`) = f(E_max)                                                       |
+             | if `True`  & `E` < E_min, | f(`E`) is linearly interpolated between (0,0) and (E_min,f(E_min))      |
+             | if `True`  & `E` > E_max, | f(`E`) is extrapolated using the specified interpolation scale and type |
+    
     Outputs:
        - `f` = effective dose conversion coefficient in pSv*cm^2
     '''
@@ -3501,7 +3917,7 @@ def ICRP116_effective_dose_coeff(E=1.0,particle='photon',geometry='AP',interp_sc
     if particle not in pars_list or geometry not in geo_list_all:
         pstr = 'Please select a valid particle and geometry.\n'
         pstr += "Particle selected = {}, options include: ['photon','electron','positron','neutron','proton','negmuon','posmuon','negpion','pospion','He3ion']".format(particle)
-        pstr += "Geometry selected = {}, options include: ['AP','PA','LLAT','RLAT','ROT','ISO'] ('LLAT','RLAT','ROT' only available for photon, proton, and neutron)"
+        pstr += "Geometry selected = {}, options include: ['AP','PA','LLAT','RLAT','ROT','ISO'] ('LLAT','RLAT','ROT' only available for photon, proton, and neutron)".format(geometry)
         print(pstr)
         return None
 
@@ -3667,7 +4083,7 @@ def ICRP116_effective_dose_coeff(E=1.0,particle='photon',geometry='AP',interp_sc
 
 def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merged_dump', 
                             delete_pre_merge_pickles=False, compress_pickles_with_lzma=True):
-    '''
+    r'''
     Description:
         Merge the pickle files (namedtuple lists and/or PandasDataFrames) belonging to numerous PHITS dump output files.
 
@@ -3706,7 +4122,7 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
     merge_success = False
     if compress_pickles_with_lzma:
         compression_file_extension = '.xz'
-    else:
+    else:  # pragma: no cover
         compression_file_extension = ''
     # Scan to see what files are available
     namedtuple_list_paths = [] 
@@ -3722,14 +4138,14 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
             nt_found = True 
         else:
             nt_path = Path(fp.parent, filebasename + '_namedtuple_list.pickle')
-            if nt_path.is_file(): 
+            if nt_path.is_file():   # pragma: no cover
                 nt_found = True
         pd_path = Path(fp.parent, filebasename + '_Pandas_df.pickle.xz')
         if pd_path.is_file():
             pd_found = True
         else:
             pd_path = Path(fp.parent, filebasename + '_Pandas_df.pickle')
-            if pd_path.is_file():
+            if pd_path.is_file():  # pragma: no cover
                 pd_found = True
         if not nt_found and not pd_found and fp.is_file():
             parse_tally_dump_file(fp,return_namedtuple_list=False, return_Pandas_dataframe=False, save_namedtuple_list=True, save_Pandas_dataframe=True)
@@ -3742,13 +4158,13 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
     # Merge namedtuple lists
     if len(namedtuple_list_paths) > 1:
         from numpy.lib.recfunctions import stack_arrays
-        if len(namedtuple_list_paths) != len(dump_filepath_list):
+        if len(namedtuple_list_paths) != len(dump_filepath_list):  # pragma: no cover
             print('WARNING: While multiple "_namedtuple_list.pickle[.xz]" files were found, some were missing from provided dump file list.')
         for i, f in enumerate(namedtuple_list_paths):
             if f.suffixes[-1] == '.xz':
                 with lzma.open(f, 'rb') as file: 
                     dump_data_list = pickle.load(file)
-            else:
+            else:  # pragma: no cover
                 with open(f, 'rb') as file:
                     dump_data_list = pickle.load(file)
             if i==0:
@@ -3764,7 +4180,7 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
         if compress_pickles_with_lzma:
             with lzma.open(pickle_path, 'wb') as handle:
                 pickle.dump(records_np_array, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        else:
+        else:  # pragma: no cover
             with open(pickle_path, 'wb') as handle:
                 pickle.dump(records_np_array, handle, protocol=pickle.HIGHEST_PROTOCOL)
         print('\tPickle file written:', pickle_path)
@@ -3775,21 +4191,21 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
                 try:
                     f.unlink()
                     print('\tPickle file deleted:', f)
-                except:
+                except:  # pragma: no cover
                     pass
             print()
 
     # Merge Pandas DataFrames
     if len(pandads_DF_paths) > 1:
         import pandas as pd
-        if len(pandads_DF_paths) != len(dump_filepath_list):
+        if len(pandads_DF_paths) != len(dump_filepath_list):  # pragma: no cover
             print('WARNING: While multiple "_Pandas_df.pickle[.xz]" files were found, some were missing from provided dump file list.')
         dfs_to_concat = []
         for i, f in enumerate(pandads_DF_paths):
             if f.suffixes[-1] == '.xz':
                 with lzma.open(f, 'rb') as file: 
                     dump_dataframe = pickle.load(file)
-            else:
+            else:  # pragma: no cover
                 with open(f, 'rb') as file:
                     dump_dataframe = pickle.load(file)
             dfs_to_concat.append(dump_dataframe)
@@ -3807,21 +4223,56 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
                 try:
                     f.unlink()
                     print('\tPickle file deleted:', f)
-                except:
+                except:  # pragma: no cover
                     pass
             print()
 
     return merge_success
 
 
+def is_number(n):
+    r'''
+    Description:
+        Determine if a string is that of a number or not.
+
+    Inputs:
+        - `n` = string to be tested
+
+    Outputs:
+        - `True` if value is a number (can be converted to float() without an error)
+        - `False` otherwise
+    '''
+    try:
+        float(n)
+    except ValueError:
+        return False
+    return True
+
+def find(target, myList):
+    r'''
+    Description:
+        Search for and return the index of the first occurance of a value in a list.
+
+    Inputs:
+        - `target` = value to be searched for
+        - `myList` = list of values
+
+    Output:
+        - index of first instance of `target` in `myList`
+    '''
+    for i in range(len(myList)):
+        if myList[i] == target:
+            return i
+
+
 
 def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter='-'):
-    '''
+    r'''
     Description:
         Converts a plaintext string of a nuclide from an integer ZZZAAAM = 10000&ast;Z + 10&ast;A + M
 
     Dependencies:
-        `Element_Z_to_Sym` (function within the "PHITS Tools" package)
+        `element_Z_to_symbol` (function within the "PHITS Tools" package)
 
     Input:
        - `ZZZAAAM` = integer equal to 10000&ast;Z + 10&ast;A + M, where M designates the metastable state (0=ground)
@@ -3838,7 +4289,7 @@ def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter=
     m = ZZZAAAM % 10
     A = (ZZZAAAM % 10000) // 10
     Z = ZZZAAAM // 10000
-    symbol = Element_Z_to_Sym(Z)
+    symbol = element_Z_to_symbol(Z)
 
     m_str = ''
     if m>0:
@@ -3851,26 +4302,177 @@ def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter=
 
     return nuc_str
 
-
-def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
-    '''
+def nuclide_plain_str_to_ZZZAAAM(nuc_str):
+    r'''
     Description:
-        Converts a plaintext string of a nuclide to a LaTeX-formatted raw string
-        Note: if you already have the Z, A, and isomeric state information determined, the "nuclide_to_Latex_form" function can be used instead
+        Converts a plaintext string of a nuclide to an integer ZZZAAAM = 10000\*Z + 10\*A + M
 
     Dependencies:
-        - `Element_Z_to_Sym` (function within the "PHITS Tools" package) (only required if `include_Z = True`)
+        `element_Z_to_symbol`
+
+    Inputs:
+       - `nuc_str` = string to be converted; a huge variety of formats are supported, but they all must follow the following rules:
+           + `nuc_str` must begin with either the atomic mass number or the elemental symbol.
+           + `nuc_str` should NOT contain the atomic/proton number (Z).
+           + Isomeric/metastable state characters must always immediately follow the atomic mass characters.
+               Isomeric state labels must either:
+               - (1) be a single lower-case character in `['g','m','n','o','p','q']` OR
+               - (2) be `'m'` followed by a number from 1 to 5, in `['m1','m2','m3','m4','m5']`
+           + Atomic mass numbers must be nonnegative integers OR the string `"nat"` (in which case no metastable states 
+             can be written and A=0); if omitted, `"nat"` is assumed.
+           + Elemental symbols must begin with an upper-case character
+               - `'n'`, `'p'`, `'d'`, and `'t'` can also be specified for neutron, proton, deuteron, and triton, respectively.
+           + Space `' '`, hyphen `'-'`, and underscore `'_'` can be used anywhere in `nuc_str`; they will be ignored. 
+
+    Outputs:
+        - ZZZAAAM integer
+    '''
+
+    # remove unwanted characters from provided string
+    delete_characters_list = [' ', '-', '_']
+    for dc in delete_characters_list:
+        nuc_str = nuc_str.replace(dc,'')
+
+    if 'nat' in nuc_str:
+        print('WARNING: specifying natural abundances via "nat" sets A=0 in the ZZZAAAM integer')
+        nuc_str = nuc_str.replace('nat','0')
+        # print('Must specify a specific nuclide, not natural abundances')
+        # return None
+
+    # determine which characters are letters versus numbers
+    isalpha_list = []
+    isdigit_list = []
+    for c in nuc_str:
+        isalpha_list.append(c.isalpha())
+        isdigit_list.append(c.isdigit())
+    
+    if not any(isdigit_list):
+        print('WARNING: No mass value is present in the provided string, assuming natural abundances.')
+        nuc_str += '0'
+        isalpha_list.append(False)
+        isdigit_list.append(True)
+    
+    symbol = ''
+    mass = ''
+    isost = ''
+
+
+    # string MUST begin with either mass number or elemental symbol
+    if isdigit_list[0]: # mass first
+        mass_first = True
+    else:
+        mass_first = False
+
+    if mass_first:
+        ci = 0
+        while isdigit_list[ci]:
+            mass += nuc_str[ci]
+            ci += 1
+        mass = str(int(mass)) # eliminate any extra leading zeros
+        # encountered a non-numeric character, end of mass
+        # now, determine if metastable state is listed or if element is listed next
+        # first, check to see if any other numerals are in string
+        lni = 0 # last numeral index
+        for i in range(ci,len(nuc_str)):
+            if isdigit_list[i]:
+                lni = i
+        if lni != 0:
+            # grab all characters between ci and last numeral as metastable state
+            isost = nuc_str[ci:lni+1]
+            ci = lni + 1
+        else: # no more numerals in string, now check for single lower-case letter
+            if isalpha_list[ci] and nuc_str[ci].islower():
+                isost = nuc_str[ci]
+                ci += 1
+
+        # Now extract elemental symbol
+        for i in range(ci,len(nuc_str)):
+            if isalpha_list[i]:
+                symbol += nuc_str[i]
+
+    else: # if elemental symbol is listed first
+        ci = 0
+        # Extract all characters before first number as the elemental symbol
+        while nuc_str[ci].isalpha():
+            symbol += nuc_str[ci]
+            ci += 1
+
+        # now, extract mass
+        while nuc_str[ci].isdigit():
+            mass += nuc_str[ci]
+            ci += 1
+            if ci == len(nuc_str):
+                break
+
+        # lastly, extract isomeric state, if present
+        if ci != len(nuc_str):
+            isost = nuc_str[ci:]
+
+    # treating the cases of lowercase-specified particles (n, d, t, etc.)
+    if symbol == '' and isost != '':
+        symbol = isost
+        isost = ''
+
+    if symbol in ['n', 'p', 'd', 't']:
+        if symbol == 'n':
+            Z, A = 0, 1
+        elif symbol == 'p':
+            Z, A = 1, 1
+        elif symbol == 'd': 
+            Z, A = 1, 2
+        elif symbol == 't':
+            Z, A = 1, 3
+    else:
+        Z = element_symbol_to_Z(symbol)
+        if Z == -1:
+            print('ERROR: The identified element symbol "{}" is not recognized as a valid element'.format(symbol))
+            return None
+        A = int(mass)
+
+    if isost.strip()=='' or isost=='g':
+        M = 0
+    elif isost=='m' or isost=='m1':
+        M = 1
+    elif isost=='n' or isost=='m2':
+        M = 2
+    elif isost=='o' or isost=='m3':
+        M = 3
+    elif isost=='p' or isost=='m4':
+        M = 4
+    elif isost=='q' or isost=='m5':
+        M = 5
+    else:
+        print("Unknown isomeric state {}, assumed ground state".format(isost))
+        M = 0
+
+    ZZZAAAM = 10000*Z + 10*A + M
+
+    return ZZZAAAM
+
+
+def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
+    r'''
+    Description:
+        Converts a plaintext string of a nuclide to a LaTeX-formatted raw string
+        Note: if you already have the Z, A, and isomeric state information determined, the [`dchain_tools.nuclide_to_Latex_form`](https://lindt8.github.io/DCHAIN-Tools/#dchain_tools.nuclide_to_Latex_form) 
+        function can be used instead.
+
+    Dependencies:
+        - `element_Z_to_symbol` (function within the "PHITS Tools" package) (only required if `include_Z = True`)
 
     Input:
         (required)
 
        - `nuc_str` = string to be converted; a huge variety of formats are supported, but they all must follow the following rules:
+           + `nuc_str` must begin with either the atomic mass number or the elemental symbol.
+           + `nuc_str` should NOT contain the atomic/proton number (Z).
            + Isomeric/metastable state characters must always immediately follow the atomic mass characters.
-               Isomeric state labels MUST either:
+               Isomeric state labels must either:
                - (1) be a single lower-case character OR
                - (2) begin with any non-numeric character and end with a number
            + Atomic mass numbers must be nonnegative integers OR the string `"nat"` (in which case no metastable states can be written)
-           + Elemental symbols MUST begin with an upper-case character
+           + Elemental symbols must begin with an upper-case character
+           + Space `' '`, hyphen `'-'`, and underscore `'_'` can be used anywhere in `nuc_str`; they will be ignored. 
 
     Input:
        (optional)
@@ -3893,6 +4495,12 @@ def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
     for c in nuc_str:
         isalpha_list.append(c.isalpha())
         isdigit_list.append(c.isdigit())
+
+    if not any(isdigit_list):
+        print('WARNING: No mass value is present in the provided string, assuming natural abundances.')
+        nuc_str += '0'
+        isalpha_list.append(False)
+        isdigit_list.append(True)
 
     symbol = ''
     mass = ''
@@ -3962,25 +4570,61 @@ def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
     if symbol == '' and isost != '':
         symbol = isost
         isost = ''
+    
+    if symbol in ['n', 'p', 'd', 't']:
+        if symbol == 'n':
+            Z, mass = '0', '1'
+        elif symbol == 'p':
+            Z, mass = '1', '1'
+        elif symbol == 'd':
+            Z, mass = '1', '2'
+        elif symbol == 't':
+            Z, mass = '1', '3'
 
     # Now assemble LaTeX string for nuclides
     if include_Z:
-        if symbol == 'n':
-            Z = 0
-        elif symbol == 'p' or symbol == 'd' or symbol == 't':
-            Z = 1
-        else:
-            Z = Element_Sym_to_Z(symbol)
+        if symbol not in ['n', 'p', 'd', 't']:
+            Z = element_symbol_to_Z(symbol)
+            if Z == -1:
+                print('ERROR: The identified element symbol "{}" is not recognized as a valid element'.format(symbol))
+                return None
         Z = str(int(Z))
         tex_str = r"$^{{{}{}}}_{{{}}}$".format(mass,isost,Z) + "{}".format(symbol)
+    elif mass == '0':
+        tex_str = "{}".format(symbol)
     else:
         tex_str = r"$^{{{}{}}}$".format(mass,isost) + "{}".format(symbol)
 
     return tex_str
 
+def nuclide_Z_and_A_to_latex_str(Z,A,m=''):
+    r'''
+    Description:
+        Form a LaTeX-formatted string of a nuclide provided its Z/A/m information
 
-def Element_Z_to_Sym(Z):
+    Inputs:
+        - `Z` = atomic number of nuclide (int, float, or string) or elemental symbol (string)
+        - `A` = atomic mass of nuclide (int, float, or string) or string to go in place of A (ex. `'nat'`)
+        - `m` = metastable state (D=`''`, ground state); this will be appended to the end of A
+              if not a string already, it will be converted into one and appended to `'m'` (ex. `1` -> `'m1'`)
+
+    Outputs:
+        - LaTeX-formatted raw string of a nuclide, excellent for plot titles, labels, and auto-generated LaTeX documents
     '''
+    if isinstance(A,(int,float)): A = str(int(A))
+    if not isinstance(Z,str): 
+        symbol = element_Z_to_symbol(int(Z))
+    else:
+        symbol = Z
+    if isinstance(m,float): m = int(m)
+    if isinstance(m,int): m = 'm' + str(m)
+    latex_str = r"$^{{{}{}}}$".format(A,m) + "{}".format(symbol)
+    return latex_str
+
+
+
+def element_Z_to_symbol(Z):
+    r'''
     Description:
         Returns elemental symbol for a provided atomic number Z
 
@@ -4004,13 +4648,13 @@ def Element_Z_to_Sym(Z):
             "Md","No","Lr","Rf","Db","Sg","Bh","Hs","Mt","Ds",\
             "Rg","Cn","Nh","Fl","Mc","Lv","Ts","Og"]
     i = int(Z)
-    if i < 0 or i > len(elms):
+    if i < 0 or i >= len(elms):
         print('Z={} is not valid, please select a number from 0 to 118 (inclusive).'.format(str(Z)))
         return None
     return elms[i].strip()
 
-def Element_Sym_to_Z(sym):
-    '''
+def element_symbol_to_Z(sym):
+    r'''
     Description:
         Returns atomic number Z for a provided elemental symbol
 
@@ -4018,10 +4662,13 @@ def Element_Sym_to_Z(sym):
         `find` (function within the "PHITS Tools" package)
 
     Inputs:
-        - `sym` = string of elemental symbol for element of atomic number Z
+        - `sym` = string of elemental symbol for element of atomic number Z 
 
     Outputs:
         - `Z` = atomic number
+        
+    Note:
+        `'XX'` returns `0` for neutrons, avoiding clash with `'N'` for nitrogen.
     '''
     elms = ["n ",\
             "H ","He","Li","Be","B ","C ","N ","O ","F ","Ne",\
@@ -4058,21 +4705,205 @@ def Element_Sym_to_Z(sym):
 
     return Z
 
-def kfcode_to_common_name(kf_code):
+
+def element_Z_or_symbol_to_name(Z):
+    r'''
+    Description:
+        Returns an element's name provided its atomic number Z or elemental symbol
+
+    Inputs:
+        - `Z` = string of elemental symbol or atomic number Z
+
+    Outputs:
+        - `name` = element name
     '''
-        Description:
-            Converts an integer kf-code to plaintext string of a particle/nuclide
+    element_names = ['neutron','Hydrogen','Helium','Lithium','Beryllium','Boron','Carbon','Nitrogen','Oxygen','Fluorine',
+                     'Neon','Sodium','Magnesium','Aluminium','Silicon','Phosphorus','Sulfur','Chlorine','Argon',
+                     'Potassium','Calcium','Scandium','Titanium','Vanadium','Chromium','Manganese','Iron','Cobalt',
+                     'Nickel','Copper','Zinc','Gallium','Germanium','Arsenic','Selenium','Bromine','Krypton',
+                     'Rubidium','Strontium','Yttrium','Zirconium','Niobium','Molybdenum','Technetium','Ruthenium',
+                     'Rhodium','Palladium','Silver','Cadmium','Indium','Tin','Antimony','Tellurium','Iodine','Xenon',
+                     'Caesium','Barium','Lanthanum','Cerium','Praseodymium','Neodymium','Promethium','Samarium',
+                     'Europium','Gadolinium','Terbium','Dysprosium','Holmium','Erbium','Thulium','Ytterbium',
+                     'Lutetium','Hafnium','Tantalum','Tungsten','Rhenium','Osmium','Iridium','Platinum','Gold',
+                     'Mercury','Thallium','Lead','Bismuth','Polonium','Astatine','Radon','Francium','Radium',
+                     'Actinium','Thorium','Protactinium','Uranium','Neptunium','Plutonium','Americium','Curium',
+                     'Berkelium','Californium','Einsteinium','Fermium','Mendelevium','Nobelium','Lawrencium',
+                     'Rutherfordium','Dubnium','Seaborgium','Bohrium','Hassium','Meitnerium','Darmstadtium',
+                     'Roentgenium','Copernicium','Nihonium','Flerovium','Moscovium','Livermorium','Tennessine','Oganesson']
+    try:
+        zi = int(Z)
+    except:
+        zi = element_symbol_to_Z(Z)
+    return element_names[zi]
 
-        Input:
-           - `kf_code` = integer kf-code particle identification number (see PHITS manual Table 4.4)
+def element_Z_or_symbol_to_mass(Z):
+    r'''
+    Description:
+        Returns an element's average atomic mass (standard atomic weight) provided its atomic number Z or elemental symbol
 
-        Output:
-           - `par_nuc_str` = string either naming the particle or describing the input nuclide formatted as [Symbol]-[A]
-        '''
+    Inputs:
+        - `Z` = string of elemental symbol or atomic number Z
+
+    Outputs:
+        - `A_avg` = average atomic mass (standard atomic weight)
+    
+    Source:
+        [ATOMIC WEIGHTS OF THE ELEMENTS 2023, IUPAC Commission on Isotopic Abundances and Atomic Weights](https://iupac.qmul.ac.uk/AtWt/), Table 2, accessed on 14-Aug-2025.
+    
+    Notes:
+        This function is really just for quick access to average elemental mass/weight information without adding any
+        extra external dependencies to PHITS Tools.  If you wish to work with elemental/isotopic data in more detail, 
+        there are dedicated Python packages for this such as [`mendeleev`](https://github.com/lmmentel/mendeleev). 
+        
+    '''
+    
+    atomic_weights_dict = {
+        0: 1.008664, 
+        1: 1.008,
+        2: 4.002602,
+        3: 6.94,
+        4: 9.0121831,
+        5: 10.81,
+        6: 12.011,
+        7: 14.007,
+        8: 15.999,
+        9: 18.998403162,
+        10: 20.1797,
+        11: 22.98976928,
+        12: 24.305,
+        13: 26.9815384,
+        14: 28.085,
+        15: 30.973761998,
+        16: 32.06,
+        17: 35.45,
+        18: 39.95,
+        19: 39.0983,
+        20: 40.078,
+        21: 44.955907,
+        22: 47.867,
+        23: 50.9415,
+        24: 51.9961,
+        25: 54.938043,
+        26: 55.845,
+        27: 58.933194,
+        28: 58.6934,
+        29: 63.546,
+        30: 65.38,
+        31: 69.723,
+        32: 72.63,
+        33: 74.921595,
+        34: 78.971,
+        35: 79.904,
+        36: 83.798,
+        37: 85.4678,
+        38: 87.62,
+        39: 88.905838,
+        40: 91.222,
+        41: 92.90637,
+        42: 95.95,
+        43: 97.0,
+        44: 101.07,
+        45: 102.90549,
+        46: 106.42,
+        47: 107.8682,
+        48: 112.414,
+        49: 114.818,
+        50: 118.71,
+        51: 121.76,
+        52: 127.6,
+        53: 126.90447,
+        54: 131.293,
+        55: 132.90545196,
+        56: 137.327,
+        57: 138.90547,
+        58: 140.116,
+        59: 140.90766,
+        60: 144.242,
+        61: 145.0,
+        62: 150.36,
+        63: 151.964,
+        64: 157.249,
+        65: 158.925354,
+        66: 162.5,
+        67: 164.930329,
+        68: 167.259,
+        69: 168.934219,
+        70: 173.045,
+        71: 174.96669,
+        72: 178.486,
+        73: 180.94788,
+        74: 183.84,
+        75: 186.207,
+        76: 190.23,
+        77: 192.217,
+        78: 195.084,
+        79: 196.96657,
+        80: 200.592,
+        81: 204.38,
+        82: 207.2,
+        83: 208.9804,
+        84: 209.0,
+        85: 210.0,
+        86: 222.0,
+        87: 223.0,
+        88: 226.0,
+        89: 227.0,
+        90: 232.0377,
+        91: 231.03588,
+        92: 238.02891,
+        93: 237.0,
+        94: 244.0,
+        95: 243.0,
+        96: 247.0,
+        97: 247.0,
+        98: 251.0,
+        99: 252.0,
+        100: 257.0,
+        101: 258.0,
+        102: 259.0,
+        103: 262.0,
+        104: 267.0,
+        105: 270.0,
+        106: 269.0,
+        107: 270.0,
+        108: 270.0,
+        109: 278.0,
+        110: 281.0,
+        111: 281.0,
+        112: 285.0,
+        113: 286.0,
+        114: 289.0,
+        115: 289.0,
+        116: 293.0,
+        117: 293.0,
+        118: 294.0
+    }
+
+    try:
+        zi = int(Z)
+    except:
+        zi = element_symbol_to_Z(Z)
+    return atomic_weights_dict[zi]
+
+
+
+
+def kfcode_to_common_name(kf_code):
+    r'''
+    Description:
+        Converts an integer kf-code to plaintext string of a particle/nuclide
+
+    Input:
+       - `kf_code` = integer kf-code particle identification number (see PHITS manual Table 4.4)
+
+    Output:
+       - `par_nuc_str` = string either naming the particle or describing the input nuclide formatted as [Symbol]-[A]
+    '''
     kf_code = int(kf_code)
     named_kf_codes =     [2212    ,2112     ,22      ,11        ,-11       ,211    ,111    ,-211   ,-13    ,13     ,321    ,311    ,-321   ]
     named_kf_code_strs = ['proton','neutron','photon','electron','positron','pion+','pion0','pion-','muon+','muon-','kaon+','kaon0','kaon-']
-    if abs(kf_code) < 1000000:
+    if abs(kf_code) <= 1000000:
         # specifically named particles
         if kf_code in named_kf_codes:
             i = find(kf_code,named_kf_codes)
@@ -4087,44 +4918,9 @@ def kfcode_to_common_name(kf_code):
 
     return par_nuc_str
 
-def is_number(n):
-    '''
-    Description:
-        Determine if a string is that of a number or not.
-
-    Inputs:
-        - `n` = string to be tested
-
-    Outputs:
-        - `True` if value is a number (can be converted to float() without an error)
-        - `False` otherwise
-    '''
-    try:
-        float(n)
-    except ValueError:
-        return False
-    return True
-
-def find(target, myList):
-    '''
-    Description:
-        Search for and return the index of the first occurance of a value in a list.
-
-    Inputs:
-        - `target` = value to be searched for
-        - `myList` = list of values
-
-    Output:
-        - index of first instance of `target` in `myList`
-    '''
-    for i in range(len(myList)):
-        if myList[i] == target:
-            return i
-
-
 
 def determine_PHITS_output_file_type(output_file):
-    '''
+    r'''
     Description:
         Determine what kind of PHITS file is being hanlded (tally standard output, binary tally dump, ASCII tally dump, etc.)
 
@@ -4193,7 +4989,7 @@ def determine_PHITS_output_file_type(output_file):
 
 
 def search_for_dump_parameters(output_file):
-    '''
+    r'''
     Description:
         Try to determine the dump settings used for a dump file by searching for the same file without "_dmp" and parsing
         its header for the "dump = " line and subsequent line specifying the column ordering.
@@ -4213,10 +5009,10 @@ def search_for_dump_parameters(output_file):
     else:
         origin_tally_file = Path(output_file.parent, output_file.stem.replace('_dmp','') + output_file.suffix)
     PHITS_file_type = determine_PHITS_output_file_type(origin_tally_file)
-    if PHITS_file_type['file_does_not_exist']:
+    if PHITS_file_type['file_does_not_exist']:  # pragma: no cover
         print("Could not find this dump file's companion original standard tally output file",origin_tally_file)
         return dump_data_number, dump_data_sequence
-    elif not PHITS_file_type['is_standard_tally_output']:
+    elif not PHITS_file_type['is_standard_tally_output']:  # pragma: no cover
         print("Found dump file's suspected companion original standard tally output file, but it does not seem to actually be formatted as a standard tally output file",origin_tally_file)
         return dump_data_number, dump_data_sequence
     tally_header, tally_content = split_into_header_and_content(origin_tally_file)
@@ -4230,14 +5026,14 @@ def search_for_dump_parameters(output_file):
             dump_data_sequence_str_list = tally_header[li+1].strip().split()
             dump_data_sequence = [int(i) for i in dump_data_sequence_str_list]
             break
-    if dump_data_number == None and dump_data_sequence == None:
+    if dump_data_number == None and dump_data_sequence == None:  # pragma: no cover
         print('Was unable to locate dump specification information in tally output file',origin_tally_file)
     return dump_data_number, dump_data_sequence
 
 
 
 def split_into_header_and_content(output_file_path):
-    '''
+    r'''
     Description:
         Initial parsing of a PHITS tally output file to isolate its header section (containing metadata) and main
         tally results "content" section for later processing.
@@ -4278,7 +5074,7 @@ def split_into_header_and_content(output_file_path):
     return header, content
 
 def parse_tally_header(tally_header,tally_content):
-    '''
+    r'''
     Description:
         Extracts metadata from PHITS tally output header (and some extra info from its contents section)
 
@@ -4319,6 +5115,7 @@ def parse_tally_header(tally_header,tally_content):
     else:
         meta = {}
     meta['tally_type'] = tally_type
+    meta['PHITS-Tools_version'] = __version__
     unsupported_tally_types = ['[T-WWG]', '[T-WWBG]', '[T-Volume]', '[T-Userdefined]', '[T-Gshow]', '[T-Rshow]',
                                '[T-3Dshow]', '[T-4Dtrack]', 'UNKNOWN'] # '[T-Dchain]',
     if tally_type in unsupported_tally_types or is_a_dchain_input_file:
@@ -4333,6 +5130,8 @@ def parse_tally_header(tally_header,tally_content):
     meta['axis'] = None
     meta['samepage'] = 'part'
     found_mesh_kinds = []
+
+    current_data_mesh_kind = None
 
     reading_axis_data = False
     reading_regions = False
@@ -4745,7 +5544,7 @@ def parse_tally_header(tally_header,tally_content):
     return meta
 
 def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode=False):
-    '''
+    r'''
     Description:
         Parses the PHITS tally output content section and extract its results
 
@@ -5136,7 +5935,8 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                                 tdata_ivar_str = tdata_ivar_strs[itdata_axis]
                                 value = str(int(part.split('=')[1].strip()) - 1)
                                 exec(tdata_ivar_str + ' = ' + value, globals())
-                            elif meta['mesh'] == 'r-z':
+                            elif meta['mesh'] == 'r-z':   # pragma: no cover
+                                # Not sure if this ever triggers given enclos = 1 is required for [T-Cross] 2d axis args.
                                 if mesh_char=='r surf':
                                     # imesh = mesh_kind_chars.index('y')
                                     itdata_axis = 0 #1  # mesh_kind_iax[imesh]
@@ -5373,7 +6173,7 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
     else:
         raise ValueError(str(meta['axis_dimensions'])+'axis dimensions is unknown, ERROR!')
 
-    if len(banked_uninterpreted_lines) != 0:
+    if len(banked_uninterpreted_lines) != 0:   # pragma: no cover
         print('The following potentially useful output lines were found but not stored anywhere:')
         for line in banked_uninterpreted_lines:
             print('\t'+line)
@@ -5400,7 +6200,7 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
 
 
 def extract_data_from_header_line(line):
-    '''
+    r'''
     Description:
         Extract a "key" and its corresponding value from a PHITS tally output header line
 
@@ -5429,7 +6229,7 @@ def extract_data_from_header_line(line):
     return key, value
 
 def split_str_of_equalities(text):
-    '''
+    r'''
     Description:
         Extract relevant regions, indices, etc. from somewhat inconsistently formatted lines in PHITS tally output content section.
 
@@ -5463,8 +6263,8 @@ def split_str_of_equalities(text):
         equality_str = text_pieces[i] + ' ' + equality_str
         if is_i_equal_sign[i]:
             current_equality_contains_equalsign = True
-        elif current_equality_contains_equalsign: # looking to terminate if next item is numeric
-            if i==0 or (is_i_number[i-1] or text_pieces[i-1][-1]==')'): # either final equality completed or next item belongs to next equality
+        elif current_equality_contains_equalsign: # looking to terminate if next item is numeric OR next series of items is a "part = *" pattern
+            if i==0 or (is_i_number[i-1] or text_pieces[i-1][-1]==')') or (i>=3 and text_pieces[i-2]=='=' and 'part' in text_pieces[i-3]): # either final equality completed or next item belongs to next equality
                 equalities_str_list.insert(0,equality_str.strip())
                 equality_str = ''
                 current_equality_contains_equalsign = False
@@ -5485,7 +6285,7 @@ def split_str_of_equalities(text):
     return equalities_str_list
 
 def parse_group_string(text):
-    '''
+    r'''
     Description:
         Separate "groups" in a string, wherein a group is a standalone value or a series of values inside parentheses.
 
@@ -5538,7 +6338,7 @@ def parse_group_string(text):
 
 
 def initialize_tally_array(tally_metadata,include_abs_err=True):
-    '''
+    r'''
     Description:
         Initializes main tally data array in which tally results will be stored when read
 
@@ -5589,7 +6389,8 @@ def initialize_tally_array(tally_metadata,include_abs_err=True):
                 ie_max = tally_metadata['ne1']
             if 'ne2' in tally_metadata:
                 ic_max = tally_metadata['ne2']
-        elif 'e1' in tally_metadata['axis'] or 'e2' in tally_metadata['axis']:  # This should now be redundant?
+        elif 'e1' in tally_metadata['axis'] or 'e2' in tally_metadata['axis']:  # pragma: no cover
+            # This should now be redundant?
             if tally_metadata['axis'] == 'e12':
                 ie_max = tally_metadata['ne1']
                 ic_max = tally_metadata['ne2']
@@ -5644,7 +6445,7 @@ def initialize_tally_array(tally_metadata,include_abs_err=True):
     return tally_data
 
 def data_row_to_num_list(line):
-    '''
+    r'''
     Description:
         Extract numeric values from line of text from PHITS tally output content section
 
@@ -5679,7 +6480,7 @@ def data_row_to_num_list(line):
     return values
 
 def calculate_tally_absolute_errors(tdata):
-    '''
+    r'''
     Description:
         Calculates the absolute uncertainty for every value in the PHITS tally data array
 
@@ -5725,7 +6526,7 @@ def calculate_tally_absolute_errors(tdata):
 
 
 def build_tally_Pandas_dataframe(tdata,meta):
-    '''
+    r'''
     Description:
         Calculates the absolute uncertainty for every value in the PHITS tally data array
 
@@ -6064,7 +6865,7 @@ def build_tally_Pandas_dataframe(tdata,meta):
 
 
 def extract_tally_outputs_from_phits_input(phits_input, use_path_and_string_mode=False, only_seek_phitsout=False):
-    '''
+    r'''
     Description:
         Extract a list of output files produced from a PHITS input file (or its "phits.out" file, using its input echo). 
         In cases where the PHITS `infl:{*}` function is used to insert text files of PHITS input (namely input for 
@@ -6185,13 +6986,43 @@ def extract_tally_outputs_from_phits_input(phits_input, use_path_and_string_mode
                     files_dict['dump_output'] += dump_files_for_this_tally
     return files_dict
 
+@_deprecated_alias('element_Z_to_symbol()')
+def Element_Z_to_Sym(Z):
+    r'''
+    This function is a wrapper for `element_Z_to_symbol`
+    '''
+    return element_Z_to_symbol(Z)
+
+@_deprecated_alias('element_symbol_to_Z()')
+def Element_Sym_to_Z(sym):
+    r'''
+    This function is a wrapper for `element_symbol_to_Z`
+    '''
+    return element_symbol_to_Z(sym)
 
 
 
 
 
 
-if run_with_CLI_inputs:
+
+def run_PHITS_tools_CLI_or_GUI():  # pragma: no cover
+    r'''
+    Determines whether the GUI or CLI will be used and launches it
+    '''
+    #if len(sys.argv) == 1:
+    #    run_PHITS_tools_GUI()
+    if '-g' in sys.argv or '--GUI' in sys.argv:
+        run_PHITS_tools_GUI()
+    else:
+        run_PHITS_tools_CLI()
+    return None
+
+def run_PHITS_tools_CLI():  # pragma: no cover
+    r'''
+    Runs PHITS Tools via the CLI, interpreting command-line arguments
+    '''
+    import argparse
     def validate_file(arg):
         if (file := Path(arg)).is_file():
             return file
@@ -6202,6 +7033,7 @@ if run_with_CLI_inputs:
                 raise FileNotFoundError(arg)
     parser = argparse.ArgumentParser()
     parser.add_argument("file", type=validate_file, help="path to PHITS output file to parse or directory (or PHITS input or phits.out file) containing files to parse (relative or absolute path)")
+    parser.add_argument("-v", "--version", action="version", version=__version__, help='show the version number of PHITS Tools and exit')
     # Flags for standard output files
     parser.add_argument("-g", "--GUI", help="Launch the PHITS Tools GUI and ignore all other command line inputs", action="store_true")
     parser.add_argument("-np", "--disable_PandasDF", help="[standard output] disable automatic creation of Pandas DataFrame of PHITS output", action="store_true")
@@ -6357,15 +7189,20 @@ if run_with_CLI_inputs:
                                     prefer_reading_existing_pickle=prefer_reading_existing_pickle,
                                     compress_pickle_with_lzma=compress_pickle_with_lzma,
                                     autoplot_tally_output=autoplot_tally_output)
+    return None
 
-elif launch_GUI:
+def run_PHITS_tools_GUI():  # pragma: no cover
+    r'''
+    Runs PHITS Tools via the GUI, allowing user to select/specify inputs and settings via GUI
+    '''
     import tkinter as tk
     from tkinter import filedialog
     from tkinter import messagebox
     from tkinter import ttk
     import warnings
     import sys
-
+    
+    version_append_str = ' (v{:})'.format(__version__)
 
     # Function to issue a warning on unexpected closure and then exit the program
     def on_closing(window):
@@ -6670,7 +7507,7 @@ elif launch_GUI:
     #root.eval('tk::PlaceWindow . center')
     #root.geometry("+%d+%d" % (30, 10))
     
-    root.title('PHITS Tools')
+    root.title('PHITS Tools'+version_append_str)
 
     # protocol for main menu window to issue warning and exit if closed
     root.protocol("WM_DELETE_WINDOW", lambda: on_closing(root))
@@ -6793,296 +7630,18 @@ elif launch_GUI:
 
     else:
         raise ValueError('ERROR: Main mode for PHITS Tools not selected correctly in first GUI')
+    return None
 
 
+if run_with_CLI_inputs:
+    run_PHITS_tools_CLI()
+elif launch_GUI:
+    run_PHITS_tools_GUI()
 
-
-
-
-
-
-elif test_explicit_files_dirs:
-    base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\\'
-    #output_file_path = Path(base_path + 't-deposit\deposit_reg.out')
-    #output_file_path = Path(base_path + 't-deposit\deposit_eng_sp-reg.out')
-    output_file_path = Path(base_path + 't-track\\track_reg.out')
-    #output_file_path = Path(base_path + 't-track\\track_r-z.out')
-    #output_file_path = Path(base_path + 't-track\\track_xyz-xy.out')
-    #output_file_path = Path(base_path + r't-track\track_r-z_axis-rad.out')
-    #output_file_path = Path(base_path + r't-track\track_r-z_axis-deg.out')
-    #output_file_path = Path(base_path + 't-deposit\deposit_r-z.out')
-    #output_file_path = Path(base_path + 't-deposit\deposit_r-z_2dtype4.out')
-    #output_file_path = Path(base_path + 't-deposit\deposit_r-z_2dtype5.out')
-    #output_file_path = Path(base_path + 't-deposit\deposit_xyz_2dtype5.out')
-    #output_file_path = Path(base_path + 'tet_test\deposit-tet_axis-tet.out')
-    #output_file_path = Path(base_path + 'tet_test\deposit-tet_axis-eng.out')
-    #output_file_path = Path(base_path + 't-cross\cross_reg_axis-eng.out')
-    #output_file_path = Path(base_path + 't-cross\cross_reg_axis-reg.out')
-    #output_file_path = Path(base_path + 't-cross\cross_xyz_axis-eng.out')
-    #output_file_path = Path(base_path + 't-cross\cross_xyz_axis-eng_enclosed.out')
-    ###output_file_path = Path(base_path + 't-cross\cross_xyz_axis-reg.out')
-    #output_file_path = Path(base_path + 't-cross\cross_xyz_axis-xy.out')
-    #output_file_path = Path(base_path + 't-cross\cross-r-z_axis-eng.out')
-    #output_file_path = Path(base_path + 't-cross\cross-r-z_axis-eng_0r.out')
-    #output_file_path = Path(base_path + 't-cross\cross-r-z_axis-eng_enclosed.out')
-    #output_file_path = Path(base_path + 't-cross\complex\proton_in_hist_rz.out')
-    #output_file_path = Path(base_path + 't-cross\complex\\neutron_yield_rz-e-a-mesh.out')
-    #output_file_path = Path(base_path + 't-cross\complex\\neutron_yield.out')
-    #output_file_path = Path(base_path + 't-cross\complex\\xtra_neutron_yield_EvsTheta_whole-target.out')
-    #output_file_path = Path(base_path + 't-dpa\dpa_reg.out')
-    #output_file_path = Path(base_path + 't-dpa\dpa_xyz.out')
-    #output_file_path = Path(base_path + 't-dpa\dpa_r-z.out')
-    #output_file_path = Path(base_path + 'samepage\\proton_in_hist_rz_axis-eng_samepage-z.out')
-    #output_file_path = Path(base_path + 'samepage\\proton_in_hist_rz_reduced.out') # has NULL characters in it
-    #output_file_path = Path(base_path + 'samepage\\proton_in_hist_rz_sp-eng.out')
-    #output_file_path = Path(base_path + 't-deposit2\deposit2_reg.out')
-    #output_file_path = Path(base_path + 't-deposit2\deposit2_reg_axis-e21.out')
-    #output_file_path = Path(base_path + 't-deposit2\deposit2_reg_axis-t-e1.out')
-    #output_file_path = Path(base_path + 't-deposit2\deposit2_reg_axis-t-e2.out')
-    #output_file_path = Path(base_path + 't-deposit2\deposit2_reg_axis-e1-t.out')
-    #output_file_path = Path(base_path + 't-deposit2\deposit2_reg_axis-e2-t.out')
-    #output_file_path = Path(base_path + 't-deposit2\deposit2_reg_axis-eng1.out')
-    #output_file_path = Path(base_path + 't-deposit2\deposit2_reg_axis-eng2.out')
-    #output_file_path = Path(base_path + 't-heat\heat_reg.out')
-    #output_file_path = Path(base_path + 't-heat\heat_xyz.out')
-    #output_file_path = Path(base_path + 't-interact\interact_reg.out')
-    #output_file_path = Path(base_path + 't-interact\interact_reg_axis-act.out')
-    #output_file_path = Path(base_path + 't-interact\interact_xyz.out')
-    #output_file_path = Path(base_path + 't-let\let-distribution_reg.out')
-    #output_file_path = Path(base_path + 't-let\let-distribution_r-z.out')
-    #output_file_path = Path(base_path + r't-point\point.out')
-    #output_file_path = Path(base_path + r't-point\ring.out')
-    #output_file_path = Path(base_path + 't-product\product_reg.out')
-    #output_file_path = Path(base_path + 't-sed\y-distribution_reg.out')
-    #output_file_path = Path(base_path + 't-sed\y-distribution_xyz.out')
-    #output_file_path = Path(base_path + r't-time\time_reg.out')
-    #output_file_path = Path(base_path + r't-time\time_xyz.out')
-    #output_file_path = Path(base_path + r't-yield\yield_reg_axis-charge.out')
-    #output_file_path = Path(base_path + r't-yield\yield_reg_axis-mass.out')
-    #output_file_path = Path(base_path + r't-yield\yield_reg_axis-chart.out')
-    #output_file_path = Path(base_path + r't-yield\yield_reg_axis-dchain.out')
-    #output_file_path = Path(base_path + r't-yield\yield_xyz_axis-chart.out')
-    #output_file_path = Path(base_path + r't-dchain\150pH2O.dyld')
-
-    #base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\\'
-    #output_file_path = Path(base_path + r'tally\t-deposit\deposit_reg_spec-all.out')
-    #output_file_path = Path(base_path + r'sample\icrp\mrcp\External\result\Dose_MRCP-AF_reg.out')
-    #output_file_path = Path(base_path + r'sample\misc\batch_source\track_yz_001.out')
-    #output_file_path = Path(base_path + r'sample\source\Cosmicray\GCR-ground\cross.out')
-    #output_file_path = Path(base_path + r'recommendation\Fusion\track.out')
-    #output_file_path = Path(base_path + r'sample\benchmark\Iwamoto-JNST2022\case5-isis800\output\rr_air_model.out')
-    #output_file_path = Path(base_path + r'recommendation\muon\product.out')
-    #output_file_path = Path(base_path + r'recommendation\BNCT\dose.out')
-    #output_file_path = Path(base_path + r'recommendation\SemiConductor\deposit.out')
-    #output_file_path = Path(base_path + r'recommendation\Shielding\track-rz.out')
-    #output_file_path = Path(base_path + r'recommendation\TrackStructure\interact.out')
-    #output_file_path = Path(base_path + r'recommendation\CosmicRay\dose.out') # single value output
-    #output_file_path = Path(base_path + r'recommendation\CosmicRay\track.out') 
-    #output_file_path = Path(base_path + r'sample\source\Cosmicray\Airshower\depthdose.out') 
-    #output_file_path = Path(base_path + r'sample\misc\history_counter\track_yz_ch1.out')
-    #output_file_path = Path(base_path + r'recommendation\Counter\track.out')
-    #output_file_path = Path(base_path + r'MPI_dumps\\CT_1D_phantom\\neutron_yield.out')
-
-    phitsout_file_path = Path(output_file_path.parent, 'phits.out')
-    input_file_path = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\MPI_dumps\CT_1D_phantom\beam-on-target_phits-input.inp')
-    #input_file_path = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-cross\complex\beam-on-target.inp')
-    phitsout_file_path = Path(input_file_path.parent, 'phits.out')
-
-    test_parsing_of_dir = False #True
-    if test_parsing_of_dir:
-        dir_path = output_file_path = Path(base_path + r't-cross\complex\proton_in_hist_rz.out')
-        dir_output_list = parse_all_tally_output_in_dir(dir_path)
-        print(dir_output_list)
-        sys.exit()
-
-    test_parsing_of_dir_with_merge = False  # True
-    if test_parsing_of_dir_with_merge:
-        #dir_path = output_file_path = Path(base_path + r't-cross\complex\proton_in_hist_rz.out')
-        dir_path = output_file_path = Path(base_path + r't-cross\complex\beam-on-target.inp')
-        dir_output_dict = parse_all_tally_output_in_dir(dir_path, 
-                                                        merge_tally_outputs=True, 
-                                                        return_tally_output=True,
-                                                        compress_pickle_with_lzma=True,
-                                                        #include_phitsout_in_metadata=True,
-                                                        include_subdirectories=False,
-                                                        prefer_reading_existing_pickle=False,
-                                                        save_output_pickle=False,
-                                                        save_pickle_of_merged_tally_outputs=True
-                                                        )
-        print(dir_output_dict.keys())
-        print(dir_output_dict['energy_deposit.out']['tally_metadata'].keys())
-        #pprint.pp(dir_output_dict)
-        sys.exit()
-    
-    test_large_dump_splitting = False
-    if test_large_dump_splitting:
-        base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\\'
-        dump_file_path = Path(base_path + r'big_dumps\\proton_track_dmp.out')
-        print('Elapsed time before reading dump file: {:0.2f}'.format(time.time() - start))
-        x = parse_tally_dump_file(dump_file_path, save_namedtuple_list=True, save_Pandas_dataframe=True, 
-                                  return_namedtuple_list=False, return_Pandas_dataframe=False)
-        print('Elapsed time after saving dump file output containers: {:0.2f}'.format(time.time() - start))
-        sys.exit()
-    
-    test_parsing_of_MPI_dump_dir = False
-    if test_parsing_of_MPI_dump_dir:
-        base_path = r'G:\Cloud\OneDrive\work\PHITS\test_tallies\\'
-        dir_path = output_file_path = Path(base_path + r'MPI_dumps\\CT_1D_phantom\\')
-        #dump_file_path = Path(dir_path, 'gamma_yield_dmp.out.004')
-        #print(dump_file_path.is_file(),dump_file_path)
-        #nt_list, df = parse_tally_dump_file(dump_file_path, save_namedtuple_list=True, save_Pandas_dataframe=True)
-        dir_output_list = parse_all_tally_output_in_dir(dir_path, include_dump_files=True)
-        print(dir_output_list)
-        sys.exit()
-
-    test_dump_file = False
-    if test_dump_file:
-        #dump_file_path = Path(base_path + 't-cross\complex\\neutron_yield_dmp.out')
-        #dump_control_str = '2   3   4   5   6   7   8  10'
-        dump_file_path = Path(base_path + r'tally\\t-product\\dump\\product_dmp.out')
-        dump_control_str = '1  2 3 4 8 10 9  17   18    19    20'
-        #nt_list, df = parse_tally_dump_file(dump_file_path,8,dump_control_str, save_namedtuple_list=True, save_Pandas_dataframe=True)
-        # test automatic finding of dump parameters
-        print('Elapsed time before reading dump file: {:0.2f}'.format(time.time() - start))
-        nt_list, df = parse_tally_dump_file(dump_file_path, save_namedtuple_list=True, save_Pandas_dataframe=True)
-        print('Elapsed time after saving dump file output containers: {:0.2f}'.format(time.time() - start))
-
-        # test dill of namedtuple list
-        #import dill
-        import pickle
-        import lzma
-        #path_to_pickle_file = Path(base_path + 't-cross\complex\\neutron_yield_dmp_namedtuple_list.dill.xz')
-        path_to_pickle_file = Path(base_path + r'tally\\t-product\\dump\\product_dmp_namedtuple_list.pickle.xz')
-        with lzma.open(path_to_pickle_file, 'rb') as handle:
-            nt_list_dill = pickle.load(handle)
-
-        print(nt_list[0])
-        print(nt_list_dill[0])
-        print(nt_list_dill[0].kf, nt_list[0].kf)
-        print(nt_list_dill[0]['kf']) #, nt_list[0]['kf'])
-        print(nt_list_dill.dtype.names)
-
-        if [tuple(t) for t in nt_list]==[tuple(t) for t in nt_list_dill]: print('It works!')
-
-        sys.exit()
-        
-        
-    testing_phitsout_parsing = False
-    if testing_phitsout_parsing:
-        phitsout_meta = parse_phitsout_file(phitsout_file_path)
-        pprint.pp(dict(phitsout_meta))
-        sys.exit()
-    
-    testing_phits_input_parsing = False
-    if testing_phits_input_parsing:
-        x = extract_tally_outputs_from_phits_input(input_file_path)
-        pprint.pp(x)
-        phitsout_file_path = Path(input_file_path.parent, 'phits.out')
-        y = extract_tally_outputs_from_phits_input(phitsout_file_path)
-        pprint.pp(y)
-        print(x==y)
-        sys.exit()
-        
-    testing_dir_mode_with_phits_input = False 
-    if testing_dir_mode_with_phits_input:
-        x = parse_all_tally_output_in_dir(phitsout_file_path, 
-                                          include_dump_files=False,
-                                          include_phitsout_in_metadata=None,
-                                          autoplot_all_tally_output_in_dir=False)
-        print(x)
-        sys.exit()
-    
-    test_dchain_dtrk_dyld_parsing = False
-    if test_dchain_dtrk_dyld_parsing:
-        tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\tdchain.out')
-        #tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\tdchain.act')
-        #tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\tdchain.dtrk')
-        #tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\tdchain.dyld')
-        #tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\W_reg_target.out')
-        #tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\xyz\W_xyz_target.dyld')
-        #tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\xyz\W_xyz_target.out')
-        #tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\150pH2O.act')
-        #tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\150pH2O.out')
-        '''
-        #tally_output_dirpath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\\')
-        #tally_output_dirpath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\phits.out')
-        tally_output_dirpath = Path(r'G:\Cloud\OneDrive\work\PHITS\test_tallies\tally\t-dchain\lecture\dchain.inp')
-        dir_output_dict = parse_all_tally_output_in_dir(tally_output_dirpath,
-                                                        merge_tally_outputs=True,
-                                                        return_tally_output=True,
-                                                        compress_pickle_with_lzma=True,
-                                                        # include_phitsout_in_metadata=True,
-                                                        include_subdirectories=False,
-                                                        prefer_reading_existing_pickle=False,
-                                                        save_output_pickle=False,
-                                                        save_pickle_of_merged_tally_outputs=True,
-                                                        autoplot_all_tally_output_in_dir=True,
-                                                        )
-        print(dir_output_dict.keys())
-        '''
-        
-        results_dict = parse_tally_output_file(tally_output_filepath, make_PandasDF=True, calculate_absolute_errors=True,
-                                               save_output_pickle=True, compress_pickle_with_lzma=True,
-                                               autoplot_tally_output=False, include_phitsout_in_metadata=True)
-        print(results_dict.keys())
-        print(results_dict['dtrk_tally_output']['tally_metadata'].keys())
-        #pprint.pp(dict(results_dict['[T-Dchain]_metadata']))
-        #pprint.pp(dict(results_dict['dyld_tally_output']['tally_metadata']))
-        tally_df = results_dict['tally_dataframe']
-        tally_metadata = results_dict['tally_metadata']
-        pprint.pp(dict(tally_metadata))
-        print(tally_df.to_string())
-        
-        sys.exit()
-    
-    
-    test_user_support_sims = False  # True 
-    if test_user_support_sims:
-        tally_output_filepath = Path(r'G:\Cloud\OneDrive\work\PHITS\user_support_simulations\2025-05-21 Hamed PHITS Tools\flux_1_1_2_Spect.out')
-        results_dict = parse_tally_output_file(tally_output_filepath)
-        tally_df = results_dict['tally_dataframe']
-        print(tally_df.to_string())
-        sys.exit()
-    
-
-    tally_output_filepath = output_file_path
-    tally_output = parse_tally_output_file(tally_output_filepath, make_PandasDF=True, calculate_absolute_errors=True,
-                                           save_output_pickle=True)
-    tally_data = tally_output['tally_data']
-    tally_metadata = tally_output['tally_metadata']
-    tally_df = tally_output['tally_dataframe']
-    
-    pprint.pp(dict(tally_metadata))
-    
-    testing_autoplot = False
-    if testing_autoplot:
-        import matplotlib.pyplot as plt
-        fg_list = autoplot_tally_results(tally_output, return_fg_list=True) #, additional_save_extensions=['.png','jpeg'])
-        #fg = fg_list[0]
-        #for ax in fg.axes.flat:
-        #    ax.set_facecolor((0, 1, 0, 1))
-        #    ax.set_xlabel('TEST', visible=True)
-        #plt.show()
-    
-    
-    sys.exit()
-    
-    #                ir, iy, iz, ie, it, ia, il, ip, ic, ierr
-    print(tally_data[ :,  0,  0,  :,  0,  0,  0,  0,  0, 0])
-    print(tally_data[ :,  0,  0,  :,  0,  0,  0,  0,  0, 1])
-    print(tally_data[0, :, :, 0, 0, 0, 0, 0, 0, 0])
-    print(np.shape(tally_data))
-
-    #print(tally_data[ 1,  0,  0,  0,  0,  0,  0,  0,  :, 0])
-    #print(tally_metadata['nuclide_ZZZAAAM_list'])
-    #print(tally_metadata['nuclide_isomer_list'])
-
-    #ic = tally_metadata['nuclide_ZZZAAAM_list'].index(10020)
-    #print(tally_data[1, 0, 0, 0, 0, 0, 0, 0, ic, 0])
-
-
-
-
-
-
-
+elif test_explicit_files_dirs:  # pragma: no cover
+    '''
+    By setting `test_explicit_files_dirs = True`, PHITS Tools will have `in_debug_mode = True` set automatically, 
+    generating extra diagnostic print statements as the code is ran.  Quick and lazy testing can be performed here 
+    by just running `PHITS_tools.py`.
+    '''
+    pass

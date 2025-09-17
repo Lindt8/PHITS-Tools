@@ -1,0 +1,13 @@
+# exclude .github and .idea from the generated tarball
+.github      export-ignore
+.idea      export-ignore
+# exclude script used for preparing and building releases
+prepare_release.py      export-ignore
+# exclude "generated" files from the generated tarball
+test/*.pdf      export-ignore
+example/*.pdf      export-ignore
+example/*.pickle*      export-ignore
+example/*.png      export-ignore
+example/*.out      export-ignore
+example/*.eps      export-ignore
+MC_materials/*.txt      export-ignore
