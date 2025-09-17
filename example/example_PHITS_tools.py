@@ -46,8 +46,14 @@ energy_bin_midpoints = tally_metadata['e-mesh_bin_mids_log']  # in units of MeV
 # the "e-type = 3" setting means energy bins are log-spaced, so using the log-centered bin midpoints makes the most sense here
 particle_group_labels = tally_metadata['part_groups']
 particle_group_labels[-1] = 'other'  # rename the "not neutrons and not protons" group to just "other"
-for ip in range(np_array_dims[7]):
-    plt.errorbar(energy_bin_midpoints, tally_data[0,0,0,:,0,0,0,ip,0,0], yerr=tally_data[0,0,0,:,0,0,0,ip,0,2])
+# Nominal way to access `tally_data` array
+# for ip in range(np_array_dims[7]):
+#     plt.errorbar(energy_bin_midpoints, tally_data[0,0,0,:,0,0,0,ip,0,0], yerr=tally_data[0,0,0,:,0,0,0,ip,0,2])
+# Made easier with the `PHITS_tools.tally_data_indices()` function:
+for particle_name in tally_metadata['part_groups']:
+    data_indices = PHITS_tools.tally_data_indices(ie='all', part=particle_name, ival=0, default_to_all=False, tally_metadata=tally_metadata)
+    error_indices = PHITS_tools.tally_data_indices(ie='all', part=particle_name, ival=2, default_to_all=False, tally_metadata=tally_metadata)
+    plt.errorbar(energy_bin_midpoints, tally_data[data_indices], yerr=tally_data[error_indices])
 plt.legend(particle_group_labels)
 plt.xscale('log')
 plt.yscale('log')

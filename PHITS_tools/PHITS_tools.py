@@ -55,20 +55,22 @@ to create a shortcut to this executable and place the shortcut somewhere easily 
 The executable will be located in your Python installation's "Scripts" folder; you can find it easily with `where PHITS-Tools-GUI` (Windows), 
 `which PHITS-Tools-GUI` (macOS/Linux), or `python -c "import sysconfig; print(sysconfig.get_paths()['scripts'])"` (all platforms).
 
-The CLI and GUI options result in the parsed file's contents being saved to a pickle file, which can be reopened
-and used later in a Python script.  When using the main functions below within a Python script which has imported the PHITS_tools
+The CLI and GUI options result in the parsed file's contents being saved to a [pickle](https://docs.python.org/3/library/pickle.html) 
+file, which can be reopened and used later in a Python script. 
+When using the main functions below within a Python script which has imported the PHITS_tools
 module, you can optionally choose not to save the pickle files (if desired) and only have the tally output/dump parsing
 functions return the data objects they produce for your own further analyses.
 
 ### **Main PHITS Output Parsing Functions**
 
 - `parse_tally_output_file`         : general parser for standard output files for all PHITS tallies
-- `parse_tally_dump_file`           : parser for dump files from "dump" flag in PHITS [T-Cross], [T-Time], and [T-Track] tallies
+- `parse_tally_dump_file`           : parser for dump files from "dump" flag in PHITS [T-Cross], [T-Time], [T-Track], etc. tallies
 - `parse_all_tally_output_in_dir`   : run `parse_tally_output_file()` over all standard output files in a directory (and, optionally, `parse_tally_dump_file()` over all dump files too)
 - `parse_phitsout_file`             : creates a metadata dictionary of a PHITS run from its "phits.out" file
 
 ### General Purpose Functions
 
+- `tally_data_indices`              : helper function for generating indexing tuple for use with the `tally_data` 10-D NumPy array
 - `tally`                           : tally/histogram values (and their indices) falling within a desired binning structure (useful with "dump" files)
 - `rebinner`                        : rebin a set of y-data to a new x-binning structure (edges need not necessarily be preserved)
 - `autoplot_tally_results`          : make plot(s), saved as PDFs, of tally results from tally output Pandas DataFrame(s)
@@ -167,7 +169,7 @@ On Windows, using "phits/bin/phits.bat":
 - After the if statement (right before the `rem - Your file processing ends here` line), insert a new line with the following command:
 - `python "C:\path\locating\PHITS_Tools\PHITS_tools.py" "%%~nxF" -po -m -d -ddir -ddeg -lzma -p -pa`
 - Or, if PHITS Tools was installed with `pip`, `python "C:\path\locating\PHITS_Tools\PHITS_tools.py"` can be replaced with `phits-tools` as:
-    - `phits-tools "%%~nxF" -po -m -d -ddir -ddeg -lzma -p -pa`
+    - **`phits-tools "%%~nxF" -po -m -d -ddir -ddeg -lzma -p -pa`**
 
 On Linux/Mac, using "phits/bin/phits.sh":
 
@@ -175,7 +177,7 @@ On Linux/Mac, using "phits/bin/phits.sh":
 - On the line after the end of the if statement `fi`, add the following command:
 - `python "/path/locating/PHITS_Tools/PHITS_tools.py" $1 -po -m -d -ddir -ddeg -lzma -p -pa`
 - Or, if PHITS Tools was installed with `pip`, `python "/path/locating/PHITS_Tools/PHITS_tools.py"` can be replaced with `phits-tools` as:
-    - `phits-tools $1 -po -m -d -ddir -ddeg -lzma -p -pa`
+    - **`phits-tools $1 -po -m -d -ddir -ddeg -lzma -p -pa`**
 
 
 (Of course, if necessary, replace "`python`" with however you typically call python in your environment, e.g. `py`, `python3`, etc.)
@@ -227,12 +229,14 @@ On Windows, using "phits/dchain-sp/bin/dchain.bat":
 - Scroll down toward the bottom of the script, to the section with the line `rem - Your file processing ends here.`
 - Right above that line (before the `goto :continue`), insert a new line with the following command:
 - `python "C:\path\locating\PHITS_Tools\PHITS_tools.py" "%%~nxF" -po -lzma`
+- (or, if installed with `pip`) `phits-tools "%%~nxF" -po -lzma`
 
 On Linux/Mac, using "phits/dchain-sp/bin/dchain.sh":
 
 - Scroll down toward the bottom of the script, right before the line with `echo ' end of dchain '`
 - On the line after the end of the if statement `fi`, add the following command:
 - `python "/path/locating/PHITS_Tools/PHITS_tools.py" ${jnam} -po -lzma`
+- (or, if installed with `pip`) `phits-tools ${jnam} -po -lzma`
 
 This will create a ".pickle.xz" file of the processed DCHAIN outputs, as a dictionary object, with contents as 
 described in the documentation for `parse_tally_output_file()` under the "[T-Dchain] special case" section, 
@@ -265,7 +269,7 @@ import functools
 import inspect
 import warnings
 
-__version__ = '1.6.0b5'
+__version__ = '1.6.0'
 
 # default program settings
 launch_GUI = False
@@ -448,6 +452,17 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        automatically when parsing the tally output file.  Thus, for very simple tallies, most of these indices will be
        set to 0 when accessing tally results, e.g. `tally_data[2,0,0,:,0,0,0,:,0,:]` to access the full energy spectrum
        in the third region for all scored particles / particle groups with the values and uncertainties.
+       
+       The `tally_data_indices()` function is also available to help with array access since it can be a bit cumbersome.
+       With this function, you could simply use `tally_data[tally_data_indices(ir=2)]` for the earlier example, 
+       instead of `tally_data[2,0,0,:,0,0,0,:,0,:]`,
+       presuming the tally had a `reg` geometry mesh and no time or angle meshes and wasn't a tally with special axes. 
+       To be completely explicit in matching the nominal syntax, one could instead use to the same end: 
+        
+       `tally_data[tally_data_indices(default_to_all=False, ir=2, ie="all", ip="all", ierr="all")]` 
+       
+       Also note that `tally_data_indices()` allows specification of regions and particles by value/name 
+       (e.g., `reg=1001` or `part=["neutron", "proton"]`) rather than indices alone, which can be quite handy.
        
        -----
        
@@ -2283,6 +2298,232 @@ def parse_phitsout_file(phitsout_filepath, include_input_echo=True, save_phitsou
                 pickle.dump(phitsout_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
         print('\t\tPickle file written:', pickle_path)
     return phitsout_dict
+
+def tally_data_indices(*, default_to_all=True, tally_metadata=None, **axes):
+    r'''
+    Description:
+        This function is used for generating indexing tuples for the `tally_data` 10-D Numpy array outputted from 
+        `parse_tally_output_file()`, allowing selection of axes and slices more easily than keeping track of 10 
+        different indices yourself.  For reference, the `tally_data` array is structured and nominally accessed as 
+            
+       `tally_data[ ir, iy, iz, ie, it, ia, il, ip, ic, ierr ]`, with indices explained below:
+
+       Tally data indices and corresponding mesh/axis:
+
+        - `0` | `ir`, Geometry mesh: `reg` / `x` / `r` / `tet` ([T-Cross] `ir surf` if `mesh=r-z` with `enclos=0`)
+        - `1` | `iy`, Geometry mesh:  `1` / `y` / `1`
+        - `2` | `iz`, Geometry mesh:  `1` / `z` / `z` ([T-Cross] `iz surf` if `mesh=xyz` or `mesh=r-z` with `enclos=0`)
+        - `3` | `ie`, Energy mesh: `eng` ([T-Deposit2] `eng1`)
+        - `4` | `it`, Time mesh
+        - `5` | `ia`, Angle mesh
+        - `6` | `il`, LET mesh
+        - `7` | `ip`, Particle type (`part = `)
+        - `8` | `ic`, Special: [T-Deposit2] `eng2`; [T-Yield] `mass`, `charge`, `chart`; [T-Interact] `act`
+        - `9` | `ierr = 0/1/2`, Value / relative uncertainty / absolute uncertainty (expanded to `3/4/5`, or `2/3` if
+        `calculate_absolute_errors = False`, for [T-Cross] `mesh=r-z` with `enclos=0` case)
+
+    Inputs:
+        - `**axes` = This function takes as input a variety of keyword and argument pairs that will map to the 10 axes
+            of the `tally_data` array. For the keywords, you may input canonical axes names (`ir`, `iy`, `iz`, etc.)
+            or any of their aliases, which are listed below. 
+            - `tally_data` indices, corresponding axis canonical names, and allowed aliases (all case insensitive):  
+                - `0` | `ir` | `ireg`, `iregion`, `ix`, `itet`, `ir_surf`
+                - `1` | `iy` 
+                - `2` | `iz` | `iz_surf`
+                - `3` | `ie` | `ieng`, `ieng1`, `ie1`, `ised`
+                - `4` | `it` 
+                - `5` | `ia` | `icos`, `ithe`, `irad`, `ideg` 
+                - `6` | `il` | `ilet`
+                - `7` | `ip` | `ipart`, `iparticle`
+                - `8` | `ic` | `ieng2`, `ie2`, `imass`, `icharge`, `ichart`, `iact`
+                - `9` | `ierr` | `ival`
+            - The argument for each of these keywords maps to the **index** or **indices** of the specified axis and MUST&dagger; be one of the following:
+                - integer index (e.g., `0`, `1`, `20`, `-1`)
+                - [slice](https://docs.python.org/3/library/functions.html#slice) object 
+                    - entering `None` or `":"` or `"all"` is treated equivalently to `slice(None)`
+                - 1D sequence of integers for indices, a list/tuple/range/NumPy 1D integer array selecting multiple positions along that axis (duplicates & arbitrary order allowed)
+                - a [`np.s_`](https://numpy.org/doc/stable/reference/generated/numpy.s_.html) single-axis form that yields a slice or 1D integer array (e.g., `np.s_[:10:2]`, `np.s_[[0,2,5]]`).
+                - 1D boolean mask, a list/array of `bool` with length matching the specified axis
+        - &dagger;Exceptionally, there are a few special `**axes` keywords that can be provided with an argument that actually
+          maps to the **value** of that axis as opposed to its index. To use these, `tally_metadata` MUST be provided. These are:
+            - `reg`, `region` : for specifying tally region numbers
+                - The argument must be an individual or list of string(s) designating region numbers/groups. 
+                  (Integers will be converted to strings.)
+                  Any string must identically match a corresponding string in `tally_metadata['reg_groups']` to be correctly identified.
+            - `part`, `particle` : for specifying scored particles in your PHITS tally set by `part =` 
+                - The argument must be an individual or list of string(s) designating particle names/groups.
+                  Any string must identically match a corresponding string in `tally_metadata['part_groups']` to be correctly identified.
+            - `mass`, `charge` : for these axes in [T-Yield] when specified
+                - The argument must be an individual or list of integer(s) denoting mass/charge values.
+                - Note that the charge/mass axes values are actually integers starting from 0 anyways, meaning values and 
+                  indices are identical, so these are treated identically as `imass` and `icharge` and no lookup in 
+                  `tally_metadata` is performed (so, slices, 1D sequences, `np.s_`, and 1D boolean mask also work).
+        
+        Additionally, the below arguments are also available:
+        
+        - `default_to_all` = (optional, D=`True`) Boolean denoting if unspecified axes will return all entries as if using `:` in
+            place of the index (if `True`) or if unspecified axes will only return their first entry as if using `0` as
+            the index (`False`)
+        - `tally_metadata` = (optional, D=`None`) Optionally provide the `tally_metadata` dictionary object outputted from 
+            `parse_tally_output_file()` together with the `tally_data` NumPy array you wish to retrieve data from.
+            Providing this is required if using one of the exceptional&dagger; `**axes` keywords.
+
+    Outputs:
+        - `tally_indexing_tuple` = length-10 tuple to be used for indexing `tally_data`
+        
+    Examples:
+        Presume you have a PHITS tally output file you have processed as follows:
+        ```
+        from PHITS_tools import *
+        from pathlib import Path
+        standard_output_file = Path(Path.cwd(), 'example_tally.out')
+        results_dict = parse_tally_output_file(standard_output_file)
+        tally_metadata = results_dict['tally_metadata']
+        tally_data = results_dict['tally_data']
+        tally_df = results_dict['tally_dataframe']
+        ``` 
+        
+        If you wish to access the full energy spectrum in the third region for all scored particles / particle groups 
+        with the values and uncertainties included, you would nominally have to access it as `tally_data[2,0,0,:,0,0,0,:,0,:]`.
+        
+        However, with this function, you could instead simply use `tally_data[tally_data_indices(ir=2)]`, presuming a 
+        `reg` geometry mesh and no time or angle meshes and not a tally with special axes.  
+        
+        To be completely explicit in matching the nominal syntax, one could instead use to the same end: 
+        
+        `tally_data[tally_data_indices(default_to_all=False, ir=2, ie="all", ip="all", ierr="all")]` 
+        
+        Also note that aliases could had been used too (e.g., `ireg` instead of `ir`, `ieng` for `ie`, `ipart` for `ip`, etc.).
+        
+        Furthermore, to demonstrate specifying region and particles by name, let's say that this tally scored data for 
+        protons and neutrons with `part = proton neutron all` set in the tally, along with the tally scoring six 
+        regions/cells numbered 1, 2, 16, 50, 51, and 99 set via `reg = 1 2 16 50 51 99`.
+        
+        With only indices, if we wanted to get just the neutron results in region 16, we'd nominally have to remember that
+        region 16 was the third specified (`ireg=2`) and that neutrons were the second particle specified (`ipart=1`) in the tally, 
+        and we'd access it as `tally_data[tally_data_indices(ireg=2, ipart=1)]`.  However, with the special `**axes` 
+        keywords, this is even more straightforward with just:
+         
+        `tally_data[tally_data_indices(reg=16, part='neutron')]`
+        
+    '''
+    
+    '''
+    The following would be nice to add in the future:
+        - `0` | `ir` | `x`, `r`, `tet`, `r_surf`
+        - `1` | `iy` | `y`
+        - `2` | `iz` | `z`, `z_surf`
+        - `3` | `ie` | `eng`, `eng1`, `e1`, `energy`, `sed`
+        - `4` | `it` | `t`, `time`
+        - `5` | `ia` | `angle`, `cos`, `the`, `theta`, `rad`, `deg` 
+        - `6` | `il` | `let`
+        - `7` | `ip` | `part`, `particle`, `particles`
+        - `8` | `ic` | `eng2`, `e2`, `mass`, `charge`, `chart`, `act`
+        - `9` | `ierr` | `err`, `error`, `unc`, `uncertainty`, `value`, `val`
+    '''
+    
+    # Canonical axis order and maps 
+    AXES = ("ir", "iy", "iz", "ie", "it", "ia", "il", "ip", "ic", "ierr")
+    AXIS_TO_POS = {k: i for i, k in enumerate(AXES)}
+    ALIASES = {
+        # geometry
+        "ireg": "ir", "iregion": "ir", "ix": "ir", "itet": "ir", "ir_surf": "ir", 
+        #"iy": "iy",
+        "iz_surf": "iz", 
+        # meshes
+        "ieng": "ie", "ieng1": "ie", "ie1": "ie", "ised": "ie", 
+        #"it": "it",
+        "icos": "ia", "ithe": "ia", "irad": "ia", "ideg": "ia", 
+        "ilet": "il", 
+        # particle
+        "ipart": "ip", "iparticle": "ip", 
+        # special ic axis
+        "ieng2": "ic", "ie2": "ic", "imass": "ic", "icharge": "ic", "ichart": "ic", "iact": "ic", "mass": "ic", "charge": "ic", 
+        # error/value selector
+        "ival": "ierr",
+    }
+    ALIASES_SPECIAL = {
+        # geometry
+        "region": "ir", "reg": "ir", #"x": "ir", "r": "ir", "tet": "ir", "r_surf": "ir",
+        #"y": "iy",
+        #"z": "iz", "z_surf": "iz",
+        # meshes
+        #"energy": "ie", "eng": "ie", "eng1": "ie", "e1": "ie", "sed": "ie",
+        #"time": "it", "t": "it",
+        #"angle": "ia", "cos": "ia", "the": "ia", "theta": "ia", "rad": "ia", "deg": "ia",
+        #"let": "il",
+        # particle
+        "part": "ip", "particle": "ip",
+        # special ic axis
+        #"eng2": "ic", "e2": "ic", "chart": "ic", "act": "ic",
+        # error/value selector
+        #"err": "ierr", "val": "ierr",
+    }
+    
+    if default_to_all:
+        fill = slice(None)
+    else:
+        fill = 0
+    indices_items = [fill] * len(AXES)
+
+    # Resolve keys, enforce no duplicates (e.g., ir=... and region=...)
+    seen = {}
+    for k, v in axes.items():
+        k = k.lower()
+        if k in AXIS_TO_POS:
+            c = k
+        elif k in ALIASES:
+            c = ALIASES[k]
+        elif k in ALIASES_SPECIAL:
+            c = ALIASES_SPECIAL[k]
+            # check that tally_metadata was provided
+            if tally_metadata is None:
+                raise ValueError(f"Special alias '{k}' for axis '{c}' requires tally_metadata to be provided.")
+            # value needs to be converted to list of indices
+            val_list = []
+            v_index_list = []
+            if not isinstance(v, (list, tuple, np.ndarray)):
+                val_list = [v]
+            else:
+                val_list = list(v)
+            # make sure regions and particles are strings
+            val_list = [str(val) for val in val_list]
+            if k in ['reg', 'region']:
+                meta_key = 'reg_groups'
+            elif k in ['part', 'particle']:
+                meta_key = 'part_groups'
+            else:
+                raise ValueError(f"Special alias '{k}' seems to be in ALIASES_SPECIAL but not yet assigned behavior.")
+            if meta_key not in tally_metadata or tally_metadata[meta_key] is None:
+                raise ValueError(f"tally_metadata does not have '{meta_key}' set but is required for special alias '{k}'.")
+            for val in val_list:
+                ival = find(val, tally_metadata[meta_key])
+                if ival is None:
+                    raise ValueError(f"Specified value {val!r} not found in tally_metadata['{meta_key}'] = {tally_metadata[meta_key]!r}.")
+                v_index_list.append(ival)
+            if len(v_index_list)==1:
+                v = v_index_list[0]
+            else:
+                v = v_index_list
+            
+        else:
+            raise KeyError(f"Unknown axis '{k}'. Valid: {AXES} and aliases: {tuple(ALIASES.keys())} and {tuple(ALIASES_SPECIAL.keys())}")
+        
+        if c in seen:
+            raise ValueError(f"Axis '{c}' specified multiple times (via '{seen[c]}' and '{k}').")
+        seen[c] = k
+        if v is Ellipsis:
+            raise TypeError("Ellipsis (...) not supported; specify axes explicitly or use default_to_all.")
+        elif v is None:
+            indices_items[AXIS_TO_POS[c]] = slice(None)
+        elif isinstance(v, str):
+            if v == ":" or v.lower() == "all":
+                indices_items[AXIS_TO_POS[c]] = slice(None)
+            else:
+                raise TypeError(f"Unsupported string selector {v!r} for axis '{c}'. Use ':', 'all', None, or a proper indexer.")
+        else:
+            indices_items[AXIS_TO_POS[c]] = v
+    return tuple(indices_items)
 
 
 def tally(data, bin_edges=[], min_bin_left_edge=None, max_bin_right_edge=None, nbins=None, bin_width=None, divide_by_bin_width=False, normalization=None, scaling_factor=1, place_overflow_at_ends=True, return_uncertainties=False, return_event_indices_histogram=False):
