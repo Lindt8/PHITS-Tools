@@ -13,7 +13,7 @@ authors:
     orcid: 0000-0003-3761-5415
     affiliation: '1'
 affiliations:
-  - name: Western Norway University of Applied Sciences, Inndalsveien 28, 5063 Bergen, Norway
+  - name: Department of Computer science, Electrical engineering and Mathematical sciences, Western Norway University of Applied Sciences, Inndalsveien 28, 5063 Bergen, Norway
     index: 1
     ror: 05phns765
 date: 2 January 2025
