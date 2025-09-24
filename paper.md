@@ -87,7 +87,7 @@ PHITS binary dump files if using one of two specific combinations of tally dump 
 recent developments to FLUKA's [@Fluka2024_ref] FLAIR utility [@Flair3_ref] 
 involve ongoing integration efforts with PHITS.
 
-The substantial number of combinations within PHITS of geometry specification, 
+The vast number of combinations within PHITS of geometry specification,
 scoring axes (spatial, energy, time, angle, LET, etc.), tally types (scoring volumetric/surface crossing
 particle fluxes, energy deposition, nuclide production, interactions, radiation damage, and more),
 particle species, and various exceptions/edge cases for specific tallies/their settings
