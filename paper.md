@@ -88,14 +88,14 @@ recent developments to FLUKA's [@Fluka2024_ref] FLAIR utility [@Flair3_ref]
 involve ongoing integration efforts with PHITS.
 
 The substantial number of combinations within PHITS of geometry specification, 
-scoring axes (spatial, energy, time, angle, LET, etc.), tally types (scoring volumetric and surface crossing 
+scoring axes (spatial, energy, time, angle, LET, etc.), tally types (scoring volumetric/surface crossing
 particle fluxes, energy deposition, nuclide production, interactions, radiation damage, and more),
 particle species, and various exceptions/edge cases for specific tallies/their settings
 highlight the utility of such a universal processing code for PHITS. 
 When parsing standard PHITS tally output, PHITS Tools returns a metadata dictionary, 
 a 10-dimensional NumPy [@numpy_ref] array universally accommodating of all possible PHITS tally output
 containing all numerical results (structure illustrated in \autoref{tally_output_struct}), and 
-a Pandas [@pandas_ref] DataFrame containing the same numerical information for users preferring Pandas.
+a Pandas [@pandas_ref] DataFrame of the same numerical information, for users preferring Pandas.
 
 : Structure of returned parsed tally output (NumPy array axes/Pandas DataFrame columns) \label{tally_output_struct}
 
@@ -126,9 +126,9 @@ a Pandas [@pandas_ref] DataFrame containing the same numerical information for u
 +===================+==============================================================================================================================================================+
 
 PHITS Tools is also capable of parsing the "dump" outputs (both binary and plaintext formats)
-available for some tallies, and it can also automatically detect, parse, and process all PHITS
-output files listed in a provided directory or PHITS input file&mdash;very convenient 
-for simulations employing multiple tallies, each with its own output file, 
+available for some tallies, and it can automatically detect, parse, and process all PHITS
+output files listed in a provided directory or PHITS input file too&mdash;very convenient
+for simulations with multiple tallies, each with its own output file,
 whose outputs are to be further studied, e.g., compared to experimental data or other simulations.
 PHITS Tools can be used by:
 
