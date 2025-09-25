@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/PHITS_tools_banner.svg" alt="PHITS Tools banner" width="100%">
+</p>
+
 #### Online PHITS Tools documentation: [lindt8.github.io/PHITS-Tools/](https://lindt8.github.io/PHITS-Tools/)
 
 # PHITS Tools
