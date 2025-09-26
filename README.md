@@ -19,6 +19,14 @@ This module is a collection of Python 3 functions that serve to automatically pr
 
 Specifically, PHITS Tools seeks to be a universal PHITS output parser, supporting output from all tallies, both normal "standard" output as well as dump file outputs (in ASCII and binary formats), reading in the numeric data and metadata and storing them in Python objects for further use and analysis in Python.  PHITS Tools is also coupled to the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools/) module and can import it to process DCHAIN output when the main tally output parsing function is provided DCHAIN-related files.  PHITS Tools also contains a number of functions for assisting in some types of further analyses.   You can read more about how to use PHITS Tools and its output in its online documentation: [lindt8.github.io/PHITS-Tools/](https://lindt8.github.io/PHITS-Tools/)
 
+If you use/reference this code in a research paper, please cite this paper as follows:
+
+_Ratliff, H. N., (2025). The PHITS Tools Python package for parsing, organizing, and analyzing results from the PHITS radiation transport and DCHAIN activation codes. Journal of Open Source Software, 10(113), 8311, https://doi.org/10.21105/joss.08311_
+
+```bibtex
+@article{Ratliff2025, doi = {10.21105/joss.08311}, url = {https://doi.org/10.21105/joss.08311}, year = {2025}, publisher = {The Open Journal}, volume = {10}, number = {113}, pages = {8311}, author = {Ratliff, Hunter N.}, title = {{The PHITS Tools Python package for parsing, organizing, and analyzing results from the PHITS radiation transport and DCHAIN activation codes}}, journal = {Journal of Open Source Software} } 
+```
+
 ## Installation
 
 ### With `pip` (Python >= 3.10)
