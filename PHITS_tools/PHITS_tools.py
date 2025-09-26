@@ -5104,7 +5104,7 @@ def parse_tally_header(tally_header,tally_content):
     nlines = len(tally_header)
     is_a_dchain_input_file = False
     tally_type = tally_header[0].replace(' ','').replace('off','')
-    if '[' not in tally_type and ']' not in tally_type: # file is not PHITS tally output
+    if '[' not in tally_type and ']' not in tally_type or (len(tally_type)>=6 and 'htitle' in tally_type[:6]): # file is not PHITS tally output
         if 'htitle' in tally_type:
             tally_type = '[T-Dchain]'
             is_a_dchain_input_file = True
