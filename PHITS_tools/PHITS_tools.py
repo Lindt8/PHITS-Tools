@@ -269,7 +269,7 @@ import functools
 import inspect
 import warnings
 
-__version__ = '1.6.0'
+__version__ = '1.6.1'
 
 # default program settings
 launch_GUI = False
