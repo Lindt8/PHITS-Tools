@@ -2989,6 +2989,7 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                                     't_mid': 70,
                                     'a_mid': 60,
                                     'LET_mid': 109,
+                                    'SED0_mid':109, 'SED1_mid':109, 'SED2_mid':109, 'SED3_mid':109,
                                     'particle': 95,
                                     'nuclide': 20, 'ZZZAAAM': 19,
                                     'ic/Z/charge': 30, 'ic/A/mass': 30,
@@ -3024,6 +3025,8 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                                     't_mid':'Time [ns]',
                                     'a_mid':a_units,
                                     'LET_mid':r'LET [keV/$\mu$m]',
+                                    'SED0_mid':'Number of ionizations', 'SED1_mid':r'$\varepsilon$ [MeV]',
+                                    'SED2_mid':r'$y$ [keV/$\mu$m]', 'SED3_mid':r'$z$ [Gy]',
                                     'particle':'Particle',
                                     'nuclide':'Nuclide', 'ZZZAAAM':'ZZZAAAM',
                                     'ic/Z/charge':'Z (proton #)', 'ic/A/mass':'A (mass #)', 
@@ -3051,7 +3054,14 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                         col = [a for a in ['z_mid', 'z_surf'] if a in df_cols][0]
                         num_axes.append(col)
                     elif i==3: # 'e_mid'
-                        col = [a for a in ['e_mid', 'e1_mid'] if a in df_cols][0]
+                        if tally_metadata['tally_type'] == '[T-SED]':
+                            col = 'e_mid'
+                            if tally_metadata['se-unit'] is not None:
+                                new_ecol_name = 'SED'+str(tally_metadata['se-unit'])+'_mid'
+                                tally_df.rename(columns={col:new_ecol_name}, inplace=True)
+                                col = new_ecol_name
+                        else:
+                            col = [a for a in ['e_mid', 'e1_mid'] if a in df_cols][0]
                         num_axes.append(col)
                     elif i==4: # 't_mid'
                         col = 't_mid'
