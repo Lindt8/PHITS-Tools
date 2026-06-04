@@ -1,11 +1,15 @@
+<p align="center">
+  <img src="docs/PHITS_tools_banner.svg" alt="PHITS Tools banner" width="100%">
+</p>
+
 #### Online PHITS Tools documentation: [lindt8.github.io/PHITS-Tools/](https://lindt8.github.io/PHITS-Tools/)
 
 # PHITS Tools
 [![Documentation](https://img.shields.io/badge/Documentation-brightgreen)](https://lindt8.github.io/PHITS-Tools/)
 [![status](https://joss.theoj.org/papers/ef67acccadb883867ba60dc9e018ff70/status.svg)](https://joss.theoj.org/papers/ef67acccadb883867ba60dc9e018ff70)
 [![PyPI - Version](https://img.shields.io/pypi/v/PHITS-Tools?logo=pypi&logoColor=fff&label=PyPI)](https://pypi.org/project/PHITS-Tools/)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14262720.svg)](https://doi.org/10.5281/zenodo.14262720)
 [![PHITS forumn discussion on PHITS Tools](https://img.shields.io/badge/PHITS%20forum%20discussion%20-%20%2333a2d9)](https://meteor.nucl.kyushu-u.ac.jp/phitsforum/t/topic/3651/)
+<!--[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14262720.svg)](https://doi.org/10.5281/zenodo.14262720)-->
 
 [Purpose](#purpose) | [Installation](#installation) | [Usage](#primary-usageinterfaces) | [CLI options](#cli-options) | [Automatic processing](#automatic-processing-at-phits-runtime) | [Submodules](#submodules) | [Testing/Issues/Contribution](#testing-reporting-issues-and-contributing) 
 
@@ -14,6 +18,14 @@
 This module is a collection of Python 3 functions that serve to automatically process, organize, and visualize output from the PHITS general purpose Monte Carlo particle transport code (and ease/expedite further analyses) and interfaces for utilizing these parsing/processing functions.  PHITS can be obtained at [https://phits.jaea.go.jp/](https://phits.jaea.go.jp/).
 
 Specifically, PHITS Tools seeks to be a universal PHITS output parser, supporting output from all tallies, both normal "standard" output as well as dump file outputs (in ASCII and binary formats), reading in the numeric data and metadata and storing them in Python objects for further use and analysis in Python.  PHITS Tools is also coupled to the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools/) module and can import it to process DCHAIN output when the main tally output parsing function is provided DCHAIN-related files.  PHITS Tools also contains a number of functions for assisting in some types of further analyses.   You can read more about how to use PHITS Tools and its output in its online documentation: [lindt8.github.io/PHITS-Tools/](https://lindt8.github.io/PHITS-Tools/)
+
+If you use/reference this code in a research paper, please cite this paper as follows:
+
+_Ratliff, H. N., (2025). The PHITS Tools Python package for parsing, organizing, and analyzing results from the PHITS radiation transport and DCHAIN activation codes. Journal of Open Source Software, 10(113), 8311, https://doi.org/10.21105/joss.08311_
+
+```bibtex
+@article{Ratliff2025, doi = {10.21105/joss.08311}, url = {https://doi.org/10.21105/joss.08311}, year = {2025}, publisher = {The Open Journal}, volume = {10}, number = {113}, pages = {8311}, author = {Ratliff, Hunter N.}, title = {{The PHITS Tools Python package for parsing, organizing, and analyzing results from the PHITS radiation transport and DCHAIN activation codes}}, journal = {Journal of Open Source Software} } 
+```
 
 ## Installation
 
@@ -196,7 +208,7 @@ these should work and be accessed as shown without any additional configuration 
     - Can be accessed with: `from PHITS_tools import dchain_tools` 
     - This submodule provides more customized processing of DCHAIN outputs.
 - [Monte Carlo materials management submodule: `manage_mc_materials.py`](https://github.com/Lindt8/PHITS-Tools/blob/main/MC_materials)
-    - [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/docs/manage_mc_materials.html)
+    - [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/manage_mc_materials.html)
     - Can be accessed with: `from PHITS_tools import manage_mc_materials`
     - This submodule provides tools for building/customizing your own databases of materials used in Monte Carlo simulations.
 

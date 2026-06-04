@@ -84,10 +84,10 @@ fg_list[0].savefig(customized_autoplot_pdf)  # save the new customized plot
 print('\n\nDUMP TALLY OUTPUT')
 # Given parsing dump files can take a bit longer owing to their size, I think it's generally preferable to only
 # parse the dump file once and then just load in the saved pickle file(s) afterward.
-named_tuple_dill_file = Path(dump_output_file.parent, dump_output_file.stem + '_namedtuple_list.pickle.xz')
+named_tuple_pickle_file = Path(dump_output_file.parent, dump_output_file.stem + '_namedtuple_list.pickle.xz')
 dump_dataframe_file = Path(dump_output_file.parent, dump_output_file.stem + '_Pandas_df.pickle.xz')
-if named_tuple_dill_file.is_file() and dump_dataframe_file.is_file():
-    with lzma.open(named_tuple_dill_file, 'rb') as file: events_list = pickle.load(file)
+if named_tuple_pickle_file.is_file() and dump_dataframe_file.is_file():
+    with lzma.open(named_tuple_pickle_file, 'rb') as file: events_list = pickle.load(file)
     with lzma.open(dump_dataframe_file, 'rb') as file: events_df = pickle.load(file)
 else:
     events_list, events_df = PHITS_tools.parse_tally_dump_file(dump_output_file, save_namedtuple_list=True, save_Pandas_dataframe=True)
