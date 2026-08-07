@@ -671,6 +671,50 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        For more control over settings for processing DCHAIN output, you can manually use the separate suite of parsing
        functions included in the [DCHAIN Tools](https://github.com/Lindt8/DCHAIN-Tools) module (and also available within 
        PHITS Tools as `from PHITS_tools import dchain_tools` / `from PHITS_tools.dchain_tools import *`).
+
+
+       -----
+
+       **"Sum over" and [T-LET] / [T-SED] special cases**
+
+       The PHITS-produced tally output files, when using a one-dimensional `axis` parameter, typically feature a line
+       starting with `#   sum over` at the end of each table of scored values. PHITS Tools ignores this line
+       given it can typically be trivially re-calculated from summing across axes of the tallied values (sometimes also
+       requiring a bin width multiplication, depending on the selected `unit` in the tally). There are some exceptions
+       to this where the "sum over" line contains a genuinely nontrivial alternate set of values.
+       Specifically, this occurs in the following cases:
+
+        - For [T-LET], if `axis = let` is set along with either `unit = 13` or `unit = 14` in the tally, the "sum over"
+            line instead contains the frequency or dose mean of the respective probability densities, _f(L)_ or _d(L)_.
+        - For [T-SED], if `axis = sed` is set along with either `unit = 7` or `unit = 8` in the tally, the "sum over"
+            line instead contains the frequency or dose mean of the respective probability densities, _f(e/y/z)_ or _d(e/y/z)_.
+
+       In these circumstances, the value written to the "sum over" line is actually a weighted average LET or microdosimetric
+       quantity (as specified by the `se-unit` value in [T-SED]) over each LET/SED axis, using the midpoint of each LET/SED bin.
+       Noting that PHITS Tools assigns the LET axis to axis index 6 but the SED "energy" axis to axis index 3 in the
+       `tally_output['tally_data']` 10-D NumPy array, one can calculate these special "sum over" line values as follows:
+
+           import pickle, lzma; from pathlib import Path; import numpy as np
+           p = Path('path/to/pickle/file.pickle[.xz]')
+           tally_output = pickle.load(lzma.open(p, 'rb') if p.name[-3:]=='.xz' else open(p, 'rb'))
+           tally_data, tally_metadata, tally_dataframe = [tally_output[k] for k in tally_output.keys()]
+
+           # If calculating frequency/dose mean values for [T-LET] unit=13/14 output:
+           lbin_mids = np.array(tally_metadata['l-mesh_bin_mids_log'])[None, None, None, None, None, None, :, None, None]
+           sumline_vals = np.sum(tally_data[...,0]*lbin_mids, axis=6)/np.sum(tally_data[...,0], axis=6)
+
+           # If calculating frequency/dose mean values for [T-SED] unit=7/8 output:
+           ebin_mids = np.array(tally_metadata['e-mesh_bin_mids_log'])[None, None, None, :, None, None, None, None, None]
+           sumline_vals = np.sum(tally_data[...,0]*ebin_mids, axis=3)/np.sum(tally_data[...,0], axis=3)
+
+
+       A few important notes about this:
+
+        - For the LET/SED "energy" bin midpoints, the logarithmic `_log` bin midpoints should be used if your `l-type`/`se-type`
+            scoring mesh was logarithmic (set to type 3 or 5). Otherwise, if linear (types 2 and 4), then use the linear bin midpoints.
+        - The returned `sumline_vals` array is 8-D, as the LET/SED axis (index 3 or 6) has been reduced out, along with the final `ierr` axis.
+
+
        
 
     '''
