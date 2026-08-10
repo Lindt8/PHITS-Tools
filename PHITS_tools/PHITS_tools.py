@@ -371,12 +371,12 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
                       if found, should be processed via `parse_phitsout_file()` and have its informational dictionary 
                       about the PHITS run added to the `'tally_metadata'` dictionary under the key `'phitsout'`.
                       If `True`, this function assumes `file(6) = phits.out` (the default setting) in the PHITS input.
-            -         If, instead of a Boolean, a dictionary-type object is provided, no search will be conducted and the provided
+           -         If, instead of a Boolean, a dictionary-type object is provided, no search will be conducted and the provided
                       dictionary will be taken as that to be added as the `'phitsout'` key in the `'tally_metadata'` dictionary.
-            -         Otherwise, if a string or [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) object 
+           -         Otherwise, if a string or [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) object
                       is provided, this will be taken as the path to the "phits.out"-type file to be processed and have its 
                       informational dictionary added to the `'tally_metadata'` dictionary.
-            -         Setting `include_phitsout_in_metadata = None` functions the same as `include_phitsout_in_metadata = True` 
+           -         Setting `include_phitsout_in_metadata = None` functions the same as `include_phitsout_in_metadata = True`
                       but sets `include_input_echo = False` in the `parse_phitsout_file()` call.
        - **`prefer_reading_existing_pickle`** = (D=`False`) A Boolean determining what this function does if the pickle file this function
                       seeks to generate already exists.  If `False` (default behavior), this function will parse the PHITS
@@ -399,9 +399,9 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
     ##Output:
 
        - **`tally_output`** = a dictionary object with the below keys and values:
-            - `'tally_data'` = a 10-dimensional NumPy array containing all tally results, explained in more detail below
-            - `'tally_metadata'` = a dictionary/Munch&dagger; object with various data extracted from the tally output file, such as axis binning and units
-            - `'tally_dataframe'` = a Pandas dataframe version of `tally_data` (`None` if `make_PandasDF = False`) 
+           - `'tally_data'` = a 10-dimensional NumPy array containing all tally results, explained in more detail below
+           - `'tally_metadata'` = a dictionary/Munch&dagger; object with various data extracted from the tally output file, such as axis binning and units
+           - `'tally_dataframe'` = a Pandas dataframe version of `tally_data` (`None` if `make_PandasDF = False`)
        
        &dagger;_If you have the [Munch package](https://github.com/Infinidat/munch) installed, the `tally_metadata` dictionary
        will instead be a Munch object, which is identical to a dictionary but additionally allows attribute-style access 
@@ -1671,21 +1671,21 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = Non
                       (`file(6)` in the [Parameters] section of a PHITS input file) in the same directory as `tally_output_dirpath`, 
                       if found, should be processed via `parse_phitsout_file()` and have its informational dictionary 
                       about the PHITS run added to the `'tally_metadata'` dictionary under the key `'phitsout'`. 
-            -         This only works if a single "phits.out"-type file is found; if multiple are encountered (as determined by `determine_PHITS_output_file_type()`), 
+           -         This only works if a single "phits.out"-type file is found; if multiple are encountered (as determined by `determine_PHITS_output_file_type()`),
                       they will still be processed with `parse_phitsout_file()` (if `save_output_pickle=True` or `merge_tally_outputs=True`) but not added to 
                       any tally output metadata dictionaries. In this circumstance and if `merge_tally_outputs=True`, 
                       the multiple phits.out dictionaries will be added to the merged dictionary.
-            -         If, instead of a Boolean, a dictionary-type object is provided, no search will be conducted and the provided
+           -         If, instead of a Boolean, a dictionary-type object is provided, no search will be conducted and the provided
                       dictionary will be taken as that to be added as the `'phitsout'` key in the `'tally_metadata'` dictionary.
-            -         Otherwise, if a string or [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) object 
+           -         Otherwise, if a string or [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) object
                       is provided, this will be taken as the path to the "phits.out"-type file to be processed and have its 
                       informational dictionary added to the `'tally_metadata'` dictionary. 
-            -         Note that this is automatically set to `True` if in *[INPUT_FILE mode]* (if `tally_output_dirpath` 
+           -         Note that this is automatically set to `True` if in *[INPUT_FILE mode]* (if `tally_output_dirpath`
                       is a file, rather than a directory, and deemed to be a PHITS input file or "phits.out"-type file, 
                       as determined by `determine_PHITS_output_file_type()`);
                       to override this automatic behavior (i.e., to behave as if set to `False` even when provided a PHITS 
                       input or phits.out file), set `include_phitsout_in_metadata = {}`.
-            -         Setting `include_phitsout_in_metadata = None` functions the same as `include_phitsout_in_metadata = True` 
+           -         Setting `include_phitsout_in_metadata = None` functions the same as `include_phitsout_in_metadata = True`
                       but sets `include_input_echo = False` in the `parse_phitsout_file()` call.
        - **`compress_pickle_with_lzma`** = (D=`False`; requires `save_output_pickle=True`) Boolean designating 
                       whether the pickle file to be saved will be compressed with 
@@ -1750,9 +1750,9 @@ def parse_all_tally_output_in_dir(tally_output_dirpath, output_file_suffix = Non
     ##Output:
        - **`tally_output_list`** = a list of `tally_output` dictionary objects (if `return_tally_output=True`) with the
              below keys and values / a list of file paths to pickle files containing `tally_output` dictionary objects:
-            - `'tally_data'` = a 10-dimensional NumPy array containing all tally results, explained in more detail below
-            - `'tally_metadata'` = a dictionary/Munch&dagger; object with various data extracted from the tally output file, such as axis binning and units
-            - `'tally_dataframe'` = (optionally included if setting `make_PandasDF = True`) a Pandas dataframe version of `tally_data`
+           - `'tally_data'` = a 10-dimensional NumPy array containing all tally results, explained in more detail below
+           - `'tally_metadata'` = a dictionary/Munch&dagger; object with various data extracted from the tally output file, such as axis binning and units
+           - `'tally_dataframe'` = (optionally included if setting `make_PandasDF = True`) a Pandas dataframe version of `tally_data`
        - This list of `tally_output` dictionary objects will be returned as a larger merged dictionary/Munch&dagger; object,
                keyed using the tally output file names, instead if `merge_tally_outputs=True` and `return_tally_output=True`.  
                If `merge_tally_outputs=True`, `return_tally_output=False`, `save_output_pickle=False`, and `save_pickle_of_merged_tally_outputs=True`, 
@@ -2096,21 +2096,21 @@ def parse_phitsout_file(phitsout_filepath, include_input_echo=True, save_phitsou
     ##Outputs:
        - `phitsout_dict` = a dictionary/Munch&dagger; object with various information/data extracted from the "phits.out" file.
             It is organized with the following keys:
-            - `'job'` : a dictionary of information about the run (PHITS version, start/end time, CPU time, MPI info, etc.)
-            - `'summary'` : a dictionary of the various text tables in the "Summary for the end of job" section of the 
+           - `'job'` : a dictionary of information about the run (PHITS version, start/end time, CPU time, MPI info, etc.)
+           - `'summary'` : a dictionary of the various text tables in the "Summary for the end of job" section of the
                     phits.out file. The sections clearly formatted as tables are generally converted into Pandas DataFrames.
-            - `'memory'` : a string of the section of text in phits.out containing memory usage information
-            - `'batch'` : a string of the section of text in phits.out containing information on each batch
-            - `'input_echo'` : a string of the "Input Echo" text section of phits.out
-            - `'produced_files'` : a dictionary of the output files produced by this PHITS run's tallies, catergorized 
+           - `'memory'` : a string of the section of text in phits.out containing memory usage information
+           - `'batch'` : a string of the section of text in phits.out containing information on each batch
+           - `'input_echo'` : a string of the "Input Echo" text section of phits.out
+           - `'produced_files'` : a dictionary of the output files produced by this PHITS run's tallies, catergorized
                     with keys `'standard_output'` (list of [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) objects), 
                     `'dump_output'` (list of [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) objects), and 
                     `'phitsout'` (a single [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) object); 
                     this is the `files_dict` output returned by the `extract_tally_outputs_from_phits_input()` function. 
-            - `'citation_request'` : a string of the "Citation Request" text section of phits.out listing additional papers 
+           - `'citation_request'` : a string of the "Citation Request" text section of phits.out listing additional papers
                     beyond the main PHITS reference paper that should be cited in any publications using results from
                     this simulation owing to using dependent models, codes, etc.
-            - `'extra_lines'` : a list of strings of any lines parsed by this function not classified as belonging to 
+           - `'extra_lines'` : a list of strings of any lines parsed by this function not classified as belonging to
                     any other section (and clearly containing information; i.e., not just blank or delimiter lines)
         
        To conveniently view the contents of `phitsout_dict`, one can import the built-in
@@ -2371,36 +2371,36 @@ def tally_data_indices(*, default_to_all=True, tally_metadata=None, **axes):
        - `**axes` = This function takes as input a variety of keyword and argument pairs that will map to the 10 axes
             of the `tally_data` array. For the keywords, you may input canonical axes names (`ir`, `iy`, `iz`, etc.)
             or any of their aliases, which are listed below. 
-            - `tally_data` indices, corresponding axis canonical names, and allowed aliases (all case insensitive):  
-                - `0` | `ir` | `ireg`, `iregion`, `ix`, `itet`, `ir_surf`
-                - `1` | `iy` 
-                - `2` | `iz` | `iz_surf`
-                - `3` | `ie` | `ieng`, `ieng1`, `ie1`, `ised`
-                - `4` | `it` 
-                - `5` | `ia` | `icos`, `ithe`, `irad`, `ideg` 
-                - `6` | `il` | `ilet`
-                - `7` | `ip` | `ipart`, `iparticle`
-                - `8` | `ic` | `ieng2`, `ie2`, `imass`, `icharge`, `ichart`, `iact`
-                - `9` | `ierr` | `ival`
-            - The argument for each of these keywords maps to the **index** or **indices** of the specified axis and MUST&dagger; be one of the following:
-                - integer index (e.g., `0`, `1`, `20`, `-1`)
-                - [slice](https://docs.python.org/3/library/functions.html#slice) object 
-                    - entering `None` or `":"` or `"all"` is treated equivalently to `slice(None)`
-                - 1D sequence of integers for indices, a list/tuple/range/NumPy 1D integer array selecting multiple positions along that axis (duplicates & arbitrary order allowed)
-                - a [`np.s_`](https://numpy.org/doc/stable/reference/generated/numpy.s_.html) single-axis form that yields a slice or 1D integer array (e.g., `np.s_[:10:2]`, `np.s_[[0,2,5]]`).
-                - 1D boolean mask, a list/array of `bool` with length matching the specified axis
+           - `tally_data` indices, corresponding axis canonical names, and allowed aliases (all case insensitive):
+               - `0` | `ir` | `ireg`, `iregion`, `ix`, `itet`, `ir_surf`
+               - `1` | `iy`
+               - `2` | `iz` | `iz_surf`
+               - `3` | `ie` | `ieng`, `ieng1`, `ie1`, `ised`
+               - `4` | `it`
+               - `5` | `ia` | `icos`, `ithe`, `irad`, `ideg`
+               - `6` | `il` | `ilet`
+               - `7` | `ip` | `ipart`, `iparticle`
+               - `8` | `ic` | `ieng2`, `ie2`, `imass`, `icharge`, `ichart`, `iact`
+               - `9` | `ierr` | `ival`
+           - The argument for each of these keywords maps to the **index** or **indices** of the specified axis and MUST&dagger; be one of the following:
+               - integer index (e.g., `0`, `1`, `20`, `-1`)
+               - [slice](https://docs.python.org/3/library/functions.html#slice) object
+                   - entering `None` or `":"` or `"all"` is treated equivalently to `slice(None)`
+               - 1D sequence of integers for indices, a list/tuple/range/NumPy 1D integer array selecting multiple positions along that axis (duplicates & arbitrary order allowed)
+               - a [`np.s_`](https://numpy.org/doc/stable/reference/generated/numpy.s_.html) single-axis form that yields a slice or 1D integer array (e.g., `np.s_[:10:2]`, `np.s_[[0,2,5]]`).
+               - 1D boolean mask, a list/array of `bool` with length matching the specified axis
        - &dagger;Exceptionally, there are a few special `**axes` keywords that can be provided with an argument that actually
           maps to the **value** of that axis as opposed to its index. To use these, `tally_metadata` MUST be provided. These are:
-            - `reg`, `region` : for specifying tally region numbers
-                - The argument must be an individual or list of string(s) designating region numbers/groups. 
+           - `reg`, `region` : for specifying tally region numbers
+               - The argument must be an individual or list of string(s) designating region numbers/groups.
                   (Integers will be converted to strings.)
                   Any string must identically match a corresponding string in `tally_metadata['reg_groups']` to be correctly identified.
-            - `part`, `particle` : for specifying scored particles in your PHITS tally set by `part =` 
-                - The argument must be an individual or list of string(s) designating particle names/groups.
+           - `part`, `particle` : for specifying scored particles in your PHITS tally set by `part =`
+               - The argument must be an individual or list of string(s) designating particle names/groups.
                   Any string must identically match a corresponding string in `tally_metadata['part_groups']` to be correctly identified.
-            - `mass`, `charge` : for these axes in [T-Yield] when specified
-                - The argument must be an individual or list of integer(s) denoting mass/charge values.
-                - Note that the charge/mass axes values are actually integers starting from 0 anyways, meaning values and 
+           - `mass`, `charge` : for these axes in [T-Yield] when specified
+               - The argument must be an individual or list of integer(s) denoting mass/charge values.
+               - Note that the charge/mass axes values are actually integers starting from 0 anyways, meaning values and
                   indices are identical, so these are treated identically as `imass` and `icharge` and no lookup in 
                   `tally_metadata` is performed (so, slices, 1D sequences, `np.s_`, and 1D boolean mask also work).
         
@@ -2418,15 +2418,16 @@ def tally_data_indices(*, default_to_all=True, tally_metadata=None, **axes):
         
     ##Examples:
        Presume you have a PHITS tally output file you have processed as follows:
-       ```
-       from PHITS_tools import *
-       from pathlib import Path
-       standard_output_file = Path(Path.cwd(), 'example_tally.out')
-       results_dict = parse_tally_output_file(standard_output_file)
-       tally_metadata = results_dict['tally_metadata']
-       tally_data = results_dict['tally_data']
-       tally_df = results_dict['tally_dataframe']
-       ```
+
+        ```
+        from PHITS_tools import *
+        from pathlib import Path
+        standard_output_file = Path(Path.cwd(), 'example_tally.out')
+        results_dict = parse_tally_output_file(standard_output_file)
+        tally_metadata = results_dict['tally_metadata']
+        tally_data = results_dict['tally_data']
+        tally_df = results_dict['tally_dataframe']
+        ```
         
        If you wish to access the full energy spectrum in the third region for all scored particles / particle groups
        with the values and uncertainties included, you would nominally have to access it as `tally_data[2,0,0,:,0,0,0,:,0,:]`.
