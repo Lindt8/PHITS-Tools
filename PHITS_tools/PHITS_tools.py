@@ -3704,19 +3704,19 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
 def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=None,particle=None,matdict=None,
                       database_filename='Compiled_MC_materials',prefer_user_data_folder=True):
     r'''
-    Description:
-        Returns a materials definition string formatted for use in PHITS or MCNP (including a density estimate);
-        most available materials are those found in [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125).
-        Note that you can modify this materials database and create additional databases that can interface 
-        with this function via the `PHITS_tools.manage_mc_materials` submodule; see the [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/manage_mc_materials.html)
-        for more detailed information and instructions on managing the materials database.
+    ##Description:
+       Returns a materials definition string formatted for use in PHITS or MCNP (including a density estimate);
+       most available materials are those found in [PNNL-15870 Rev. 1](https://www.osti.gov/biblio/1023125).
+       Note that you can modify this materials database and create additional databases that can interface
+       with this function via the `PHITS_tools.manage_mc_materials` submodule; see the [**`PHITS_tools.manage_mc_materials` submodule documentation**](https://lindt8.github.io/PHITS-Tools/manage_mc_materials.html)
+       for more detailed information and instructions on managing the materials database.
 
-    Dependencies:
-        - Either PHITS Tools must be installed via `pip` (which automatically handles this) or your
+    ##Dependencies:
+       - Either PHITS Tools must be installed via `pip` (which automatically handles this) or your
                 PYTHONPATH environmental variable must be set and one entry must contain the directory
                 which contains PHITS Tools and the vital "MC_materials/Compiled_MC_materials.json" file.
 
-    Inputs:
+    ##Inputs:
        (required to enter `matid` OR `matname`, with `matid` taking priority if conflicting)
 
        - `matid` = ID number in the database specified by `database_filename`
@@ -3739,7 +3739,7 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
                 [`pkgutil.get_loader`](https://docs.python.org/3/library/pkgutil.html#pkgutil.get_loader)`("PHITS_tools").get_filename()`
                 then, failing that, the PYTHONPATH environmental variable.
                 
-    Outputs:
+    ##Outputs:
        - `mat_str` = string containing the material's information, ready to be inserted directly into a PHITS/MCNP input file
     '''
     import os
@@ -3930,35 +3930,35 @@ def fetch_MC_material(matid=None,matname=None,matsource=None,concentration_type=
 
 def ICRP116_effective_dose_coeff(E=1.0,particle='photon',geometry='AP',interp_scale='log',interp_type='cubic',extrapolation_on=False):
     r'''
-    Description:
-        For a given particle at a given energy in a given geometry, returns its
-        effective dose conversion coefficient from [ICRP 116](https://doi.org/10.1016/j.icrp.2011.10.001)
+    ##Description:
+       For a given particle at a given energy in a given geometry, returns its
+       effective dose conversion coefficient from [ICRP 116](https://doi.org/10.1016/j.icrp.2011.10.001)
 
-    Dependencies:
-        - `import numpy as np`
-        - `from scipy.interpolate import CubicSpline, lagrange, interp1d`
-        - `find` (function within the "PHITS Tools" package)
+    ##Dependencies:
+       - `import numpy as np`
+       - `from scipy.interpolate import CubicSpline, lagrange, interp1d`
+       - `find` (function within the "PHITS Tools" package)
 
-    Inputs:
+    ##Inputs:
        - `E` = energy of the particle in MeV (D=`1`)
        - `particle` = select particle (D=`'photon'`, options include: `['photon', 'electron', 'positron' ,'neutron' ,'proton', 'negmuon', 'posmuon', 'negpion', 'pospion', 'He3ion']`)
        - `geometry` = geometric arrangement (D=`'AP'`, options include: `['AP', 'PA', 'LLAT', 'RLAT', 'ROT', 'ISO', 'H*(10)']` (`'LLAT'`,`'RLAT'`,`'ROT'` only available for photon, proton, and neutron))
-              - Meanings:
+           - Meanings:
                AP, antero-posterior; PA, postero-anterior; LLAT, left lateral; RLAT, right lateral; ROT, rotational; ISO, isotropic.
-              - Note: `'H*(10)'` ambient dose equivalent is available for photons only
+           - Note: `'H*(10)'` ambient dose equivalent is available for photons only
        - `interp_scale` = interpolation scale (D=`'log'` to interpolate on a log scale, options include: `['log','lin']`, ICRP 74/116 suggest log-log cubic interpolation)
        - `interp_type`  = interpolation method (D=`'cubic'` to interpolate with a cubic spline, options include: `['cubic','linear']`, ICRP 74/116 suggest log-log cubic interpolation)
                                               technically, any options available for scipy.interpolate.interp1d() can be used: `['linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic', 'previous']`
        - `extrapolation_on` = boolean designating whether values outside of the tabulated energies will be extrapolated (D=`False`)
 
-             |                           |                                                                       |
-             | ------------------------- | --------------------------------------------------------------------- |
-             | if `False` & `E` < E_min, | f(`E`) = 0                                                              |
-             | if `False` & `E` > E_max, | f(`E`) = f(E_max)                                                       |
-             | if `True`  & `E` < E_min, | f(`E`) is linearly interpolated between (0,0) and (E_min,f(E_min))      |
-             | if `True`  & `E` > E_max, | f(`E`) is extrapolated using the specified interpolation scale and type |
+       |                           |                                                                       |
+       | ------------------------- | --------------------------------------------------------------------- |
+       | if `False` & `E` < E_min, | f(`E`) = 0                                                              |
+       | if `False` & `E` > E_max, | f(`E`) = f(E_max)                                                       |
+       | if `True`  & `E` < E_min, | f(`E`) is linearly interpolated between (0,0) and (E_min,f(E_min))      |
+       | if `True`  & `E` > E_max, | f(`E`) is extrapolated using the specified interpolation scale and type |
     
-    Outputs:
+    ##Outputs:
        - `f` = effective dose conversion coefficient in pSv*cm^2
     '''
     import numpy as np
