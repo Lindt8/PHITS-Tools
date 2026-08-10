@@ -3951,12 +3951,12 @@ def ICRP116_effective_dose_coeff(E=1.0,particle='photon',geometry='AP',interp_sc
                                               technically, any options available for scipy.interpolate.interp1d() can be used: `['linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic', 'previous']`
        - `extrapolation_on` = boolean designating whether values outside of the tabulated energies will be extrapolated (D=`False`)
 
-       |                           |                                                                       |
-       | ------------------------- | --------------------------------------------------------------------- |
-       | if `False` & `E` < E_min, | f(`E`) = 0                                                              |
-       | if `False` & `E` > E_max, | f(`E`) = f(E_max)                                                       |
-       | if `True`  & `E` < E_min, | f(`E`) is linearly interpolated between (0,0) and (E_min,f(E_min))      |
-       | if `True`  & `E` > E_max, | f(`E`) is extrapolated using the specified interpolation scale and type |
+         |                           |                                                                       |
+         | ------------------------- | --------------------------------------------------------------------- |
+         | if `False` & `E` < E_min, | f(`E`) = 0                                                              |
+         | if `False` & `E` > E_max, | f(`E`) = f(E_max)                                                       |
+         | if `True`  & `E` < E_min, | f(`E`) is linearly interpolated between (0,0) and (E_min,f(E_min))      |
+         | if `True`  & `E` > E_max, | f(`E`) is extrapolated using the specified interpolation scale and type |
     
     ##Outputs:
        - `f` = effective dose conversion coefficient in pSv*cm^2
@@ -4138,21 +4138,21 @@ def ICRP116_effective_dose_coeff(E=1.0,particle='photon',geometry='AP',interp_sc
 def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merged_dump', 
                             delete_pre_merge_pickles=False, compress_pickles_with_lzma=True):
     r'''
-    Description:
-        Merge the pickle files (namedtuple lists and/or PandasDataFrames) belonging to numerous PHITS dump output files.
+    ##Description:
+       Merge the pickle files (namedtuple lists and/or PandasDataFrames) belonging to numerous PHITS dump output files.
 
-    Inputs:
-        - `dump_filepath_list` = list of Path objects or strings denoting filepaths to the PHITS dump files 
+    ##Inputs:
+       - `dump_filepath_list` = list of Path objects or strings denoting filepaths to the PHITS dump files
                  (e.g., "*_dmp.out") to be merged.  Note that all dump files must be structured in the same way in 
                  terms of number of columns and their meanings.
-        - `merged_dump_base_filepath` = (D=`os.cwd()+'merged_dump'`) Path object or string designating the base file 
+       - `merged_dump_base_filepath` = (D=`os.cwd()+'merged_dump'`) Path object or string designating the base file
                  path name to be used for the merged pickle files, 
                  which will take the form `merged_dump_base_filepath` + "_namedtuple_list.pickle[.xz]" and/or 
                  "_Pandas_df.pickle[.xz]" (the ".xz" being contingent on LZMA usage via `compress_pickles_with_lzma`).
-        - `delete_pre_merge_pickles` = (optional, D=`False`) Boolean designating whether the numerous pickle files to be 
+       - `delete_pre_merge_pickles` = (optional, D=`False`) Boolean designating whether the numerous pickle files to be
                  merged into one should be deleted after the merge is successful. (Note: File deletion will only succeed 
                  if you have permissions to delete these files on your system.)
-        - `compress_pickles_with_lzma` = (optional, D=`True`) Boolean designating whether the pickle files to be saved of
+       - `compress_pickles_with_lzma` = (optional, D=`True`) Boolean designating whether the pickle files to be saved of
                  the merged namedtuple lists and/or the Pandas DataFrames 
                  will be compressed with [LZMA compression](https://docs.python.org/3/library/lzma.html) (included within
                  the baseline [Python standard library](https://docs.python.org/3/library/index.html)); if so, the file
@@ -4162,14 +4162,14 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
                  While compression will notably slow down the file-saving process, owing to the often large size of
                  PHITS dump files the additional reduction in file size (often around a factor of 5) is generally preferred.
 
-    Notes:
-        For each dump file provided, this function will check for the existence of the same filename/path but with
-        "_namedtuple_list.pickle[.xz]" and "_Pandas_df.pickle[.xz]" at the end.  If neither file for a provided 
-        dump file is found but the dump file itself is found to exist, `parse_tally_dump_file()` will be called on it
-        with default settings except `save_namedtuple_list=True` and  `save_Pandas_dataframe=True`.
+    ##Notes:
+       For each dump file provided, this function will check for the existence of the same filename/path but with
+       "_namedtuple_list.pickle[.xz]" and "_Pandas_df.pickle[.xz]" at the end.  If neither file for a provided
+       dump file is found but the dump file itself is found to exist, `parse_tally_dump_file()` will be called on it
+       with default settings except `save_namedtuple_list=True` and  `save_Pandas_dataframe=True`.
 
-    Outputs:
-        - `merge_success` = Boolean designating whether merging succeeded or not.
+    ##Outputs:
+       - `merge_success` = Boolean designating whether merging succeeded or not.
     '''
     import lzma
     import pickle
@@ -4286,15 +4286,15 @@ def merge_dump_file_pickles(dump_filepath_list, merged_dump_base_filepath='merge
 
 def is_number(n):
     r'''
-    Description:
-        Determine if a string is that of a number or not.
+    ##Description:
+       Determine if a string is that of a number or not.
 
-    Inputs:
-        - `n` = string to be tested
+    ##Inputs:
+       - `n` = string to be tested
 
-    Outputs:
-        - `True` if value is a number (can be converted to float() without an error)
-        - `False` otherwise
+    ##Outputs:
+       - `True` if value is a number (can be converted to float() without an error)
+       - `False` otherwise
     '''
     try:
         float(n)
@@ -4304,15 +4304,15 @@ def is_number(n):
 
 def find(target, myList):
     r'''
-    Description:
-        Search for and return the index of the first occurance of a value in a list.
+    ##Description:
+       Search for and return the index of the first occurance of a value in a list.
 
-    Inputs:
-        - `target` = value to be searched for
-        - `myList` = list of values
+    ##Inputs:
+       - `target` = value to be searched for
+       - `myList` = list of values
 
-    Output:
-        - index of first instance of `target` in `myList`
+    ##Output:
+       - index of first instance of `target` in `myList`
     '''
     for i in range(len(myList)):
         if myList[i] == target:
@@ -4322,19 +4322,19 @@ def find(target, myList):
 
 def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter='-'):
     r'''
-    Description:
-        Converts a plaintext string of a nuclide from an integer ZZZAAAM = 10000&ast;Z + 10&ast;A + M
+    ##Description:
+       Converts a plaintext string of a nuclide from an integer ZZZAAAM = 10000&ast;Z + 10&ast;A + M
 
-    Dependencies:
-        `element_Z_to_symbol` (function within the "PHITS Tools" package)
+    ##Dependencies:
+       `element_Z_to_symbol` (function within the "PHITS Tools" package)
 
-    Input:
+    ##Input:
        - `ZZZAAAM` = integer equal to 10000&ast;Z + 10&ast;A + M, where M designates the metastable state (0=ground)
        - `include_Z` = Boolean denoting whether the Z number should be included in the output string (D=`False`)
        - `ZZZAAA` = Boolean denoting whether the input should be interpreted as a ZZZAAA value (1000Z+A) instead (D=`False`)
        - `delimiter` = string which will be used to separate elements of the output string (D=`-`)
 
-    Output:
+    ##Output:
        - `nuc_str` = string describing the input nuclide formatted as [Z]-[Symbol]-[A][m]
     '''
     ZZZAAAM = int(ZZZAAAM)
@@ -4358,28 +4358,28 @@ def ZZZAAAM_to_nuclide_plain_str(ZZZAAAM,include_Z=False,ZZZAAA=False,delimiter=
 
 def nuclide_plain_str_to_ZZZAAAM(nuc_str):
     r'''
-    Description:
-        Converts a plaintext string of a nuclide to an integer ZZZAAAM = 10000\*Z + 10\*A + M
+    ##Description:
+       Converts a plaintext string of a nuclide to an integer ZZZAAAM = 10000\*Z + 10\*A + M
 
-    Dependencies:
-        `element_Z_to_symbol`
+    ##Dependencies:
+       `element_Z_to_symbol`
 
-    Inputs:
+    ##Inputs:
        - `nuc_str` = string to be converted; a huge variety of formats are supported, but they all must follow the following rules:
-           + `nuc_str` must begin with either the atomic mass number or the elemental symbol.
-           + `nuc_str` should NOT contain the atomic/proton number (Z).
-           + Isomeric/metastable state characters must always immediately follow the atomic mass characters.
+           - `nuc_str` must begin with either the atomic mass number or the elemental symbol.
+           - `nuc_str` should NOT contain the atomic/proton number (Z).
+           - Isomeric/metastable state characters must always immediately follow the atomic mass characters.
                Isomeric state labels must either:
                - (1) be a single lower-case character in `['g','m','n','o','p','q']` OR
                - (2) be `'m'` followed by a number from 1 to 5, in `['m1','m2','m3','m4','m5']`
-           + Atomic mass numbers must be nonnegative integers OR the string `"nat"` (in which case no metastable states 
+           - Atomic mass numbers must be nonnegative integers OR the string `"nat"` (in which case no metastable states
              can be written and A=0); if omitted, `"nat"` is assumed.
-           + Elemental symbols must begin with an upper-case character
+           - Elemental symbols must begin with an upper-case character
                - `'n'`, `'p'`, `'d'`, and `'t'` can also be specified for neutron, proton, deuteron, and triton, respectively.
-           + Space `' '`, hyphen `'-'`, and underscore `'_'` can be used anywhere in `nuc_str`; they will be ignored. 
+           - Space `' '`, hyphen `'-'`, and underscore `'_'` can be used anywhere in `nuc_str`; they will be ignored.
 
-    Outputs:
-        - ZZZAAAM integer
+    ##Outputs:
+       - ZZZAAAM integer
     '''
 
     # remove unwanted characters from provided string
@@ -4506,15 +4506,15 @@ def nuclide_plain_str_to_ZZZAAAM(nuc_str):
 
 def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
     r'''
-    Description:
-        Converts a plaintext string of a nuclide to a LaTeX-formatted raw string
-        Note: if you already have the Z, A, and isomeric state information determined, the [`dchain_tools.nuclide_to_Latex_form`](https://lindt8.github.io/DCHAIN-Tools/#dchain_tools.nuclide_to_Latex_form) 
-        function can be used instead.
+    ##Description:
+       Converts a plaintext string of a nuclide to a LaTeX-formatted raw string
+       Note: if you already have the Z, A, and isomeric state information determined, the [`dchain_tools.nuclide_to_Latex_form`](https://lindt8.github.io/DCHAIN-Tools/#dchain_tools.nuclide_to_Latex_form)
+       function can be used instead.
 
-    Dependencies:
-        - `element_Z_to_symbol` (function within the "PHITS Tools" package) (only required if `include_Z = True`)
+    ##Dependencies:
+       - `element_Z_to_symbol` (function within the "PHITS Tools" package) (only required if `include_Z = True`)
 
-    Input:
+    ##Input:
         (required)
 
        - `nuc_str` = string to be converted; a huge variety of formats are supported, but they all must follow the following rules:
@@ -4528,13 +4528,13 @@ def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
            + Elemental symbols must begin with an upper-case character
            + Space `' '`, hyphen `'-'`, and underscore `'_'` can be used anywhere in `nuc_str`; they will be ignored. 
 
-    Input:
+    ##Input:
        (optional)
 
        - `include_Z` = `True`/`False` determining whether the nuclide's atomic number Z will be printed as a subscript beneath the atomic mass
 
-    Output:
-        - LaTeX-formatted raw string of nuclide
+    ##Output:
+       - LaTeX-formatted raw string of nuclide
     '''
     tex_str = r''
 
