@@ -2419,7 +2419,6 @@ def tally_data_indices(*, default_to_all=True, tally_metadata=None, **axes):
     ##Examples:
        Presume you have a PHITS tally output file you have processed as follows:
 
-        ```
         from PHITS_tools import *
         from pathlib import Path
         standard_output_file = Path(Path.cwd(), 'example_tally.out')
@@ -2427,7 +2426,6 @@ def tally_data_indices(*, default_to_all=True, tally_metadata=None, **axes):
         tally_metadata = results_dict['tally_metadata']
         tally_data = results_dict['tally_data']
         tally_df = results_dict['tally_dataframe']
-        ```
         
        If you wish to access the full energy spectrum in the third region for all scored particles / particle groups
        with the values and uncertainties included, you would nominally have to access it as `tally_data[2,0,0,:,0,0,0,:,0,:]`.
@@ -2698,42 +2696,42 @@ def tally(data, bin_edges=[], min_bin_left_edge=None, max_bin_right_edge=None, n
 
 def rebinner(output_xbins,input_xbins,input_ybins):
     r"""
-    Description:
-        The purpose of this function is to rebin a set of y values corresponding to a set of x bins to a new set of x bins.
-        The function seeks to be as generalized as possible, meaning bin sizes do not need to be consistent nor do the
-        new bin edges necessarily need to line up exactly with the old bin edges.  It does assume that the value within 
-        each input bin is evenly (flatly) distributed across its bin width.  See the Method section below for more information 
-        on how this function works.
+    ##Description:
+       The purpose of this function is to rebin a set of y values corresponding to a set of x bins to a new set of x bins.
+       The function seeks to be as generalized as possible, meaning bin sizes do not need to be consistent nor do the
+       new bin edges necessarily need to line up exactly with the old bin edges.  It does assume that the value within
+       each input bin is evenly (flatly) distributed across its bin width.  See the Method section below for more information
+       on how this function works.
 
-    Dependencies:
-        `import numpy as np`
+    ##Dependencies:
+       `import numpy as np`
 
-    Inputs:
-      - `output_xbins` = output list/array containing bounds of x bins of length N; first entry is leftmost bin boundary
-      - `input_xbins`  = input list/array containing bounds of x bins of length M; first entry is leftmost bin boundary
-      - `input_ybins`  = input list/array containing y values of length M-1
+    ##Inputs:
+       - `output_xbins` = output list/array containing bounds of x bins of length N; first entry is leftmost bin boundary
+       - `input_xbins`  = input list/array containing bounds of x bins of length M; first entry is leftmost bin boundary
+       - `input_ybins`  = input list/array containing y values of length M-1
 
-    Outputs:
-      - `output_ybins` = output array containing y values of length N-1
+    ##Outputs:
+       - `output_ybins` = output array containing y values of length N-1
       
-    Method:
+    ##Method:
         
-        There are a number of different approaches one can take with rebinning; two are incorporated into this function and are detailed here.
+       There are a number of different approaches one can take with rebinning; two are incorporated into this function and are detailed here.
         
-        The first involves creation of entirely new bin boundaries that do not necessarily line up with the old bin boundaries, and the second involves the scenario where new bin edges do align with old bin edges.  These are pictured below (along with some math to be explained shortly).
-        
-        
-        
-        <img src="https://github.com/Lindt8/Lindt8.github.io/blob/master/files/figures/rebinning_math.svg?raw=true" alt="Rebinning math" width="90%"/>
-        
-        The input bin widths do not need to be uniform like in this example; they could have arbitrary spacing using the same methodology.  For an original set of M bins with bin values of y<sub>i</sub> and bin boundaries of x<sub>i</sub> and x<sub>i+1</sub> being rebinned into N bins with new bin values of y&prime;<sub>j</sub> and new bin boundaries of x&prime;<sub>j</sub> and x&prime;<sub>j+1</sub>, the new bin values can be calculated with Equation 1.  In the event bin edges are not all aligned, f<sub>i</sub> is described with Equation 2 (whose logical conditions are restated in plain language in Table 1), and if all new bin edges line up with old bin edges, the much simpler Equation 3 can be used to describe f<sub>i</sub>.
-        
-        Do be aware that this assumes that the content of a bin is evenly distributed between the minimum and maximum boundaries of a bin.  These equations could be made more complicated if one wanted to use information from the surrounding bins to form a distribution of how content is spread within a single bin.  But, this complication is typically not warranted since the process of rebinning usually entails combining smaller bins into larger ones, not creating smaller bins from larger ones.
-        
-        This method and explanation is adopted from [1], Section 4.11, pages 88--90.  While this function does not automatically support error propagation through the rebinning process, an approach for this applicable in some scenarios (namely those only involving statistical uncertainties derived from counting statistics) that also utilizes this function and its method is outlined in the same source [1] in Sections 5.1 and 5.2, pages 98--101.
+       The first involves creation of entirely new bin boundaries that do not necessarily line up with the old bin boundaries, and the second involves the scenario where new bin edges do align with old bin edges.  These are pictured below (along with some math to be explained shortly).
         
         
-        Source [1]: "[__Thick-target neutron yields for intermediate-energy heavy ion experiments at NSRL__](https://trace.tennessee.edu/utk_graddiss/5323/)," <u>H.N. Ratliff</u>, PhD dissertation, University of Tennessee, December 2018.
+        
+       <img src="https://github.com/Lindt8/Lindt8.github.io/blob/master/files/figures/rebinning_math.svg?raw=true" alt="Rebinning math" width="90%"/>
+        
+       The input bin widths do not need to be uniform like in this example; they could have arbitrary spacing using the same methodology.  For an original set of M bins with bin values of y<sub>i</sub> and bin boundaries of x<sub>i</sub> and x<sub>i+1</sub> being rebinned into N bins with new bin values of y&prime;<sub>j</sub> and new bin boundaries of x&prime;<sub>j</sub> and x&prime;<sub>j+1</sub>, the new bin values can be calculated with Equation 1.  In the event bin edges are not all aligned, f<sub>i</sub> is described with Equation 2 (whose logical conditions are restated in plain language in Table 1), and if all new bin edges line up with old bin edges, the much simpler Equation 3 can be used to describe f<sub>i</sub>.
+        
+       Do be aware that this assumes that the content of a bin is evenly distributed between the minimum and maximum boundaries of a bin.  These equations could be made more complicated if one wanted to use information from the surrounding bins to form a distribution of how content is spread within a single bin.  But, this complication is typically not warranted since the process of rebinning usually entails combining smaller bins into larger ones, not creating smaller bins from larger ones.
+        
+       This method and explanation is adopted from [1], Section 4.11, pages 88--90.  While this function does not automatically support error propagation through the rebinning process, an approach for this applicable in some scenarios (namely those only involving statistical uncertainties derived from counting statistics) that also utilizes this function and its method is outlined in the same source [1] in Sections 5.1 and 5.2, pages 98--101.
+        
+        
+       Source [1]: "[__Thick-target neutron yields for intermediate-energy heavy ion experiments at NSRL__](https://trace.tennessee.edu/utk_graddiss/5323/)," <u>H.N. Ratliff</u>, PhD dissertation, University of Tennessee, December 2018.
         
     """
 
@@ -2782,114 +2780,114 @@ def autoplot_tally_results(tally_output_list,plot_errorbars=True,output_filename
                            additional_save_extensions=[],show_plots=False,return_fg_list=False,
                            max_num_values_to_plot=1e7,rasterizesize_threshold=5e4,rasterize_dpi=300):
     r'''
-    Description:
-        Generates visualizations/plots of the data in the output Pandas DataFrames from the `parse_tally_output_file()` 
-        function in an automated fashion.  Note that this function only seeks to accomplish exactly this. 
-        It is not a function for generating customized plots; it exists to automate creating visualizations of PHITS 
-        output using sets of predetermined rules and settings, principally for initial checking of results. 
-        Generally, it does not respect plotting-relevant settings provided to PHITS tallies (e.g., `samepage`, `axis`, `angel`, etc.), 
-        though it will use the `title` parameter and the plot axis titles for ANGEL included in the .out files, which are
-        influenced by some tally parameters, such as `unit` and `y-txt`.
+    ##Description:
+       Generates visualizations/plots of the data in the output Pandas DataFrames from the `parse_tally_output_file()`
+       function in an automated fashion.  Note that this function only seeks to accomplish exactly this.
+       It is not a function for generating customized plots; it exists to automate creating visualizations of PHITS
+       output using sets of predetermined rules and settings, principally for initial checking of results.
+       Generally, it does not respect plotting-relevant settings provided to PHITS tallies (e.g., `samepage`, `axis`, `angel`, etc.),
+       though it will use the `title` parameter and the plot axis titles for ANGEL included in the .out files, which are
+       influenced by some tally parameters, such as `unit` and `y-txt`.
         
-        This function seeks to compile plots of results from one or multiple tallies into a single PDF file (and individual files in other image formats). 
-        The [seaborn](https://seaborn.pydata.org/) package's [relplot](https://seaborn.pydata.org/generated/seaborn.relplot.html) function is used for generating these plots.
-        This function is primarily intended to be called by `parse_tally_output_file()` and `parse_all_tally_output_in_dir()`. 
-        However, if you wish to make modifications to the automatically generated figures, you can use the `return_fg_list=True` setting 
-        and apply your desired modifications to the returned FacetGrid objects.  (This is demonstrated in the 
-        [example](https://github.com/Lindt8/PHITS-Tools/tree/main/example) distributed with PHITS Tools.)
+       This function seeks to compile plots of results from one or multiple tallies into a single PDF file (and individual files in other image formats).
+       The [seaborn](https://seaborn.pydata.org/) package's [relplot](https://seaborn.pydata.org/generated/seaborn.relplot.html) function is used for generating these plots.
+       This function is primarily intended to be called by `parse_tally_output_file()` and `parse_all_tally_output_in_dir()`.
+       However, if you wish to make modifications to the automatically generated figures, you can use the `return_fg_list=True` setting
+       and apply your desired modifications to the returned FacetGrid objects.  (This is demonstrated in the
+       [example](https://github.com/Lindt8/PHITS-Tools/tree/main/example) distributed with PHITS Tools.)
         
-        A showcase of example plots produced by this function can be found in [test/test_tally_plots.pdf](https://github.com/Lindt8/PHITS-Tools/blob/main/test/test_tally_plots.pdf) ([view whole PDF here](https://github.com/Lindt8/PHITS-Tools/blob/main/test/test_tally_plots.pdf?raw=true)).
+       A showcase of example plots produced by this function can be found in [test/test_tally_plots.pdf](https://github.com/Lindt8/PHITS-Tools/blob/main/test/test_tally_plots.pdf) ([view whole PDF here](https://github.com/Lindt8/PHITS-Tools/blob/main/test/test_tally_plots.pdf?raw=true)).
         
-    Dependencies:
-        - `import seaborn as sns`
-        - `import pandas as pd`
-        - `import matplotlib.pyplot as plt`
-        - `from matplotlib.colors import LogNorm, SymLogNorm, Normalize`
-        - `from matplotlib.backends.backend_pdf import PdfPages`
+    ##Dependencies:
+       - `import seaborn as sns`
+       - `import pandas as pd`
+       - `import matplotlib.pyplot as plt`
+       - `from matplotlib.colors import LogNorm, SymLogNorm, Normalize`
+       - `from matplotlib.backends.backend_pdf import PdfPages`
 
-    Inputs:
-        - `tally_output_list` = the `tally_output` output from the `parse_tally_output_file()` function, a string/Path
+    ##Inputs:
+       - `tally_output_list` = the `tally_output` output from the `parse_tally_output_file()` function, a string/Path
                 object pointing to the pickle file of such output, or a list of such outputs or pickle filepaths.
-        - `plot_errorbars` = (optional, D=`True`, requires `calculate_absolute_errors=True` to have been set in the 
+       - `plot_errorbars` = (optional, D=`True`, requires `calculate_absolute_errors=True` to have been set in the
                 `parse_tally_output_file()` call producing the `tally_output`) Boolean determining if errorbars will be 
                 displayed in plots.  Note that owing to shortcomings in the [seaborn](https://seaborn.pydata.org/) package's
                 handling of error bars (i.e., not supporting externally calculated error bars) that a workaround has 
                 instead been implemented but is only functional for "line"-type and "2D"-type plots.
-        - `output_filename` = (optional, D=`results.pdf`) String or Path object designating the name/path where the 
+       - `output_filename` = (optional, D=`results.pdf`) String or Path object designating the name/path where the
                 PDF of plots will be saved.
-        - `additional_save_extensions` = (optional, D=`[]`) a list of strings of file extensions, e.g., 
+       - `additional_save_extensions` = (optional, D=`[]`) a list of strings of file extensions, e.g.,
                 `['.png', '.svg']` compatible with [matplotlib.savefig](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html) 
                 to also save the plots as.
                 (options include '.eps', '.jpg', '.jpeg', '.pdf', '.pgf', '.png', '.ps', '.raw', '.rgba', '.svg', '.svgz', '.tif', '.tiff', and '.webp'; 
                 see `plt.gcf().canvas.get_supported_filetypes()`) 
-        - `show_plots` = (optional, D=`False`) Boolean denoting whether this function will make a `plt.show()` call
+       - `show_plots` = (optional, D=`False`) Boolean denoting whether this function will make a `plt.show()` call
                 immediately before the `return` statement.
-        - `return_fg_list` = (optional, D=`False`) Boolean denoting whether a list of the generated seaborn FacetGrid 
+       - `return_fg_list` = (optional, D=`False`) Boolean denoting whether a list of the generated seaborn FacetGrid
                 objects returned by the sns.relplot() calls should be returned by this function, allowing modification 
                 of the automatically generated plots.  (Strictly speaking, the objects are copies of the FacetGrid objects 
                 made using the built-in [copy.deepcopy()](https://docs.python.org/3/library/copy.html#copy.deepcopy) function.)  If `False`, this function returns `None`.
-        - `max_num_values_to_plot` = (optional, D=`1e7`) integer denoting the maximum number of data points to be 
+       - `max_num_values_to_plot` = (optional, D=`1e7`) integer denoting the maximum number of data points to be
                 plotted by this function for a single tally output, which, when exceeded, will cause the function to 
                 skip creating the plot&dagger;. 
                 The number of data points to be plotted is calculated as the product of the axis lengths of the 
                 `tally_output['tally_data']` Numpy array (excluding the final axis for values/errors).
-        - `rasterizesize_threshold` = (optional, D=`5e4`) integer denoting the maximum number of data points to be 
+       - `rasterizesize_threshold` = (optional, D=`5e4`) integer denoting the maximum number of data points to be
                 plotted by this function for a single tally output before setting `rasterized=True` to the `sns.relplot()` 
                 calls generating plots&Dagger;. 
                 The number of data points to be plotted is calculated as the product of the axis lengths of the 
                 `tally_output['tally_data']` Numpy array (excluding the final axis for values/errors).
-        - `rasterize_dpi` = (optional, D=`300`) integer denoting the DPI to be used in the `savefig()` calls when 
+       - `rasterize_dpi` = (optional, D=`300`) integer denoting the DPI to be used in the `savefig()` calls when
                 the `rasterizesize_threshold` is exceeded or when `additional_save_extensions` is used to save a plot 
                 in a non-vectorized format.
         
-    Outputs:
-        - `None` if `return_fg_list=False` (default) or `fg_list` if `return_fg_list=True`; see description of the `return_fg_list` input argument
-        - (and the saved file(s) of plot(s) specified by `output_filename`)
+    ##Outputs:
+       - `None` if `return_fg_list=False` (default) or `fg_list` if `return_fg_list=True`; see description of the `return_fg_list` input argument
+       - (and the saved file(s) of plot(s) specified by `output_filename`)
     
     --------
     
-    Notes:
-        All plots generated by this function will be one of three types:
+    ##Notes:
+       All plots generated by this function will be one of three types:
         
-        - 'scatter' = a scatterplot (error bars not available)
-        - 'line' = a line plot (error bars available)
-        - 'pseudo 2D' = a 2D color image plot (relative errors displayed as an additional 2D plot)
+       - 'scatter' = a scatterplot (error bars not available)
+       - 'line' = a line plot (error bars available)
+       - 'pseudo 2D' = a 2D color image plot (relative errors displayed as an additional 2D plot)
         
-        How the plot type is chosen and structured is dependent on the number of plotting axes found and their types. 
-        The number of plotting axes is taken as the count of axes in the `tally_output['tally_data']` Numpy array of 
-        length greater than 1 (excluding the final axis for values/errors).  Each axis is categorized as being either 
-        'numerical' (energy, time, angle, radius, x, etc.) or 'categorical' (particle, region number, etc.) in nature. 
-        If all plotting axes are categorical in nature, then the plot type will be of 'scatter' type.  Otherwise, the 
-        longest numerical axis is taken to be the horizontal plotting axis on either the 'line' or 'pseudo 2D' plot. 
-        If the next longest numerical axis has length >6 (or, in the event the total number of plot axes is 4 or greater, 
-        catergorical axes are also considered in this step), the plot type will be 'pseudo 2D' with that
-        axis taken as the vertical axis; otherwise, the plot type will be 'line' with `'value'` as the vertical axis. 
+       How the plot type is chosen and structured is dependent on the number of plotting axes found and their types.
+       The number of plotting axes is taken as the count of axes in the `tally_output['tally_data']` Numpy array of
+       length greater than 1 (excluding the final axis for values/errors).  Each axis is categorized as being either
+       'numerical' (energy, time, angle, radius, x, etc.) or 'categorical' (particle, region number, etc.) in nature.
+       If all plotting axes are categorical in nature, then the plot type will be of 'scatter' type.  Otherwise, the
+       longest numerical axis is taken to be the horizontal plotting axis on either the 'line' or 'pseudo 2D' plot.
+       If the next longest numerical axis has length >6 (or, in the event the total number of plot axes is 4 or greater,
+       catergorical axes are also considered in this step), the plot type will be 'pseudo 2D' with that
+       axis taken as the vertical axis; otherwise, the plot type will be 'line' with `'value'` as the vertical axis.
         
-        The seaborn relplot `hue`, `style`, `row`, `col`, and `size` variables, loosely in that order, are assigned to 
-        the next longest axes in order of descending length (except for the 'pseudo 2D' plots, where `hue` is used for 
-        `'value'` and `style` and `size` are unused). 
-        For the 'scatter' and 'line' plots, `hue` and `style` are typically assigned to the same axis for better visual distinction.
-        
-        The 'pseudo 2D' plots are called "pseudo" here as they are still made with the seaborn replot function, which 
-        actually does not support making this type of plot.  The 2D plots are achieved by using the [matplotlib.markers "verts"](https://matplotlib.org/stable/api/markers_api.html) 
-        functionality to make markers of the correct aspect ratio to tile together nicely when scaled up (or down) 
-        sufficiently in size `s` to form the illusion of a 2D colormap plot, hence the "pseudo" in the name. 
-        
-        An additional case to note is that if provided a [T-Yield] tally output with `axis = chart` (or `axis = dchain`) 
-        and with at least 16 unique nuclides produced, a pseudo 2D plot showing nuclide production in a "Table of Isotopes" 
-        format will always be generated (such as shown below), with all other plot axes combined into tuples and used as the `row` variable.
-        
-        ![](https://github.com/Lindt8/PHITS-Tools/blob/main/docs/yield_p-on-ThO2_axis-chart.png?raw=true "example Table of Isotope styled plot")
-        
-        &dagger;This function also calculates the total number of values (bins) in the tally output to be plotted, the product 
-        of the axis lengths of the `tally_output['tally_data']` Numpy array (excluding the final axis for values/errors). 
-        If this value exceeds 10 million (controlled by the `max_num_values_to_plot` input in this function), 
-        this function will skip attempting to make the plot.  This limit is set to avoid potential crashes from 
-        insufficient memory in scenarios where these plots are unlikely to actually be desired anyways. 
-        
-        &Dagger;Furthermore, if the total number of values exceeds 50 thousand (controlled by the `rasterizesize_threshold` input 
-        in this function), rasterization will be employed in the plotting area (passing `rasterized = True` to 
-        the `sns.relplot()` call) using a default DPI of 300 (controlled by the `rasterize_dpi` input in this function).
+       The seaborn relplot `hue`, `style`, `row`, `col`, and `size` variables, loosely in that order, are assigned to
+       the next longest axes in order of descending length (except for the 'pseudo 2D' plots, where `hue` is used for
+       `'value'` and `style` and `size` are unused).
+       For the 'scatter' and 'line' plots, `hue` and `style` are typically assigned to the same axis for better visual distinction.
+
+       The 'pseudo 2D' plots are called "pseudo" here as they are still made with the seaborn replot function, which
+       actually does not support making this type of plot.  The 2D plots are achieved by using the [matplotlib.markers "verts"](https://matplotlib.org/stable/api/markers_api.html)
+       functionality to make markers of the correct aspect ratio to tile together nicely when scaled up (or down)
+       sufficiently in size `s` to form the illusion of a 2D colormap plot, hence the "pseudo" in the name.
+
+       An additional case to note is that if provided a [T-Yield] tally output with `axis = chart` (or `axis = dchain`)
+       and with at least 16 unique nuclides produced, a pseudo 2D plot showing nuclide production in a "Table of Isotopes"
+       format will always be generated (such as shown below), with all other plot axes combined into tuples and used as the `row` variable.
+
+       ![](https://github.com/Lindt8/PHITS-Tools/blob/main/docs/yield_p-on-ThO2_axis-chart.png?raw=true "example Table of Isotope styled plot")
+
+       &dagger;This function also calculates the total number of values (bins) in the tally output to be plotted, the product
+       of the axis lengths of the `tally_output['tally_data']` Numpy array (excluding the final axis for values/errors).
+       If this value exceeds 10 million (controlled by the `max_num_values_to_plot` input in this function),
+       this function will skip attempting to make the plot.  This limit is set to avoid potential crashes from
+       insufficient memory in scenarios where these plots are unlikely to actually be desired anyways.
+
+       &Dagger;Furthermore, if the total number of values exceeds 50 thousand (controlled by the `rasterizesize_threshold` input
+       in this function), rasterization will be employed in the plotting area (passing `rasterized = True` to
+       the `sns.relplot()` call) using a default DPI of 300 (controlled by the `rasterize_dpi` input in this function).
     
     '''
     '''
