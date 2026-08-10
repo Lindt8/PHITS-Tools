@@ -4515,7 +4515,7 @@ def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
        - `element_Z_to_symbol` (function within the "PHITS Tools" package) (only required if `include_Z = True`)
 
     ##Input:
-        (required)
+       (required)
 
        - `nuc_str` = string to be converted; a huge variety of formats are supported, but they all must follow the following rules:
            + `nuc_str` must begin with either the atomic mass number or the elemental symbol.
@@ -4653,17 +4653,17 @@ def nuclide_plain_str_to_latex_str(nuc_str,include_Z=False):
 
 def nuclide_Z_and_A_to_latex_str(Z,A,m=''):
     r'''
-    Description:
-        Form a LaTeX-formatted string of a nuclide provided its Z/A/m information
+    ##Description:
+       Form a LaTeX-formatted string of a nuclide provided its Z/A/m information
 
-    Inputs:
-        - `Z` = atomic number of nuclide (int, float, or string) or elemental symbol (string)
-        - `A` = atomic mass of nuclide (int, float, or string) or string to go in place of A (ex. `'nat'`)
-        - `m` = metastable state (D=`''`, ground state); this will be appended to the end of A
+    ##Inputs:
+       - `Z` = atomic number of nuclide (int, float, or string) or elemental symbol (string)
+       - `A` = atomic mass of nuclide (int, float, or string) or string to go in place of A (ex. `'nat'`)
+       - `m` = metastable state (D=`''`, ground state); this will be appended to the end of A
               if not a string already, it will be converted into one and appended to `'m'` (ex. `1` -> `'m1'`)
 
-    Outputs:
-        - LaTeX-formatted raw string of a nuclide, excellent for plot titles, labels, and auto-generated LaTeX documents
+    ##Outputs:
+       - LaTeX-formatted raw string of a nuclide, excellent for plot titles, labels, and auto-generated LaTeX documents
     '''
     if isinstance(A,(int,float)): A = str(int(A))
     if not isinstance(Z,str): 
@@ -4679,14 +4679,14 @@ def nuclide_Z_and_A_to_latex_str(Z,A,m=''):
 
 def element_Z_to_symbol(Z):
     r'''
-    Description:
-        Returns elemental symbol for a provided atomic number Z
+    ##Description:
+       Returns elemental symbol for a provided atomic number Z
 
-    Inputs:
-        - `Z` = atomic number
+    ##Inputs:
+       - `Z` = atomic number
 
-    Outputs:
-        - `sym` = string of elemental symbol for element of atomic number Z
+    ##Outputs:
+       - `sym` = string of elemental symbol for element of atomic number Z
     '''
     elms = ["n ",\
             "H ","He","Li","Be","B ","C ","N ","O ","F ","Ne",\
@@ -4709,20 +4709,20 @@ def element_Z_to_symbol(Z):
 
 def element_symbol_to_Z(sym):
     r'''
-    Description:
-        Returns atomic number Z for a provided elemental symbol
+    ##Description:
+       Returns atomic number Z for a provided elemental symbol
 
-    Dependencies:
-        `find` (function within the "PHITS Tools" package)
+    ##Dependencies:
+       `find` (function within the "PHITS Tools" package)
 
-    Inputs:
-        - `sym` = string of elemental symbol for element of atomic number Z 
+    ##Inputs:
+       - `sym` = string of elemental symbol for element of atomic number Z
 
-    Outputs:
-        - `Z` = atomic number
+    ##Outputs:
+       - `Z` = atomic number
         
-    Note:
-        `'XX'` returns `0` for neutrons, avoiding clash with `'N'` for nitrogen.
+    ##Note:
+       `'XX'` returns `0` for neutrons, avoiding clash with `'N'` for nitrogen.
     '''
     elms = ["n ",\
             "H ","He","Li","Be","B ","C ","N ","O ","F ","Ne",\
@@ -4762,14 +4762,14 @@ def element_symbol_to_Z(sym):
 
 def element_Z_or_symbol_to_name(Z):
     r'''
-    Description:
-        Returns an element's name provided its atomic number Z or elemental symbol
+    ##Description:
+       Returns an element's name provided its atomic number Z or elemental symbol
 
-    Inputs:
-        - `Z` = string of elemental symbol or atomic number Z
+    ##Inputs:
+       - `Z` = string of elemental symbol or atomic number Z
 
-    Outputs:
-        - `name` = element name
+    ##Outputs:
+       - `name` = element name
     '''
     element_names = ['neutron','Hydrogen','Helium','Lithium','Beryllium','Boron','Carbon','Nitrogen','Oxygen','Fluorine',
                      'Neon','Sodium','Magnesium','Aluminium','Silicon','Phosphorus','Sulfur','Chlorine','Argon',
@@ -4793,22 +4793,22 @@ def element_Z_or_symbol_to_name(Z):
 
 def element_Z_or_symbol_to_mass(Z):
     r'''
-    Description:
-        Returns an element's average atomic mass (standard atomic weight) provided its atomic number Z or elemental symbol
+    ##Description:
+       Returns an element's average atomic mass (standard atomic weight) provided its atomic number Z or elemental symbol
 
-    Inputs:
-        - `Z` = string of elemental symbol or atomic number Z
+    ##Inputs:
+       - `Z` = string of elemental symbol or atomic number Z
 
-    Outputs:
-        - `A_avg` = average atomic mass (standard atomic weight)
+    ##Outputs:
+       - `A_avg` = average atomic mass (standard atomic weight)
     
-    Source:
-        [ATOMIC WEIGHTS OF THE ELEMENTS 2023, IUPAC Commission on Isotopic Abundances and Atomic Weights](https://iupac.qmul.ac.uk/AtWt/), Table 2, accessed on 14-Aug-2025.
+    ##Source:
+       [ATOMIC WEIGHTS OF THE ELEMENTS 2023, IUPAC Commission on Isotopic Abundances and Atomic Weights](https://iupac.qmul.ac.uk/AtWt/), Table 2, accessed on 14-Aug-2025.
     
-    Notes:
-        This function is really just for quick access to average elemental mass/weight information without adding any
-        extra external dependencies to PHITS Tools.  If you wish to work with elemental/isotopic data in more detail, 
-        there are dedicated Python packages for this such as [`mendeleev`](https://github.com/lmmentel/mendeleev). 
+    ##Notes:
+       This function is really just for quick access to average elemental mass/weight information without adding any
+       extra external dependencies to PHITS Tools.  If you wish to work with elemental/isotopic data in more detail,
+       there are dedicated Python packages for this such as [`mendeleev`](https://github.com/lmmentel/mendeleev).
         
     '''
     
@@ -4945,13 +4945,13 @@ def element_Z_or_symbol_to_mass(Z):
 
 def kfcode_to_common_name(kf_code):
     r'''
-    Description:
-        Converts an integer kf-code to plaintext string of a particle/nuclide
+    ##Description:
+       Converts an integer kf-code to plaintext string of a particle/nuclide
 
-    Input:
+    ##Input:
        - `kf_code` = integer kf-code particle identification number (see PHITS manual Table 4.4)
 
-    Output:
+    ##Output:
        - `par_nuc_str` = string either naming the particle or describing the input nuclide formatted as [Symbol]-[A]
     '''
     kf_code = int(kf_code)
@@ -4975,28 +4975,28 @@ def kfcode_to_common_name(kf_code):
 
 def determine_PHITS_output_file_type(output_file):
     r'''
-    Description:
-        Determine what kind of PHITS file is being hanlded (tally standard output, binary tally dump, ASCII tally dump, etc.)
+    ##Description:
+       Determine what kind of PHITS file is being hanlded (tally standard output, binary tally dump, ASCII tally dump, etc.)
 
-    Inputs:
-        - `output_file` = a file/filepath (string or Path object) to be judged
+    ##Inputs:
+       - `output_file` = a file/filepath (string or Path object) to be judged
 
-    Outputs:
-        - `PHITS_file_type` = a dictionary of Booleans detailing what kind of file `output_file` is (and isn't) with
+    ##Outputs:
+       - `PHITS_file_type` = a dictionary of Booleans detailing what kind of file `output_file` is (and isn't) with
             the following keys (each with a value set to `True` or `False`):
             `'is_standard_tally_output'`, `'is_binary_tally_dump'`, `'is_ASCII_tally_dump'`,
             `'is_PHITS_input_file'`, `'is_file6_phitsout_file'`, `'is_DCHAIN_input_file'`, 
             `'is_unknown_file_type'`, and `'file_does_not_exist'`.  By default, all are set to `False` except for
             `'is_unknown_file_type'` which is `True` by default.
 
-    Notes:
-        - Dump files are identified with the presence of '_dmp' in their filename. Whether it is ASCII or binary is
+    ##Notes:
+       - Dump files are identified with the presence of '_dmp' in their filename. Whether it is ASCII or binary is
              simply determined by attempting to read the first line of the file in a try/except statement.
-        - Standard tally output files are identified by `[` being the very first character in the first line.
-        - PHITS input files are identified by having a file extension in the following list (case insensitive): `['.inp','.in','.input','.i']`
-        - 'phits.out' files (`file(6)` in the PHITS [Parameters] section) are identified by its first line consisting of
+       - Standard tally output files are identified by `[` being the very first character in the first line.
+       - PHITS input files are identified by having a file extension in the following list (case insensitive): `['.inp','.in','.input','.i']`
+       - 'phits.out' files (`file(6)` in the PHITS [Parameters] section) are identified by its first line consisting of
              11 spaces followed by 57 underscores.
-        - DCHAIN input files are identified by `htitle =` being in the first line.
+       - DCHAIN input files are identified by `htitle =` being in the first line.
 
     '''
     import re
@@ -5044,16 +5044,16 @@ def determine_PHITS_output_file_type(output_file):
 
 def search_for_dump_parameters(output_file):
     r'''
-    Description:
-        Try to determine the dump settings used for a dump file by searching for the same file without "_dmp" and parsing
-        its header for the "dump = " line and subsequent line specifying the column ordering.
+    ##Description:
+       Try to determine the dump settings used for a dump file by searching for the same file without "_dmp" and parsing
+       its header for the "dump = " line and subsequent line specifying the column ordering.
 
-    Inputs:
-        - `output_file` = a file/filepath (string or Path object) to be judged
+    ##Inputs:
+       - `output_file` = a file/filepath (string or Path object) to be judged
 
-    Outputs:
-        - `dump_data_number` = value following "dump = " in the PHITS tally (integer from -20 to 20, excluding 0) (D=`None`)
-        - `dump_data_sequence` = list of integers specifying the order and meaning of the dump file columns (D=`None`)
+    ##Outputs:
+       - `dump_data_number` = value following "dump = " in the PHITS tally (integer from -20 to 20, excluding 0) (D=`None`)
+       - `dump_data_sequence` = list of integers specifying the order and meaning of the dump file columns (D=`None`)
     '''
     dump_data_number, dump_data_sequence = None, None
     output_file = Path(output_file)
@@ -5088,16 +5088,16 @@ def search_for_dump_parameters(output_file):
 
 def split_into_header_and_content(output_file_path):
     r'''
-    Description:
-        Initial parsing of a PHITS tally output file to isolate its header section (containing metadata) and main
-        tally results "content" section for later processing.
+    ##Description:
+       Initial parsing of a PHITS tally output file to isolate its header section (containing metadata) and main
+       tally results "content" section for later processing.
 
-    Inputs:
-        - `output_file_path` = path to a PHITS tally output file
+    ##Inputs:
+       - `output_file_path` = path to a PHITS tally output file
 
-    Outputs:
-        - `header` = list of lines belonging to the tally output's header section
-        - `content` = list of lists of remaining lines after the tally output's header section; the top level list is
+    ##Outputs:
+       - `header` = list of lines belonging to the tally output's header section
+       - `content` = list of lists of remaining lines after the tally output's header section; the top level list is
                 broken into "blocks" ("newpage:"-separated) which are lists of lines belonging to each block/page.
 
     '''
@@ -5129,20 +5129,20 @@ def split_into_header_and_content(output_file_path):
 
 def parse_tally_header(tally_header,tally_content):
     r'''
-    Description:
-        Extracts metadata from PHITS tally output header (and some extra info from its contents section)
+    ##Description:
+       Extracts metadata from PHITS tally output header (and some extra info from its contents section)
 
-    Dependencies:
-        - `extract_data_from_header_line` (function within the "PHITS tools" package)
-        - `parse_group_string` (function within the "PHITS tools" package)
+    ##Dependencies:
+       - `extract_data_from_header_line` (function within the "PHITS tools" package)
+       - `parse_group_string` (function within the "PHITS tools" package)
 
-    Inputs:
-        - `tally_header` = list of lines belonging to the tally output's header section
-        - `tally_content` = list of lists of remaining lines after the tally output's header section; the top level list is
+    ##Inputs:
+       - `tally_header` = list of lines belonging to the tally output's header section
+       - `tally_content` = list of lists of remaining lines after the tally output's header section; the top level list is
                 broken into "blocks" ("newpage:"-separated) which are lists of lines belonging to each block/page.
 
-    Outputs:
-        - `meta` = Munch object / dictionary containing tally metadata
+    ##Outputs:
+       - `meta` = Munch object / dictionary containing tally metadata
 
     '''
     import datetime
@@ -5599,24 +5599,24 @@ def parse_tally_header(tally_header,tally_content):
 
 def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode=False):
     r'''
-    Description:
-        Parses the PHITS tally output content section and extract its results
+    ##Description:
+       Parses the PHITS tally output content section and extract its results
 
-    Dependencies:
-        - `split_str_of_equalities` (function within the "PHITS tools" package)
-        - `parse_group_string` (function within the "PHITS tools" package)
-        - `data_row_to_num_list` (function within the "PHITS tools" package)
+    ##Dependencies:
+       - `split_str_of_equalities` (function within the "PHITS tools" package)
+       - `parse_group_string` (function within the "PHITS tools" package)
+       - `data_row_to_num_list` (function within the "PHITS tools" package)
 
-    Inputs:
-        - `tdata` = 10-dimensional NumPy array of zeros of correct size to hold tally output/results
-        - `meta` = Munch object / dictionary containing tally metadata
-        - `tally_blocks` = blocks of tally output as outputted by the `split_into_header_and_content` function
-        - `is_err_in_separate_file` = Boolean denoting whether the tally's relative errors are located in a separate file
-        - `err_mode` = Boolean (D=`False`) used for manually forcing all read values to be regarded as relative uncertainties
+    ##Inputs:
+       - `tdata` = 10-dimensional NumPy array of zeros of correct size to hold tally output/results
+       - `meta` = Munch object / dictionary containing tally metadata
+       - `tally_blocks` = blocks of tally output as outputted by the `split_into_header_and_content` function
+       - `is_err_in_separate_file` = Boolean denoting whether the tally's relative errors are located in a separate file
+       - `err_mode` = Boolean (D=`False`) used for manually forcing all read values to be regarded as relative uncertainties
                 as is necessary when processing dedicated *_err files.
 
-    Outputs:
-        - `tdata` = updated `tdata` array containing read/extracted tally results
+    ##Outputs:
+       - `tdata` = updated `tdata` array containing read/extracted tally results
 
     '''
     global ir, iy, iz, ie, it, ia, il, ip, ic, ierr
@@ -6255,18 +6255,18 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
 
 def extract_data_from_header_line(line):
     r'''
-    Description:
-        Extract a "key" and its corresponding value from a PHITS tally output header line
+    ##Description:
+       Extract a "key" and its corresponding value from a PHITS tally output header line
 
-    Dependencies:
-        - `is_number` (function within the "PHITS tools" package)
+    ##Dependencies:
+       - `is_number` (function within the "PHITS tools" package)
 
-    Inputs:
-        - `line` = string to be processed
+    ##Inputs:
+       - `line` = string to be processed
 
-    Outputs:
-        - `key` = a string "key" to become a key in the metadata dictionary
-        - `value` = corresponding value they "key" is equal to; dtype is string, int, or float
+    ##Outputs:
+       - `key` = a string "key" to become a key in the metadata dictionary
+       - `value` = corresponding value they "key" is equal to; dtype is string, int, or float
     '''
     if '#' in line:
         info, trash = line.split('#',1)
@@ -6284,17 +6284,17 @@ def extract_data_from_header_line(line):
 
 def split_str_of_equalities(text):
     r'''
-    Description:
-        Extract relevant regions, indices, etc. from somewhat inconsistently formatted lines in PHITS tally output content section.
+    ##Description:
+       Extract relevant regions, indices, etc. from somewhat inconsistently formatted lines in PHITS tally output content section.
 
-    Dependencies:
-        - `is_number` (function within the "PHITS tools" package)
+    ##Dependencies:
+       - `is_number` (function within the "PHITS tools" package)
 
-    Inputs:
-        - `text` = string to be processed
+    ##Inputs:
+       - `text` = string to be processed
 
-    Outputs:
-        - `equalities_str_list` = list of strings of equalities each of the format "key = value"
+    ##Outputs:
+       - `equalities_str_list` = list of strings of equalities each of the format "key = value"
 
     '''
     equalities_str_list = []
@@ -6340,14 +6340,14 @@ def split_str_of_equalities(text):
 
 def parse_group_string(text):
     r'''
-    Description:
-        Separate "groups" in a string, wherein a group is a standalone value or a series of values inside parentheses.
+    ##Description:
+       Separate "groups" in a string, wherein a group is a standalone value or a series of values inside parentheses.
 
-    Inputs:
-        - `text` = string to be processed
+    ##Inputs:
+       - `text` = string to be processed
 
-    Outputs:
-        - `groups` = a list of strings extracted from `text`
+    ##Outputs:
+       - `groups` = a list of strings extracted from `text`
     '''
     # returns list of items from PHITS-formatted string, e.g. w/ ()
     parts = text.strip().split()
@@ -6393,19 +6393,19 @@ def parse_group_string(text):
 
 def initialize_tally_array(tally_metadata,include_abs_err=True):
     r'''
-    Description:
-        Initializes main tally data array in which tally results will be stored when read
+    ##Description:
+       Initializes main tally data array in which tally results will be stored when read
 
-    Dependencies:
-        - `import numpy as np`
+    ##Dependencies:
+       - `import numpy as np`
 
-    Inputs:
-        - `tally_metadata` = Munch object / dictionary containing tally metadata
-        - `include_abs_err` = a Boolean (D=`True`) on whether absolute error will be calculated; the final dimension of `tdata` is
+    ##Inputs:
+       - `tally_metadata` = Munch object / dictionary containing tally metadata
+       - `include_abs_err` = a Boolean (D=`True`) on whether absolute error will be calculated; the final dimension of `tdata` is
                 `3/2` if this value is `True/False`
 
-    Outputs:
-        - `tdata` = 10-dimensional NumPy array of zeros of correct size for holding tally results
+    ##Outputs:
+       - `tdata` = 10-dimensional NumPy array of zeros of correct size for holding tally results
 
     '''
     ir_max, iy_max, iz_max, ie_max, it_max, ia_max, il_max, ip_max, ic_max = 1, 1, 1, 1, 1, 1, 1, 1, 1
@@ -6500,17 +6500,17 @@ def initialize_tally_array(tally_metadata,include_abs_err=True):
 
 def data_row_to_num_list(line):
     r'''
-    Description:
-        Extract numeric values from line of text from PHITS tally output content section
+    ##Description:
+       Extract numeric values from line of text from PHITS tally output content section
 
-    Dependencies:
-        - `is_number` (function within the "PHITS tools" package)
+    ##Dependencies:
+       - `is_number` (function within the "PHITS tools" package)
 
-    Inputs:
-        - `line` = string to be processed
+    ##Inputs:
+       - `line` = string to be processed
 
-    Outputs:
-        - `values` = a list of ints and/or floats of numeric values in `line`
+    ##Outputs:
+       - `values` = a list of ints and/or floats of numeric values in `line`
     '''
     value_strs = line.strip().split()
     if any(len(val) > 16 for val in value_strs):  # line contains some weirdness, requires extra parsing attention (scientific notation numbers have 13 characters, with leaning spaces)
@@ -6535,14 +6535,14 @@ def data_row_to_num_list(line):
 
 def calculate_tally_absolute_errors(tdata):
     r'''
-    Description:
-        Calculates the absolute uncertainty for every value in the PHITS tally data array
+    ##Description:
+       Calculates the absolute uncertainty for every value in the PHITS tally data array
 
-    Inputs:
-        - `tdata` = 10-dimensional NumPy array containing read/extracted tally results
+    ##Inputs:
+       - `tdata` = 10-dimensional NumPy array containing read/extracted tally results
 
-    Outputs:
-        - `tdata` = updated `tdata` array now with absolute uncertainties in `ierr = 2` index
+    ##Outputs:
+       - `tdata` = updated `tdata` array now with absolute uncertainties in `ierr = 2` index
 
     '''
 
@@ -6581,18 +6581,18 @@ def calculate_tally_absolute_errors(tdata):
 
 def build_tally_Pandas_dataframe(tdata,meta):
     r'''
-    Description:
-        Calculates the absolute uncertainty for every value in the PHITS tally data array
+    ##Description:
+       Calculates the absolute uncertainty for every value in the PHITS tally data array
 
-    Dependencies:
-        - `import pandas as pd`
+    ##Dependencies:
+       - `import pandas as pd`
 
-    Inputs:
-        - `tdata` = 10-dimensional NumPy array containing read/extracted tally results
-        - `meta` = Munch object / dictionary containing tally metadata
+    ##Inputs:
+       - `tdata` = 10-dimensional NumPy array containing read/extracted tally results
+       - `meta` = Munch object / dictionary containing tally metadata
 
-    Outputs:
-        - `tally_df` = Pandas dataframe containing the entire contents of the `tdata` array;
+    ##Outputs:
+       - `tally_df` = Pandas dataframe containing the entire contents of the `tdata` array;
                 note that tally_df.attrs returns values which are the same for all rows
 
     '''
@@ -6920,40 +6920,40 @@ def build_tally_Pandas_dataframe(tdata,meta):
 
 def extract_tally_outputs_from_phits_input(phits_input, use_path_and_string_mode=False, only_seek_phitsout=False):
     r'''
-    Description:
-        Extract a list of output files produced from a PHITS input file (or its "phits.out" file, using its input echo). 
-        In cases where the PHITS `infl:{*}` function is used to insert text files of PHITS input (namely input for 
-        tallies), it is strongly recommended to pass this function the "phits.out" file (`file(6)` in the PHITS 
-        [Parameters] section) to have access to the complete input echo including all inserted files.  Note that this 
-        function's output will only include files that actually exist.
+    ##Description:
+       Extract a list of output files produced from a PHITS input file (or its "phits.out" file, using its input echo).
+       In cases where the PHITS `infl:{*}` function is used to insert text files of PHITS input (namely input for
+       tallies), it is strongly recommended to pass this function the "phits.out" file (`file(6)` in the PHITS
+       [Parameters] section) to have access to the complete input echo including all inserted files.  Note that this
+       function's output will only include files that actually exist.
 
-    Inputs:
-        - `phits_input` = string or Path object denoting the path to the PHITS input file to be parsed (or the 
+    ##Inputs:
+       - `phits_input` = string or Path object denoting the path to the PHITS input file to be parsed (or the
                 "phits.out" file, which should be located in the same directory as the PHITS input producing it)
-        - `use_path_and_string_mode` = (optional, D=`False`) Boolean for special use case by `parse_phitsout_file()`. 
+       - `use_path_and_string_mode` = (optional, D=`False`) Boolean for special use case by `parse_phitsout_file()`.
                 If `True`, `phits_input` should instead be a dictionary with the following keys:
-               - `'sim_base_dir_path'` : a [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+           - `'sim_base_dir_path'` : a [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
                    object pointing to the directory containing the PHITS input file and phits.out file
-               - `'input_echo'` : a string of the input echo as generated by `parse_phitsout_file()`
-        - `only_seek_phitsout` = (optional, D=`False`) Boolean designating if this function should _only_ search for
+           - `'input_echo'` : a string of the input echo as generated by `parse_phitsout_file()`
+       - `only_seek_phitsout` = (optional, D=`False`) Boolean designating if this function should _only_ search for
                 the phits.out file and no other outputs.
 
-    Outputs:
-        - `files_dict` = a dictionary organizing and listing files that were to be produced by the PHITS input and were 
+    ##Outputs:
+       - `files_dict` = a dictionary organizing and listing files that were to be produced by the PHITS input and were
                 found to exist, with the following keys:
-            - `'standard_output'` : a list of [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+           - `'standard_output'` : a list of [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
                     objects pointing to the locations of all of the standard tally output files found.
-            - `'dump_output'` : a list of [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+           - `'dump_output'` : a list of [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
                     objects pointing to the locations of all of the dump tally output files found.
-            - `'phitsout'` : a single [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+           - `'phitsout'` : a single [`pathlib.Path()`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
                     object pointing to the location of the "phits.out" file.
-            - `'active_infl_found'` : a Boolean denoting whether an active `infl:{*}` insert file function was found 
+           - `'active_infl_found'` : a Boolean denoting whether an active `infl:{*}` insert file function was found
                     in the PHITS input.  If `True`, it is possible this files dictionary is missing some produced 
                     output files from tallies / tally portions included in the input file via `infl:{*}`.
                     This should always be `False` when provided a "phits.out" file since it includes inserted file contents. 
         
-        To conveniently view the contents of `files_dict`, one can import the built-in
-        pprint library `import pprint` and then use `pprint.pp(dict(files_dict))`.
+       To conveniently view the contents of `files_dict`, one can import the built-in
+       pprint library `import pprint` and then use `pprint.pp(dict(files_dict))`.
     '''
     '''
     Basically, look for "file =", accounting for presence of "dump =" in the tally and whether "off" is present in the
