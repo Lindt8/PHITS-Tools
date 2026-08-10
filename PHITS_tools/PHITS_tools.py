@@ -338,25 +338,29 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
                             prefer_reading_existing_pickle=False, compress_pickle_with_lzma=False, 
                             autoplot_tally_output=False):
     r'''
-    Description:
+    #Description:
+
         Parse any PHITS tally output file, returning tally metadata and an array of its values (and optionally
         this data inside of a Pandas dataframe too).  Note the separate `parse_tally_dump_file` function for
         parsing PHITS dump files.  If a DCHAIN input file (output from the [T-Dchain] tally) or DCHAIN output
         `*.act` file is provided, an attempt will be made to import the [DCHAIN Tools module](https://github.com/Lindt8/DCHAIN-Tools) and process the found
         DCHAIN output files, returning the output dictionary object and (optionally) saving it to a pickle file.
 
-    Dependencies:
+     Dependencies:
+
         - `import numpy as np`
         - `import pandas as pd` (if `make_PandasDF = True`)
         - `import seaborn as sns` (if `autoplot_tally_output = True`)
         - `from munch import Munch` (will still run if package not found)
 
     Inputs:
+
        (required)
 
         - **`tally_output_filepath`** = string or Path object denoting the path to the tally output file to be parsed
 
     Inputs:
+
        (optional)
 
        - **`make_PandasDF`** = (D=`True`) A Boolean denoting whether a Pandas dataframe of the tally data array will be made 
@@ -397,6 +401,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
                       `tally_output_filepath` but ending in `.pdf`/`.png`) using the `autoplot_tally_results()` function.
 
     Output:
+
         - **`tally_output`** = a dictionary object with the below keys and values:
             - `'tally_data'` = a 10-dimensional NumPy array containing all tally results, explained in more detail below
             - `'tally_metadata'` = a dictionary/Munch&dagger; object with various data extracted from the tally output file, such as axis binning and units
