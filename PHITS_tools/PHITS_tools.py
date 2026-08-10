@@ -398,7 +398,7 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
 
     ##Output:
 
-        - **`tally_output`** = a dictionary object with the below keys and values:
+       - **`tally_output`** = a dictionary object with the below keys and values:
             - `'tally_data'` = a 10-dimensional NumPy array containing all tally results, explained in more detail below
             - `'tally_metadata'` = a dictionary/Munch&dagger; object with various data extracted from the tally output file, such as axis binning and units
             - `'tally_dataframe'` = a Pandas dataframe version of `tally_data` (`None` if `make_PandasDF = False`) 
@@ -436,16 +436,16 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
 
        Tally data indices and corresponding mesh/axis:
 
-        - `0` | `ir`, Geometry mesh: `reg` / `x` / `r` / `tet` ([T-Cross] `ir surf` if `mesh=r-z` with `enclos=0`)
-        - `1` | `iy`, Geometry mesh:  `1` / `y` / `1`
-        - `2` | `iz`, Geometry mesh:  `1` / `z` / `z` ([T-Cross] `iz surf` if `mesh=xyz` or `mesh=r-z` with `enclos=0`)
-        - `3` | `ie`, Energy mesh: `eng` ([T-Deposit2] `eng1`)
-        - `4` | `it`, Time mesh
-        - `5` | `ia`, Angle mesh
-        - `6` | `il`, LET mesh
-        - `7` | `ip`, Particle type (`part = `)
-        - `8` | `ic`, Special: [T-Deposit2] `eng2`; [T-Yield] `mass`, `charge`, `chart`; [T-Interact] `act`
-        - `9` | `ierr = 0/1/2`, Value / relative uncertainty / absolute uncertainty (expanded to `3/4/5`, or `2/3` if
+       - `0` | `ir`, Geometry mesh: `reg` / `x` / `r` / `tet` ([T-Cross] `ir surf` if `mesh=r-z` with `enclos=0`)
+       - `1` | `iy`, Geometry mesh:  `1` / `y` / `1`
+       - `2` | `iz`, Geometry mesh:  `1` / `z` / `z` ([T-Cross] `iz surf` if `mesh=xyz` or `mesh=r-z` with `enclos=0`)
+       - `3` | `ie`, Energy mesh: `eng` ([T-Deposit2] `eng1`)
+       - `4` | `it`, Time mesh
+       - `5` | `ia`, Angle mesh
+       - `6` | `il`, LET mesh
+       - `7` | `ip`, Particle type (`part = `)
+       - `8` | `ic`, Special: [T-Deposit2] `eng2`; [T-Yield] `mass`, `charge`, `chart`; [T-Interact] `act`
+       - `9` | `ierr = 0/1/2`, Value / relative uncertainty / absolute uncertainty (expanded to `3/4/5`, or `2/3` if
         `calculate_absolute_errors = False`, for [T-Cross] `mesh=r-z` with `enclos=0` case; see notes further below)
 
 
@@ -548,10 +548,10 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
 
        The following tallies are NOT supported by this function:
 
-        - [T-WWG], [T-WWBG], and [T-Volume] (due to being "helper" tallies for generating text sections meant for reinsertion into a PHITS input file)
-        - [T-Gshow], [T-Rshow], [T-3Dshow], and [T-4Dtrack] (due to being visualization tallies meant for ANGEL/PHIG-3D)
-        - [T-Userdefined] (due to having no standard format)
-        - [T-Dchain]&Dagger;
+       - [T-WWG], [T-WWBG], and [T-Volume] (due to being "helper" tallies for generating text sections meant for reinsertion into a PHITS input file)
+       - [T-Gshow], [T-Rshow], [T-3Dshow], and [T-4Dtrack] (due to being visualization tallies meant for ANGEL/PHIG-3D)
+       - [T-Userdefined] (due to having no standard format)
+       - [T-Dchain]&Dagger;
 
        &Dagger;If provided with the output file of [T-Dchain] (the input file for the DCHAIN code), the `*.act` main
        output file produced by the DCHAIN code, or the `*.dtrk`/`*.dyld` [T-Track]/[T-Yield] tally outputs spawned by 
@@ -581,8 +581,8 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        set the length of the `ir` and `iz` dimensions to `nrsurf` and `nzsurf`, respectively, and also
        to expand the length of the final dimension of `tally_data` from 3 to 6 (or from 2 to 4 if `calculate_absolute_errors=False`), where:
 
-        - `ierr = 0/1/2` refer to the combinations of `nr` and `nzsurf` (or `0/1` if `calculate_absolute_errors=False`)
-        - `ierr = 3/4/5` refer to the combinations of `nrsurf` and `nz` (or `2/3` if `calculate_absolute_errors=False`)
+       - `ierr = 0/1/2` refer to the combinations of `nr` and `nzsurf` (or `0/1` if `calculate_absolute_errors=False`)
+       - `ierr = 3/4/5` refer to the combinations of `nrsurf` and `nz` (or `2/3` if `calculate_absolute_errors=False`)
 
        In this case, the Pandas dataframe, if enabled, will contain 3 (or 2) extra columns `value2` and `rel.err.2` [and `abs.err.2`],
        which correspond to the combinations of `nrsurf` and `nz` (while the original columns without the "2" refer to
@@ -647,15 +647,15 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        Otherwise, if the output file of [T-Dchain] (the input file for the DCHAIN code) or the `*.act` main
        output file produced by the DCHAIN code is provided, a few other things will happen:
        
-        - If the `*.dout` file of the same basename exists, the [T-Dchain] tally's metadata will be parsed into a dictionary 
+       - If the `*.dout` file of the same basename exists, the [T-Dchain] tally's metadata will be parsed into a dictionary
             and added to the `tally_output` dictionary under the key `'[T-Dchain]_metadata'`.
-        - If the `*.dtrk`/`*.dyld` [T-Track]/[T-Yield] tally output files spawned by [T-Dchain] exist, they will be processed 
+       - If the `*.dtrk`/`*.dyld` [T-Track]/[T-Yield] tally output files spawned by [T-Dchain] exist, they will be processed
             as described above.  In addition, their individual `tally_output` dictionaries produced will be stored in the main 
             `tally_output` dictionary returned by this function under the keys `'dtrk_tally_output'`/`'dyld_tally_output'`.
             Furthermore, if the `*.dout` file was found and processed, the [T-Dchain] tally's metadata dictionary will also 
             be added to their `tally_metadata` dictionaries; e.g., `tally_output['dyld_tally_output']['tally_metadata']['[T-Dchain]_metadata']`.
             A `'has_dyld_dtrk_file'` key (Boolean, set to `True`) will also be added to the returned `tally_output` dictionary.
-        - If the `*.act` file of the same basename exists, it will be passed to [`dchain_tools.process_dchain_simulation_output()`](https://lindt8.github.io/DCHAIN-Tools/#dchain_tools.process_dchain_simulation_output)
+       - If the `*.act` file of the same basename exists, it will be passed to [`dchain_tools.process_dchain_simulation_output()`](https://lindt8.github.io/DCHAIN-Tools/#dchain_tools.process_dchain_simulation_output)
             (with `process_DCS_file=True` set) for it and other DCHAIN output files to be processed, as described in the 
             [DCHAIN Tools documentation](https://lindt8.github.io/DCHAIN-Tools/#dchain_tools.process_dchain_simulation_output). 
             The dictionary object returned by [`dchain_tools.process_dchain_simulation_output()`](https://lindt8.github.io/DCHAIN-Tools/#dchain_tools.process_dchain_simulation_output) 
@@ -685,9 +685,9 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
        to this where the "sum over" line contains a genuinely nontrivial alternate set of values.
        Specifically, this occurs in the following cases:
 
-        - For [T-LET], if `axis = let` is set along with either `unit = 13` or `unit = 14` in the tally, the "sum over"
+       - For [T-LET], if `axis = let` is set along with either `unit = 13` or `unit = 14` in the tally, the "sum over"
             line instead contains the frequency or dose mean of the respective probability densities, _f(L)_ or _d(L)_.
-        - For [T-SED], if `axis = sed` is set along with either `unit = 7` or `unit = 8` in the tally, the "sum over"
+       - For [T-SED], if `axis = sed` is set along with either `unit = 7` or `unit = 8` in the tally, the "sum over"
             line instead contains the frequency or dose mean of the respective probability densities, _f(e/y/z)_ or _d(e/y/z)_.
 
        In these circumstances, the value written to the "sum over" line is actually a weighted average LET or microdosimetric
@@ -711,9 +711,9 @@ def parse_tally_output_file(tally_output_filepath, make_PandasDF = True, calcula
 
        A few important notes about this:
 
-        - For the LET/SED "energy" bin midpoints, the logarithmic `_log` bin midpoints should be used if your `l-type`/`se-type`
+       - For the LET/SED "energy" bin midpoints, the logarithmic `_log` bin midpoints should be used if your `l-type`/`se-type`
             scoring mesh was logarithmic (set to type 3 or 5). Otherwise, if linear (types 2 and 4), then use the linear bin midpoints.
-        - The returned `sumline_vals` array is 8-D, as the LET/SED axis (index 3 or 6) has been reduced out, along with the final `ierr` axis.
+       - The returned `sumline_vals` array is 8-D, as the LET/SED axis (index 3 or 6) has been reduced out, along with the final `ierr` axis.
 
 
        
