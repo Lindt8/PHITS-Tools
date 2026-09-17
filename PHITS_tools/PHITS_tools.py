@@ -5072,7 +5072,7 @@ def search_for_dump_parameters(output_file):
     tally_header, tally_content = split_into_header_and_content(origin_tally_file)
     for li, line in enumerate(tally_header):
         if "dump =" in line:
-            if line[0] == '#':  # commented line
+            if line[0] == '#' or line[0] == '$':  # commented line
                 key, value = extract_data_from_header_line(line[1:])
             else:
                 key, value = extract_data_from_header_line(line)
@@ -5202,7 +5202,7 @@ def parse_tally_header(tally_header,tally_content):
             #print('read ',n_values_to_read,current_data_mesh_kind,' values')
             continue
         elif '=' in line:
-            if line[0] == '#':  # commented line
+            if line[0] == '$' or line[0] == '#':  # commented line
                 key, value = extract_data_from_header_line(line[1:])
                 if key=='file' and key in meta and '_dmp' in value: continue # do not overwrite existing file parameter with dump file
             else:
@@ -5328,7 +5328,7 @@ def parse_tally_header(tally_header,tally_content):
             if key == 'axis' and tally_type == '[T-Yield]' and value == 'dchain':
                 in_tyield_axis_dchain = True
         elif reading_axis_data:
-            values = line.replace('#','').strip().split()
+            values = line.replace('#','').replace('$','').strip().split()
             for val in values:
                 data_values.append(float(val))
                 remaining_n_values_to_read += -1
@@ -5693,8 +5693,8 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
             for li, line in enumerate(data_header+data_footer):
                 if len(line) == 0: continue
 
-                if '=' in line and (line[0] == "'" or (line[0] == "#" and ('no.' in line or 'i' in line or 'reg' in line or 'part' in line))):
-                    if line[0] == "#":
+                if '=' in line and (line[0] == "'" or ((line[0] == "#" or line[0] == '$') and ('no.' in line or 'i' in line or 'reg' in line or 'part' in line))):
+                    if line[0] == '$' or line[0] == "#":
                         hash_line_already_evaluated = True
                     elif line[0] == "'" and hash_line_already_evaluated:
                         if meta['samepage'] == 'part':
@@ -5935,8 +5935,8 @@ def parse_tally_content(tdata,meta,tally_blocks,is_err_in_separate_file,err_mode
                 #    regnum = line.strip().split('reg =')[1].strip()
                 #    ir = (meta.reg_num).index(regnum)
                 #    # print(ir)
-                if '=' in line and (line[0] == "'" or (line[0] == "#" and ('no.' in line or 'i' in line or 'reg' in line or 'part' in line))):
-                    if line[0] == "#":
+                if '=' in line and (line[0] == "'" or ((line[0] == '$' or line[0] == "#") and ('no.' in line or 'i' in line or 'reg' in line or 'part' in line))):
+                    if line[0] == '$' or line[0] == "#":
                         hash_line_already_evaluated = True
                     elif line[0] == "'" and hash_line_already_evaluated:
                         if meta['samepage'] == 'part':
@@ -6268,7 +6268,9 @@ def extract_data_from_header_line(line):
        - `key` = a string "key" to become a key in the metadata dictionary
        - `value` = corresponding value they "key" is equal to; dtype is string, int, or float
     '''
-    if '#' in line:
+    if '$' in line:
+        info, trash = line.split('$',1)
+    elif '#' in line:
         info, trash = line.split('#',1)
     else:
         info = line
@@ -6302,7 +6304,7 @@ def split_str_of_equalities(text):
     #if text[0] == "'": # more loosely formatted text
     #    problem_strs = ['tot DPA']
     if text[0] == "#" and 'no. =***' in text and text[-1]=='=': return [] # skip broken lines
-    text = text.replace("'",'').replace(',',' ').replace('#','').replace('=',' = ').replace('***','999999999')
+    text = text.replace("'",'').replace(',',' ').replace('#','').replace('$','').replace('=',' = ').replace('***','999999999')
     text_pieces = text.split()
     #i_equal_sign = [i for i, x in enumerate(text_pieces) if x == "="]
     is_i_equal_sign = [x=='=' for x in text_pieces]
