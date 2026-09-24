@@ -7001,6 +7001,7 @@ def extract_tally_outputs_from_phits_input(phits_input, use_path_and_string_mode
             if in_parameters_section and line.strip()[:7] == 'file(6)':
                     phitsout_file = extract_data_from_header_line(line)[1]
     else:
+        previous_line = ''
         for line in file:
             if len(line.strip()) == 0: continue
             if line.strip()[0] in ['$', '#']: continue  # comment line
@@ -7019,6 +7020,8 @@ def extract_tally_outputs_from_phits_input(phits_input, use_path_and_string_mode
             if in_valid_tally:
                 if line.strip()[0] == '#': continue
                 if line.strip()[:4]=='file':
+                    if previous_line.strip()[:4]=='file' and '.' not in line: continue
+                    # addresses bug where phits.out adds extra "file = " line and populates it with comment string overflow
                     key, value = extract_data_from_header_line(line)
                     tally_out_files.append(value)
                 if line.strip()[:4] == 'dump': 
@@ -7027,6 +7030,7 @@ def extract_tally_outputs_from_phits_input(phits_input, use_path_and_string_mode
                 if line.strip()[:7] == 'file(6)':
                     key, value = extract_data_from_header_line(line)
                     phitsout_file = value
+            previous_line = line
     file.close()
     files_dict['active_infl_found'] = active_infl_found
     if phitsout_file is None:
