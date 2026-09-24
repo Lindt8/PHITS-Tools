@@ -5207,6 +5207,7 @@ def parse_tally_header(tally_header,tally_content):
                 if key=='file' and key in meta and '_dmp' in value: continue # do not overwrite existing file parameter with dump file
             else:
                 key, value = extract_data_from_header_line(line)
+            if key == 'file' and 'file' in meta: continue # don't overwrite file name with erroneous extra file entry
             if in_exceptional_mesh_kind:
                 if key[0]=='e':
                     key = current_data_mesh_kind + key[1:]
